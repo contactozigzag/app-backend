@@ -1,6 +1,6 @@
-# Symfony Docker
+# Zigzag API
 
-A [Docker](https://www.docker.com/)-based installer and runtime for the [Symfony](https://symfony.com) web framework,
+A [Docker](https://www.docker.com/)-based project and runtime for the [Symfony](https://symfony.com) web framework,
 with [FrankenPHP](https://frankenphp.dev) and [Caddy](https://caddyserver.com/) inside!
 
 ![CI](https://github.com/dunglas/symfony-docker/workflows/CI/badge.svg)
