@@ -9,7 +9,7 @@ services:
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       # Run "composer require symfony/orm-pack" to install and configure Doctrine ORM
-      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-15}&charset=${POSTGRES_CHARSET:-utf8}
+      DATABASE_URL: mysql://${MYSQL_USER:-zigzag}:${MYSQL_PASSWORD:-ZigZagTech!2026}@database:3306/${MYSQL_DATABASE:-zigzag}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       # Run "composer require symfony/mercure-bundle" to install and configure the Mercure integration
       MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
       MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}/.well-known/mercure}
@@ -34,6 +34,20 @@ services:
         published: ${HTTP3_PORT:-443}
         protocol: udp
 
+  database:
+    image: mysql:${MYSQL_VERSION:-8.4}
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-zigzag}
+      MYSQL_USER: ${MYSQL_USER:-zigzag}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ZigZagTech!2026}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-ZigZagTech!2026}
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/mysql:rw
 # Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
@@ -41,5 +55,6 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+  database_data:
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
