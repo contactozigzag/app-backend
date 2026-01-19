@@ -16,28 +16,34 @@ class DriverRepository extends ServiceEntityRepository
         parent::__construct($registry, Driver::class);
     }
 
-    //    /**
-    //     * @return Driver[] Returns an array of Driver objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('d')
-    //            ->andWhere('d.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('d.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * Find all drivers for a school
+     *
+     * @return Driver[]
+     */
+    public function findBySchool(\App\Entity\School $school): array
+    {
+        return $this->createQueryBuilder('d')
+            ->join('d.user', 'u')
+            ->andWhere('u.school = :school')
+            ->setParameter('school', $school)
+            ->orderBy('u.lastName', 'ASC')
+            ->addOrderBy('u.firstName', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 
-    //    public function findOneBySomeField($value): ?Driver
-    //    {
-    //        return $this->createQueryBuilder('d')
-    //            ->andWhere('d.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * Count drivers for a school
+     */
+    public function countBySchool(\App\Entity\School $school): int
+    {
+        return (int) $this->createQueryBuilder('d')
+            ->select('COUNT(d.id)')
+            ->join('d.user', 'u')
+            ->andWhere('u.school = :school')
+            ->setParameter('school', $school)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

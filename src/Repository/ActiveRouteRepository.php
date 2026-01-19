@@ -66,4 +66,49 @@ class ActiveRouteRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Find upcoming routes by parent user
+     *
+     * @return ActiveRoute[]
+     */
+    public function findUpcomingByParent(
+        \App\Entity\User $parent,
+        \DateTimeImmutable $start,
+        \DateTimeImmutable $end
+    ): array {
+        return $this->createQueryBuilder('ar')
+            ->join('ar.stops', 'ars')
+            ->join('ars.student', 's')
+            ->join('s.parents', 'p')
+            ->andWhere('p = :parent')
+            ->andWhere('ar.date >= :start')
+            ->andWhere('ar.date <= :end')
+            ->setParameter('parent', $parent)
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
+            ->orderBy('ar.date', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Find active routes by school for today
+     *
+     * @return ActiveRoute[]
+     */
+    public function findActiveBySchool(School $school, \DateTimeImmutable $date): array
+    {
+        return $this->createQueryBuilder('ar')
+            ->join('ar.routeTemplate', 'rt')
+            ->andWhere('rt.school = :school')
+            ->andWhere('ar.date = :date')
+            ->andWhere('ar.status IN (:statuses)')
+            ->setParameter('school', $school)
+            ->setParameter('date', $date)
+            ->setParameter('statuses', ['scheduled', 'in_progress'])
+            ->orderBy('ar.status', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

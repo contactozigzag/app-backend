@@ -65,4 +65,18 @@ class LocationUpdateRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
     }
+
+    /**
+     * Get the latest location for an active route
+     */
+    public function findLatestByActiveRoute(\App\Entity\ActiveRoute $activeRoute): ?LocationUpdate
+    {
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.activeRoute = :activeRoute')
+            ->setParameter('activeRoute', $activeRoute)
+            ->orderBy('l.timestamp', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

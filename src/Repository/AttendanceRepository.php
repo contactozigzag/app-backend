@@ -40,18 +40,19 @@ class AttendanceRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find attendance for a student on a specific date
+     * Find attendance records for a student on a specific date (can be multiple)
+     *
+     * @return Attendance[]
      */
-    public function findByStudentAndDate(Student $student, \DateTimeImmutable $date): ?Attendance
+    public function findByStudentAndDate(Student $student, \DateTimeImmutable $date): array
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.student = :student')
             ->andWhere('a.date = :date')
             ->setParameter('student', $student)
             ->setParameter('date', $date)
-            ->setMaxResults(1)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getResult();
     }
 
     /**

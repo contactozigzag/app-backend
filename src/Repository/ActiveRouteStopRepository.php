@@ -72,4 +72,26 @@ class ActiveRouteStopRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Find active stops for a student on a specific date
+     *
+     * @return ActiveRouteStop[]
+     */
+    public function findActiveStopsByStudentAndDate(
+        Student $student,
+        \DateTimeImmutable $date
+    ): array {
+        return $this->createQueryBuilder('ars')
+            ->join('ars.activeRoute', 'ar')
+            ->andWhere('ars.student = :student')
+            ->andWhere('ar.date = :date')
+            ->andWhere('ar.status IN (:statuses)')
+            ->setParameter('student', $student)
+            ->setParameter('date', $date)
+            ->setParameter('statuses', ['scheduled', 'in_progress'])
+            ->orderBy('ars.stopOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

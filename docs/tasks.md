@@ -49,11 +49,11 @@
 - Link: Plan P3.2 | Req 8.2, 2.3
 
 ## Phase 4: Portals & UI Backend
-[ ] **Task 4.1: Parent Dashboard API**
+[x] **Task 4.1: Parent Dashboard API**
 - Aggregate active route status, bus location, and child status.
 - Link: Plan P4.1 | Req 4.1
 
-[ ] **Task 4.2: School Admin Dashboard API**
+[x] **Task 4.2: School Admin Dashboard API**
 - Statistics on active routes, driver status, and school-wide alerts.
 - Link: Plan P4.2 | Req 4.1, 1.2
 
