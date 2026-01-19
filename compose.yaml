@@ -48,6 +48,20 @@ services:
       start_period: 60s
     volumes:
       - database_data:/var/lib/mysql:rw
+
+  rabbitmq:
+    image: rabbitmq:4.2-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_logs:/var/log/rabbitmq
+
+  redis:
+    image: redis:8.4-alpine
+    volumes:
+      - redis_data:/data
 # Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
@@ -56,5 +70,8 @@ volumes:
   caddy_data:
   caddy_config:
   database_data:
+  rabbitmq_data:
+  rabbitmq_logs:
+  redis_data:
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
