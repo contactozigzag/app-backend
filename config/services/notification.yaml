@@ -1,0 +1,30 @@
+services:
+    # Notification Providers
+    App\Notification\Provider\EmailNotificationProvider:
+        arguments:
+            $fromEmail: '%env(default::MAIL_FROM_EMAIL)%'
+            $fromName: '%env(default::MAIL_FROM_NAME)%'
+        tags:
+            - { name: 'app.notification_provider' }
+
+    App\Notification\Provider\SmsNotificationProvider:
+        arguments:
+            $apiKey: '%env(default::SMS_API_KEY)%'
+            $apiUrl: '%env(default::SMS_API_URL)%'
+            $fromNumber: '%env(default::SMS_FROM_NUMBER)%'
+        tags:
+            - { name: 'app.notification_provider' }
+
+    App\Notification\Provider\PushNotificationProvider:
+        arguments:
+            $fcmServerKey: '%env(default::FCM_SERVER_KEY)%'
+            $fcmUrl: 'https://fcm.googleapis.com/fcm/send'
+        tags:
+            - { name: 'app.notification_provider' }
+
+    # Notification Service with auto-wiring of providers
+    App\Service\NotificationService:
+        calls:
+            - addProvider: ['@App\Notification\Provider\EmailNotificationProvider']
+            - addProvider: ['@App\Notification\Provider\SmsNotificationProvider']
+            - addProvider: ['@App\Notification\Provider\PushNotificationProvider']

@@ -58,23 +58,23 @@
 - Link: Plan P4.2 | Req 4.1, 1.2
 
 ## Phase 5: Notifications
-[ ] **Task 5.1: Multi-provider Notification Service**
+[x] **Task 5.1: Multi-provider Notification Service**
 - Generic service for Push, SMS, and Email delivery.
 - Link: Plan P5.1 | Req 5.1
 
-[ ] **Task 5.2: Event-driven Notification Triggers**
+[x] **Task 5.2: Event-driven Notification Triggers**
 - Listen for "Arriving", "Picked Up", "Dropped Off" events to send alerts.
 - Link: Plan P5.1 | Req 5.1, 3.2, 8.1
 
 ## Phase 6: Analytics & Testing
-[ ] **Task 6.1: Ride Logging & Archiving**
+[x] **Task 6.1: Ride Logging & Archiving**
 - Background job to archive completed route data for history.
 - Link: Plan P6.1 | Req 4.2, 6.1
 
-[ ] **Task 6.2: Performance Report Generator**
+[x] **Task 6.2: Performance Report Generator**
 - API to calculate on-time rates and efficiency metrics.
 - Link: Plan P6.2 | Req 6.1
 
-[ ] **Task 6.3: End-to-End Safety Audit**
+[x] **Task 6.3: End-to-End Safety Audit**
 - Verification of check-in/check-out logs and child security.
 - Link: Plan P6.1 | Req 8.1

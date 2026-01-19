@@ -1,51 +1,728 @@
-# Zigzag API
+# ZigZag School Transportation Management System
 
-A [Docker](https://www.docker.com/)-based project and runtime for the [Symfony](https://symfony.com) web framework,
-with [FrankenPHP](https://frankenphp.dev) and [Caddy](https://caddyserver.com/) inside!
+A comprehensive, real-time school transportation management system designed to streamline and secure student transport operations. Built with modern PHP/Symfony, featuring multi-tenancy, real-time GPS tracking, route optimization, and comprehensive safety features.
 
-![CI](https://github.com/dunglas/symfony-docker/workflows/CI/badge.svg)
+## 🎯 Overview
 
-## Getting Started
+ZigZag provides schools, parents, and drivers with a complete solution for managing school bus operations. The system ensures student safety through real-time tracking, automated notifications, and comprehensive check-in/check-out mechanisms.
 
-1. If not already done, [install Docker Compose](https://docs.docker.com/compose/install/) (v2.10+)
-2. Run `docker compose build --pull --no-cache` to build fresh images
-3. Run `docker compose up --wait` to set up and start a fresh Symfony project
-4. Open `https://localhost` in your favorite web browser and [accept the auto-generated TLS certificate](https://stackoverflow.com/a/15076602/1352334)
-5. Run `docker compose down --remove-orphans` to stop the Docker containers.
+### Key Highlights
 
-## Features
+- **Multi-tenant Architecture**: Support multiple schools with complete data isolation
+- **Real-time GPS Tracking**: Live bus location updates every 5-10 seconds
+- **Route Optimization**: Intelligent route planning with Google Maps integration
+- **Safety First**: Comprehensive check-in/check-out logging and safety audits
+- **Multi-channel Notifications**: Push, SMS, and Email alerts
+- **Performance Analytics**: Detailed metrics and reporting for operational insights
 
-- Production, development and CI ready
-- Just 1 service by default
-- Blazing-fast performance thanks to [the worker mode of FrankenPHP](https://frankenphp.dev/docs/worker/)
-- [Installation of extra Docker Compose services](docs/extra-services.md) with Symfony Flex
-- Automatic HTTPS (in dev and prod)
-- HTTP/3 and [Early Hints](https://symfony.com/blog/new-in-symfony-6-3-early-hints) support
-- Real-time messaging thanks to a built-in [Mercure hub](https://symfony.com/doc/current/mercure.html)
-- [Vulcain](https://vulcain.rocks) support
-- Native [XDebug](docs/xdebug.md) integration
-- Super-readable configuration
+## 🏗️ Technology Stack
 
-**Enjoy!**
+### Backend Framework
+- **PHP 8.3+** - Modern PHP with type safety and performance improvements
+- **Symfony 7.3** - Enterprise-grade PHP framework
+- **API Platform 4** - REST and GraphQL API development framework
+- **Doctrine ORM** - Database abstraction and entity management
 
-## Docs
+### Database & Caching
+- **MySQL 8.4** - Primary relational database
+- **Redis 8.4** - Caching and session management
 
-1. [Options available](docs/options.md)
-2. [Using Symfony Docker with an existing project](docs/existing-project.md)
-3. [Support for extra services](docs/extra-services.md)
-4. [Deploying in production](docs/production.md)
-5. [Debugging with Xdebug](docs/xdebug.md)
-6. [TLS Certificates](docs/tls.md)
-7. [Using MySQL instead of PostgreSQL](docs/mysql.md)
-8. [Using Alpine Linux instead of Debian](docs/alpine.md)
-9. [Using a Makefile](docs/makefile.md)
-10. [Updating the template](docs/updating.md)
-11. [Troubleshooting](docs/troubleshooting.md)
+### Message Queue
+- **RabbitMQ 4.2** - Asynchronous task processing and event handling
 
-## License
+### External Services
+- **Google Maps APIs**:
+  - Places API - Address validation and geocoding
+  - Routes API - Route calculation and optimization
+  - Distance Matrix API - Travel time and distance calculations
+- **Firebase Cloud Messaging (FCM)** - Push notifications
+- **SMS Provider** - SMS notifications (configurable)
+- **Symfony Mailer** - Email notifications
 
-Symfony Docker is available under the MIT License.
+### Authentication & Security
+- **JWT (LexikJWTAuthenticationBundle)** - Stateless authentication
+- **RBAC** - Role-based access control with hierarchical permissions
+- **Multi-tenant Filtering** - Automatic school-based data isolation
 
-## Credits
+### Development Tools
+- **Docker & Docker Compose** - Containerized development environment
+- **FrankenPHP** - High-performance PHP server
+- **Caddy** - Automatic HTTPS and HTTP/3 support
 
-Created by [Kévin Dunglas](https://dunglas.dev), co-maintained by [Maxime Helias](https://twitter.com/maxhelias) and sponsored by [Les-Tilleuls.coop](https://les-tilleuls.coop).
+## 📐 Architecture
+
+### System Architecture
+
+```
+┌─────────────────┐
+│  React Native   │
+│  Mobile Apps    │
+│  (iOS/Android)  │
+└────────┬────────┘
+         │ HTTPS/REST
+         │
+┌────────▼─────────────────────────────────────────┐
+│              API Gateway (Symfony)                │
+│  ┌─────────────────────────────────────────────┐ │
+│  │  JWT Authentication & Authorization         │ │
+│  │  Multi-tenant Context Filtering             │ │
+│  └─────────────────────────────────────────────┘ │
+│                                                   │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐      │
+│  │  User    │  │  Route   │  │  Safety  │      │
+│  │  Service │  │  Service │  │  Service │      │
+│  └──────────┘  └──────────┘  └──────────┘      │
+│                                                   │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐      │
+│  │Location  │  │Notification│ │Analytics │      │
+│  │Service   │  │  Service  │  │ Service  │      │
+│  └──────────┘  └──────────┘  └──────────┘      │
+└───────────────────┬───────────────────────────────┘
+                    │
+    ┌───────────────┼───────────────┐
+    │               │               │
+┌───▼────┐    ┌────▼────┐    ┌────▼─────┐
+│ MySQL  │    │  Redis  │    │ RabbitMQ │
+│   DB   │    │  Cache  │    │  Queue   │
+└────────┘    └─────────┘    └──────────┘
+```
+
+### Database Schema Overview
+
+```
+Schools
+  ├── Users (Parents, Drivers, Admins)
+  ├── Students
+  └── Routes
+      ├── RouteStops
+      └── ActiveRoutes
+          ├── ActiveRouteStops
+          ├── LocationUpdates
+          └── Attendance Records
+```
+
+### Multi-tenant Data Isolation
+
+The system implements automatic multi-tenant filtering through:
+- **Doctrine Filter**: Automatically filters queries by school context
+- **Event Subscriber**: Enables filter on every request based on authenticated user
+- **Super Admin Override**: System administrators can access data across all schools
+
+## 🚀 Features
+
+### Phase 1: Identity & Access Management ✅
+
+**Multi-tenant User Management**
+- Role-based access control (RBAC) with hierarchical roles
+- JWT-based authentication
+- Automatic school context filtering
+- Support for multiple user roles: Parent, Driver, School Admin, Super Admin
+
+**Entities Implemented:**
+- School
+- User (with roles: ROLE_USER, ROLE_PARENT, ROLE_DRIVER, ROLE_SCHOOL_ADMIN, ROLE_SUPER_ADMIN)
+- Student (with parent-student many-to-many relationships)
+- Driver
+- Address (geocoded locations)
+
+### Phase 2: Route Planning & Optimization ✅
+
+**Route Management**
+- Morning and afternoon route templates
+- Route optimization with stop sequencing
+- Google Maps integration for routing
+- Estimated time and distance calculations
+
+**Entities Implemented:**
+- Route (templates with school association)
+- RouteStop (individual stops with estimated arrival times)
+
+### Phase 3: Real-time Tracking & Operations ✅
+
+**Live GPS Tracking**
+- Driver location updates (5-10 second intervals)
+- Real-time bus location on routes
+- Geofencing for automatic arrival detection
+- Location history storage
+
+**Attendance & Manifest Management**
+- Student check-in/check-out workflow
+- Timestamped attendance records with GPS coordinates
+- Absence reporting and route recalculation
+- Digital manifest for drivers
+
+**Entities Implemented:**
+- ActiveRoute (daily route instances)
+- ActiveRouteStop (real-time stop status tracking)
+- LocationUpdate (GPS tracking data)
+- Attendance (check-in/check-out records)
+- Absence (student absence management)
+
+### Phase 4: Dashboards & Portals ✅
+
+**Parent Dashboard API** (`/api/parent/dashboard`)
+- Real-time child status and location
+- Active route information with bus location
+- Estimated arrival times
+- Today's attendance records
+- Upcoming route schedule
+
+**School Admin Dashboard API** (`/api/school-admin/dashboard`)
+- School-wide statistics and metrics
+- Active route monitoring with progress tracking
+- Driver status and locations
+- Automated alerts for delays and issues
+- Today's operational metrics
+
+### Phase 5: Notifications ✅
+
+**Multi-provider Notification System**
+- Email notifications (HTML formatted)
+- SMS notifications (configurable provider)
+- Push notifications (Firebase Cloud Messaging)
+- User-defined notification preferences
+
+**Event-driven Notifications**
+- Bus arriving at stop
+- Student picked up
+- Student dropped off
+- Route started
+- Route delays
+- Route cancellations
+
+**Entities Implemented:**
+- NotificationPreference (per-user notification settings)
+
+**Events:**
+- BusArrivingEvent
+- StudentPickedUpEvent
+- StudentDroppedOffEvent
+- RouteStartedEvent
+- RouteCompletedEvent
+
+### Phase 6: Analytics & Safety Audits ✅
+
+**Route Archiving & History**
+- Automatic archiving of completed routes
+- Performance metrics calculation
+- Historical data retention
+- Background job processing (`app:archive-routes`)
+
+**Performance Analytics APIs**
+- `/api/reports/performance` - Comprehensive performance reports
+- `/api/reports/efficiency` - Distance and time efficiency metrics
+- `/api/reports/top-performing` - Best performing routes
+- `/api/reports/comparative` - Period-over-period comparisons
+
+**Safety Audit System**
+- `/api/safety/audit` - End-to-end safety verification
+- Check-in/check-out validation
+- Orphaned record detection
+- Missing checkout identification
+- Duplicate record detection
+- Time anomaly detection
+- Overall safety scoring (0-100)
+
+**Entities Implemented:**
+- ArchivedRoute (historical route data with metrics)
+
+## 📚 API Documentation
+
+### Authentication
+
+#### Login
+```http
+POST /api/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+**Response:**
+```json
+{
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "refresh_token": "def50200..."
+}
+```
+
+**Use the token in subsequent requests:**
+```http
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
+```
+
+### API Resources (RESTful)
+
+All API Platform resources support standard REST operations:
+
+#### Users
+- `GET /api/users` - List users (admin only)
+- `GET /api/users/{id}` - Get user details
+- `POST /api/users` - Create user (admin only)
+- `PATCH /api/users/{id}` - Update user
+- `DELETE /api/users/{id}` - Delete user (admin only)
+
+#### Students
+- `GET /api/students` - List students (filtered by school)
+- `GET /api/students/{id}` - Get student details
+- `POST /api/students` - Create student (admin only)
+- `PATCH /api/students/{id}` - Update student
+- `DELETE /api/students/{id}` - Delete student (admin only)
+
+#### Routes
+- `GET /api/routes` - List routes (filtered by school)
+- `GET /api/routes/{id}` - Get route details
+- `POST /api/routes` - Create route (admin only)
+- `PATCH /api/routes/{id}` - Update route
+- `DELETE /api/routes/{id}` - Delete route (admin only)
+
+#### Active Routes
+- `GET /api/active_routes` - List active routes
+- `GET /api/active_routes/{id}` - Get active route details
+- `POST /api/active_routes` - Create active route (admin only)
+- `PATCH /api/active_routes/{id}` - Update route status (driver/admin)
+- `DELETE /api/active_routes/{id}` - Cancel route (admin only)
+
+#### Location Updates
+- `POST /api/location_updates` - Submit GPS location (driver only)
+- `GET /api/location_updates` - Get location history
+
+#### Attendance
+- `POST /api/attendances` - Record check-in/check-out (driver/admin)
+- `GET /api/attendances` - Get attendance records
+- `GET /api/attendances/{id}` - Get specific record
+
+#### Notification Preferences
+- `GET /api/notification_preferences/{id}` - Get user preferences
+- `POST /api/notification_preferences` - Create preferences
+- `PATCH /api/notification_preferences/{id}` - Update preferences
+
+### Custom Endpoints
+
+#### Parent Dashboard
+```http
+GET /api/parent/dashboard
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "children": [
+    {
+      "studentId": 1,
+      "firstName": "John",
+      "lastName": "Doe",
+      "currentStatus": "picked_up",
+      "activeRouteId": 42,
+      "routeStatus": "in_progress",
+      "busLocation": {
+        "latitude": 40.7128,
+        "longitude": -74.0060
+      },
+      "estimatedArrival": "2026-01-19T08:45:00+00:00",
+      "lastUpdate": "2026-01-19T08:30:00+00:00"
+    }
+  ],
+  "activeRoutes": [...],
+  "todayAttendance": [...],
+  "upcomingRoutes": [...]
+}
+```
+
+#### School Admin Dashboard
+```http
+GET /api/school-admin/dashboard
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "statistics": {
+    "totalStudents": 150,
+    "totalDrivers": 8,
+    "activeDrivers": 5,
+    "totalRoutesToday": 12,
+    "activeRoutes": 5,
+    "completedRoutes": 7
+  },
+  "activeRoutes": [...],
+  "driverStatuses": [...],
+  "recentAlerts": [...],
+  "todayMetrics": {...}
+}
+```
+
+## 🔧 Installation & Setup
+
+### Prerequisites
+
+- Docker & Docker Compose (v2.10+)
+- Git
+
+### Quick Start
+
+1. **Clone the repository:**
+```bash
+git clone https://github.com/yourusername/zigzag-api.git
+cd zigzag-api
+```
+
+2. **Configure environment variables:**
+```bash
+cp .env .env.local
+```
+
+Edit `.env.local` and configure:
+```bash
+# Database (already configured for Docker)
+DATABASE_URL="mysql://zigzag:ZigZagTech!2026@127.0.0.1:3306/zigzag?serverVersion=8.4&charset=utf8mb4"
+
+# JWT Authentication
+JWT_PASSPHRASE=your-secure-passphrase
+
+# Google Maps API
+GOOGLE_MAPS_API_KEY=your-google-maps-api-key
+
+# Notifications
+MAIL_FROM_EMAIL=noreply@yourschool.com
+MAIL_FROM_NAME="Your School Transportation"
+SMS_API_KEY=your-sms-api-key
+SMS_API_URL=https://api.smsprovider.com/send
+FCM_SERVER_KEY=your-fcm-server-key
+```
+
+3. **Start Docker containers:**
+```bash
+docker compose up -d --wait
+```
+
+4. **Install dependencies:**
+```bash
+docker compose exec php composer install
+```
+
+5. **Generate JWT keys:**
+```bash
+docker compose exec php php bin/console lexik:jwt:generate-keypair
+```
+
+6. **Run database migrations:**
+```bash
+docker compose exec php php bin/console doctrine:migrations:migrate --no-interaction
+```
+
+7. **Access the application:**
+- API: https://localhost
+- API Documentation: https://localhost/api/docs
+
+### Background Jobs
+
+Set up a cron job to archive old routes:
+```bash
+# Archive routes older than 7 days, run daily at 2 AM
+0 2 * * * cd /path/to/project && docker compose exec php php bin/console app:archive-routes --days=7
+```
+
+## 📱 Mobile App Integration Guide (React Native)
+
+### Setup
+
+1. **Install dependencies:**
+```bash
+npm install axios @react-native-async-storage/async-storage
+# For push notifications
+npm install @react-native-firebase/app @react-native-firebase/messaging
+# For maps
+npm install react-native-maps
+# For geolocation
+npm install @react-native-community/geolocation
+```
+
+2. **Create API client:**
+
+```javascript
+// api/client.js
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const API_BASE_URL = 'https://your-api-domain.com/api';
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add authentication interceptor
+apiClient.interceptors.request.use(async (config) => {
+  const token = await AsyncStorage.getItem('jwt_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Handle token expiration
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      await AsyncStorage.removeItem('jwt_token');
+      // Navigate to login screen
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default apiClient;
+```
+
+### Authentication
+
+```javascript
+// api/auth.js
+import apiClient from './client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export const login = async (email, password) => {
+  const response = await apiClient.post('/login', { email, password });
+  const { token } = response.data;
+  await AsyncStorage.setItem('jwt_token', token);
+  return response.data;
+};
+
+export const logout = async () => {
+  await AsyncStorage.removeItem('jwt_token');
+};
+```
+
+### Parent Dashboard Integration
+
+```javascript
+// api/parent.js
+import apiClient from './client';
+
+export const getParentDashboard = async () => {
+  const response = await apiClient.get('/parent/dashboard');
+  return response.data;
+};
+
+// Example component
+import React, { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator } from 'react-native';
+import { getParentDashboard } from '../api/parent';
+
+const ParentDashboardScreen = () => {
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboard();
+    const interval = setInterval(loadDashboard, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      const data = await getParentDashboard();
+      setDashboard(data);
+    } catch (error) {
+      console.error('Failed to load dashboard:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <ActivityIndicator size="large" />;
+
+  return (
+    <View>
+      {dashboard.children.map((child) => (
+        <View key={child.studentId}>
+          <Text>{child.firstName} {child.lastName}</Text>
+          <Text>Status: {child.currentStatus}</Text>
+          {child.busLocation && (
+            <Text>
+              Bus at: {child.busLocation.latitude}, {child.busLocation.longitude}
+            </Text>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+};
+```
+
+### Real-time Location Tracking (Driver App)
+
+```javascript
+// hooks/useLocationTracking.js
+import { useEffect, useState } from 'react';
+import Geolocation from '@react-native-community/geolocation';
+import apiClient from '../api/client';
+
+export const useLocationTracking = (activeRouteId, driverId) => {
+  const [tracking, setTracking] = useState(false);
+  const [watchId, setWatchId] = useState(null);
+
+  const sendLocation = async (coords) => {
+    try {
+      await apiClient.post('/location_updates', {
+        driver: `/api/drivers/${driverId}`,
+        activeRoute: `/api/active_routes/${activeRouteId}`,
+        latitude: coords.latitude.toString(),
+        longitude: coords.longitude.toString(),
+        speed: coords.speed?.toString(),
+        heading: coords.heading?.toString(),
+        accuracy: coords.accuracy?.toString(),
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Failed to send location:', error);
+    }
+  };
+
+  const startTracking = () => {
+    const id = Geolocation.watchPosition(
+      (position) => sendLocation(position.coords),
+      (error) => console.error(error),
+      {
+        enableHighAccuracy: true,
+        distanceFilter: 10,
+        interval: 5000,
+        fastestInterval: 5000,
+      }
+    );
+    setWatchId(id);
+    setTracking(true);
+  };
+
+  const stopTracking = () => {
+    if (watchId !== null) {
+      Geolocation.clearWatch(watchId);
+      setWatchId(null);
+      setTracking(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (watchId !== null) Geolocation.clearWatch(watchId);
+    };
+  }, [watchId]);
+
+  return { tracking, startTracking, stopTracking };
+};
+```
+
+### Map Integration
+
+```javascript
+// components/BusMap.js
+import React from 'react';
+import MapView, { Marker } from 'react-native-maps';
+
+const BusMap = ({ busLocation, stops }) => {
+  return (
+    <MapView
+      style={{ flex: 1 }}
+      region={{
+        latitude: busLocation.latitude,
+        longitude: busLocation.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      }}
+    >
+      <Marker
+        coordinate={busLocation}
+        title="School Bus"
+        pinColor="blue"
+      />
+      {stops.map((stop, index) => (
+        <Marker
+          key={index}
+          coordinate={{
+            latitude: parseFloat(stop.address.latitude),
+            longitude: parseFloat(stop.address.longitude),
+          }}
+          title={`Stop ${stop.stopOrder}`}
+          pinColor={stop.status === 'completed' ? 'green' : 'red'}
+        />
+      ))}
+    </MapView>
+  );
+};
+
+export default BusMap;
+```
+
+### Push Notifications
+
+```javascript
+// messaging/firebase.js
+import messaging from '@react-native-firebase/messaging';
+
+export const requestUserPermission = async () => {
+  const authStatus = await messaging().requestPermission();
+  if (authStatus === messaging.AuthorizationStatus.AUTHORIZED) {
+    const token = await messaging().getToken();
+    // Send token to backend to store with user profile
+    return token;
+  }
+};
+
+export const setupNotificationListeners = () => {
+  messaging().onMessage(async (remoteMessage) => {
+    console.log('Notification received:', remoteMessage);
+  });
+
+  messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+    console.log('Background notification:', remoteMessage);
+  });
+};
+```
+
+## 🔒 Security Features
+
+- JWT-based stateless authentication
+- Role-based authorization with hierarchical permissions
+- Multi-tenant data isolation (automatic school filtering)
+- HTTPS/TLS encryption for all communications
+- Input validation and sanitization
+- SQL injection protection via Doctrine ORM
+- CORS configuration for mobile apps
+
+## 📊 Performance Considerations
+
+- **Database Indexing**: All queries optimized with proper indexes
+- **Caching**: Redis caching for frequently accessed data
+- **Pagination**: All collection endpoints support pagination
+- **Async Processing**: Heavy operations via RabbitMQ
+- **Connection Pooling**: Efficient database connection management
+- **Worker Mode**: FrankenPHP worker mode for blazing-fast performance
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is proprietary software. All rights reserved.
+
+## 👥 Support
+
+For support, email support@zigzag.com or open an issue in the repository.
+
+---
+
+**Built with ❤️ for safer school transportation**

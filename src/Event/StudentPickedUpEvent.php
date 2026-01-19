@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Event;
+
+use App\Entity\ActiveRouteStop;
+use App\Entity\Attendance;
+use Symfony\Contracts\EventDispatcher\Event;
+
+class StudentPickedUpEvent extends Event
+{
+    public const NAME = 'student.picked_up';
+
+    public function __construct(
+        private readonly Attendance $attendance,
+        private readonly ActiveRouteStop $stop,
+    ) {
+    }
+
+    public function getAttendance(): Attendance
+    {
+        return $this->attendance;
+    }
+
+    public function getStop(): ActiveRouteStop
+    {
+        return $this->stop;
+    }
+}
