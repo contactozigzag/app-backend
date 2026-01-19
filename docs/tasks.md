@@ -32,19 +32,19 @@
 - Link: Plan P2.2 | Req 2.2
 
 ## Phase 3: Driver & Real-time Tracking
-[ ] **Task 3.1: GPS Tracking API**
+[x] **Task 3.1: GPS Tracking API**
 - Endpoint for drivers to post location updates (5-10s interval).
 - Link: Plan P3.1 | Req 3.1
 
-[ ] **Task 3.2: Geofencing Engine**
+[x] **Task 3.2: Geofencing Engine**
 - Logic to check vehicle coordinates against stop radiuses.
 - Link: Plan P3.1 | Req 3.2
 
-[ ] **Task 3.3: Attendance & Manifest API**
+[x] **Task 3.3: Attendance & Manifest API**
 - Endpoints for student check-in/check-out.
 - Link: Plan P3.2 | Req 8.1
 
-[ ] **Task 3.4: Absence Reporting System**
+[x] **Task 3.4: Absence Reporting System**
 - API for parents to report absences and trigger route recalculation.
 - Link: Plan P3.2 | Req 8.2, 2.3
 
