@@ -11,6 +11,5 @@ services:
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
   database:
     command:
-      - --default-authentication-plugin=mysql_native_password
       - --transaction-isolation=READ-COMMITTED
       - --innodb_rollback_on_timeout=ON
