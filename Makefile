@@ -3,6 +3,8 @@ DOCKER_COMP = docker compose
 
 DOCKER_COMP_DEBUG = XDEBUG_MODE=debug docker compose
 
+DOCKER_COMP_PROD = SERVER_NAME=zigzaguealo.com APP_SECRET=6674fccbfd14ad82fd10342653b9c2355dc1be357724350766318cab1af8eba2 CADDY_MERCURE_JWT_SECRET=MhbTcEFGXN70CAdWGyCYsSLWhABtCcEzebKkSHXIW4c= docker compose
+
 # Docker containers
 PHP_CONT = $(DOCKER_COMP) exec php
 
@@ -23,10 +25,18 @@ help: ## Outputs this help screen
 build: ## Builds the Docker images
 	@$(DOCKER_COMP) build --pull --no-cache
 
+prod-build: ## Builds the Docker images for Production
+	@$(DOCKER_COMP)  -f compose.yaml -f compose.prod.yaml build --pull --no-cache
+
 up: ## Start the docker hub in detached mode (no logs)
 	@$(DOCKER_COMP) up --detach
 
+prod-up: ## ## Start the docker hub in detached mode (no logs) for production
+	@$(DOCKER_COMP_PROD) -f compose.yaml -f compose.prod.yaml up --wait
+
 start: build up ## Build and start the containers
+
+prod-start: prod-build prod-up ## Build and start the containers for production
 
 debug: ## Start the docker hub in detached mode (no logs) with xdebug enabled for step debug
 	@$(DOCKER_COMP_DEBUG) up --detach
