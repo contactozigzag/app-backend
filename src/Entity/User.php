@@ -14,6 +14,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
@@ -24,22 +25,27 @@ use Symfony\Component\Security\Core\User\UserInterface;
         new GetCollection(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
         new Patch(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
         new Delete(security: 'is_granted("IS_AUTHENTICATED_FULLY")')
-    ]
+    ],
+    normalizationContext: ['groups' => ['user:read']],
+    denormalizationContext: ['groups' => ['user:write']]
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Groups(['user:read', 'user:write'])]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
+    #[Groups(['user:read', 'user:write'])]
     private array $roles = [];
 
     /**
@@ -48,31 +54,44 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
+    /**
+     * Plain password for input only (not persisted)
+     */
+    #[Groups(['user:write'])]
+    private ?string $plainPassword = null;
+
     #[ORM\ManyToOne(inversedBy: 'users')]
+    #[Groups(['user:read', 'user:write'])]
     private ?School $school = null;
 
     /**
      * @var Collection<int, Student>
      */
     #[ORM\ManyToMany(targetEntity: Student::class, mappedBy: 'parents')]
+    #[Groups(['user:read'])]
     private Collection $students;
 
     #[ORM\Column(length: 80)]
+    #[Groups(['user:read', 'user:write'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 80)]
+    #[Groups(['user:read', 'user:write'])]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 20)]
+    #[Groups(['user:read', 'user:write'])]
     private ?string $phoneNumber = null;
 
     /**
      * @var Collection<int, Address>
      */
     #[ORM\OneToMany(targetEntity: Address::class, mappedBy: 'user')]
+    #[Groups(['user:read'])]
     private Collection $addresses;
 
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    #[Groups(['user:read'])]
     private ?Driver $driver = null;
 
     public function __construct()
@@ -276,5 +295,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->driver = $driver;
 
         return $this;
+    }
+
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): static
+    {
+        $this->plainPassword = $plainPassword;
+
+        return $this;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials(): void
+    {
+        // Clear the plain password after hashing
+        $this->plainPassword = null;
     }
 }

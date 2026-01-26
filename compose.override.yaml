@@ -28,7 +28,7 @@ services:
 ###> doctrine/doctrine-bundle ###
   database:
     ports:
-      - "5432"
+      - "3306:3306"
 ###< doctrine/doctrine-bundle ###
 
 ###> symfony/mailer ###
@@ -41,3 +41,11 @@ services:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
 ###< symfony/mailer ###
+
+  rabbitmq:
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  redis:
+    ports:
+      - "6379:6379"
