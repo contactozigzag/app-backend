@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
@@ -35,8 +36,6 @@ when@test:
 
 when@prod:
     doctrine:
-        dbal:
-            use_savepoints: false
         orm:
             query_cache_driver:
                 type: pool
