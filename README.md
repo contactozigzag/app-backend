@@ -230,6 +230,38 @@ The system implements automatic multi-tenant filtering through:
 
 ### Authentication
 
+#### User Registration (Public)
+```http
+POST /api/users
+Content-Type: application/json
+
+{
+  "email": "newuser@example.com",
+  "password": "SecurePassword123!",
+  "firstName": "John",
+  "lastName": "Doe",
+  "phoneNumber": "+1234567890",
+  "roles": ["ROLE_PARENT"]
+}
+```
+
+**Response:**
+```json
+{
+  "@context": "/api/contexts/User",
+  "@id": "/api/users/1",
+  "@type": "User",
+  "id": 1,
+  "email": "newuser@example.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "phoneNumber": "+1234567890",
+  "roles": ["ROLE_PARENT", "ROLE_USER"]
+}
+```
+
+**Note:** This endpoint is publicly accessible and does not require authentication. After registration, users can login to obtain a JWT token.
+
 #### Login
 ```http
 POST /api/login
@@ -259,11 +291,11 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 All API Platform resources support standard REST operations:
 
 #### Users
-- `GET /api/users` - List users (admin only)
-- `GET /api/users/{id}` - Get user details
-- `POST /api/users` - Create user (admin only)
-- `PATCH /api/users/{id}` - Update user
-- `DELETE /api/users/{id}` - Delete user (admin only)
+- `GET /api/users` - List users (requires authentication)
+- `GET /api/users/{id}` - Get user details (requires authentication)
+- `POST /api/users` - Create user (publicly accessible for registration)
+- `PATCH /api/users/{id}` - Update user (requires authentication)
+- `DELETE /api/users/{id}` - Delete user (requires authentication)
 
 #### Students
 - `GET /api/students` - List students (filtered by school)
@@ -489,6 +521,18 @@ export default apiClient;
 // api/auth.js
 import apiClient from './client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export const register = async (email, password, firstName, lastName, phoneNumber) => {
+  const response = await apiClient.post('/users', {
+    email,
+    password,
+    firstName,
+    lastName,
+    phoneNumber,
+    roles: ['ROLE_PARENT'],
+  });
+  return response.data;
+};
 
 export const login = async (email, password) => {
   const response = await apiClient.post('/login', { email, password });

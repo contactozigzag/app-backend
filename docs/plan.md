@@ -5,6 +5,11 @@ This document outlines the strategic approach for developing the School Transpor
 ## Phase 1: Foundation & Identity (Priority: High)
 Establish the core infrastructure, multi-tenant database schema, and authentication systems.
 
+- **P1.0 Public User Registration**
+    - Configure User entity API to allow public POST access for registration.
+    - Implement security rules to permit unauthenticated user creation.
+    - Enable client/app registration workflow via POST /api/users.
+    - *Links: Requirement 1.0*
 - **P1.1 Multi-tenant User Management**
     - Implement Role-Based Access Control (RBAC).
     - Design schema for Schools, Users, Roles, and their associations.

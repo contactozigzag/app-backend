@@ -6,9 +6,17 @@ The School Transportation Management System is designed to streamline and secure
 ## Requirements
 
 ### 1. User Management & Multi-tenancy
+1.0 **User Registration**
+- **User Story**: As a new user (parent, driver, or school admin), I want to register an account from a client application or web interface so that I can access the system.
+- **Acceptance Criteria**:
+    - WHEN a user submits registration data THEN the system SHALL create a new user account without requiring authentication.
+    - WHEN registration is successful THEN the system SHALL return the created user data and allow the user to log in.
+    - WHEN required fields are missing THEN the system SHALL return appropriate validation errors.
+- **Endpoint**: POST /api/users (publicly accessible)
+
 1.1 **Role-Based Access Control**
 - **User Story**: As a system administrator, I want to assign specific roles (Driver, Parent, School Admin, System Admin) to users so that they can only access features relevant to their responsibilities.
-- **Acceptance Criteria**: 
+- **Acceptance Criteria**:
     - WHEN a user logs in THEN the system SHALL grant access permissions based on their assigned role.
     - WHEN a user attempts to access a restricted resource THEN the system SHALL return an "Access Denied" error.
 

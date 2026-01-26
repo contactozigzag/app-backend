@@ -3,6 +3,11 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,7 +17,15 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Post(security: 'is_granted("PUBLIC_ACCESS")'),
+        new Get(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
+        new GetCollection(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
+        new Patch(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
+        new Delete(security: 'is_granted("IS_AUTHENTICATED_FULLY")')
+    ]
+)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]

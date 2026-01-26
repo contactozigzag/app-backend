@@ -1,6 +1,12 @@
 # Technical Task List
 
 ## Phase 1: Setup & Identity
+[x] **Task 1.0: Public User Registration Endpoint**
+- Configure User entity API to allow public POST access.
+- Update security.yaml to permit unauthenticated POST /api/users.
+- Enable client/app registration workflow.
+- Link: Plan P1.0 | Req 1.0
+
 [x] **Task 1.1: Database Schema Design**
 - Design tables for `Schools`, `Users`, `Roles`, `Students`, `Parents`, `Drivers`.
 - Link: Plan P1.1, P1.2 | Req 1.1, 1.2, 1.3
