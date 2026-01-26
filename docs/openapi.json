@@ -46,6 +46,22 @@
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Absence-absence.read"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Absence.html-absence.read"
+                                    }
+                                }
                             }
                         }
                     },
@@ -101,6 +117,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Absence.jsonld-absence.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Absence-absence.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Absence.html-absence.read"
                                 }
                             }
                         },
@@ -180,6 +206,16 @@
                             "schema": {
                                 "$ref": "#/components/schemas/Absence-absence.write"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Absence-absence.write"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Absence-absence.write"
+                            }
                         }
                     },
                     "required": true
@@ -199,6 +235,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Absence.jsonld-absence.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Absence-absence.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Absence.html-absence.read"
                                 }
                             }
                         }
@@ -298,6 +344,22 @@
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ActiveRoute-active_route.read"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ActiveRoute.html-active_route.read"
+                                    }
+                                }
                             }
                         }
                     },
@@ -353,6 +415,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ActiveRoute.jsonld-active_route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRoute-active_route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRoute.html-active_route.read"
                                 }
                             }
                         },
@@ -432,6 +504,16 @@
                             "schema": {
                                 "$ref": "#/components/schemas/ActiveRoute-active_route.write"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ActiveRoute-active_route.write"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ActiveRoute-active_route.write"
+                            }
                         }
                     },
                     "required": true
@@ -451,6 +533,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ActiveRoute.jsonld-active_route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRoute-active_route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRoute.html-active_route.read"
                                 }
                             }
                         }
@@ -596,6 +688,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ActiveRoute.jsonld-active_route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRoute-active_route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRoute.html-active_route.read"
                                 }
                             }
                         },
@@ -749,6 +851,22 @@
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ActiveRouteStop-active_route_stop.read"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ActiveRouteStop.html-active_route_stop.read"
+                                    }
+                                }
                             }
                         }
                     },
@@ -804,6 +922,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ActiveRouteStop.jsonld-active_route_stop.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRouteStop-active_route_stop.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRouteStop.html-active_route_stop.read"
                                 }
                             }
                         },
@@ -883,6 +1011,16 @@
                             "schema": {
                                 "$ref": "#/components/schemas/ActiveRouteStop-active_route_stop.write"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ActiveRouteStop-active_route_stop.write"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ActiveRouteStop-active_route_stop.write"
+                            }
                         }
                     },
                     "required": true
@@ -902,6 +1040,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ActiveRouteStop.jsonld-active_route_stop.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRouteStop-active_route_stop.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRouteStop.html-active_route_stop.read"
                                 }
                             }
                         }
@@ -1047,6 +1195,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ActiveRouteStop.jsonld-active_route_stop.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRouteStop-active_route_stop.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRouteStop.html-active_route_stop.read"
                                 }
                             }
                         },
@@ -1200,6 +1358,22 @@
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Address"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Address.html"
+                                    }
+                                }
                             }
                         }
                     }
@@ -1234,6 +1408,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Address.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Address"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Address.html"
                                 }
                             }
                         },
@@ -1292,6 +1476,16 @@
                             "schema": {
                                 "$ref": "#/components/schemas/Address"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Address"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Address"
+                            }
                         }
                     },
                     "required": true
@@ -1311,6 +1505,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Address.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Address"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Address.html"
                                 }
                             }
                         }
@@ -1414,6 +1618,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Address.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Address"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Address.html"
                                 }
                             }
                         },
@@ -1546,6 +1760,22 @@
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ArchivedRoute-archived_route.read"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ArchivedRoute.html-archived_route.read"
+                                    }
+                                }
                             }
                         }
                     },
@@ -1603,6 +1833,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ArchivedRoute.jsonld-archived_route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArchivedRoute-archived_route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArchivedRoute.html-archived_route.read"
                                 }
                             }
                         }
@@ -1702,6 +1942,22 @@
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Attendance-attendance.read"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Attendance.html-attendance.read"
+                                    }
+                                }
                             }
                         }
                     },
@@ -1757,6 +2013,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Attendance.jsonld-attendance.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Attendance-attendance.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Attendance.html-attendance.read"
                                 }
                             }
                         },
@@ -1836,6 +2102,16 @@
                             "schema": {
                                 "$ref": "#/components/schemas/Attendance-attendance.write"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Attendance-attendance.write"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Attendance-attendance.write"
+                            }
                         }
                     },
                     "required": true
@@ -1855,6 +2131,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Attendance.jsonld-attendance.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Attendance-attendance.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Attendance.html-attendance.read"
                                 }
                             }
                         }
@@ -1954,6 +2240,22 @@
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Driver"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Driver.html"
+                                    }
+                                }
                             }
                         }
                     }
@@ -1988,6 +2290,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Driver.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Driver"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Driver.html"
                                 }
                             }
                         },
@@ -2046,6 +2358,16 @@
                             "schema": {
                                 "$ref": "#/components/schemas/Driver"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Driver"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Driver"
+                            }
                         }
                     },
                     "required": true
@@ -2065,6 +2387,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Driver.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Driver"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Driver.html"
                                 }
                             }
                         }
@@ -2168,6 +2500,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Driver.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Driver"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Driver.html"
                                 }
                             }
                         },
@@ -2300,6 +2642,22 @@
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/LocationUpdate-location.read"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/LocationUpdate.html-location.read"
+                                    }
+                                }
                             }
                         }
                     },
@@ -2355,6 +2713,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/LocationUpdate.jsonld-location.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LocationUpdate-location.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LocationUpdate.html-location.read"
                                 }
                             }
                         },
@@ -2431,6 +2799,16 @@
                     "description": "The new LocationUpdate resource",
                     "content": {
                         "application/ld+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LocationUpdate-location.write"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LocationUpdate-location.write"
+                            }
+                        },
+                        "text/html": {
                             "schema": {
                                 "$ref": "#/components/schemas/LocationUpdate-location.write"
                             }
@@ -2511,6 +2889,16 @@
                                 "schema": {
                                     "$ref": "#/components/schemas/NotificationPreference.jsonld-notification_pref.read"
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationPreference-notification_pref.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationPreference.html-notification_pref.read"
+                                }
                             }
                         },
                         "links": {}
@@ -2589,6 +2977,16 @@
                             "schema": {
                                 "$ref": "#/components/schemas/NotificationPreference-notification_pref.write"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/NotificationPreference-notification_pref.write"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/NotificationPreference-notification_pref.write"
+                            }
                         }
                     },
                     "required": true
@@ -2608,6 +3006,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/NotificationPreference.jsonld-notification_pref.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationPreference-notification_pref.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationPreference.html-notification_pref.read"
                                 }
                             }
                         }
@@ -2684,6 +3092,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/NotificationPreference.jsonld-notification_pref.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationPreference-notification_pref.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationPreference.html-notification_pref.read"
                                 }
                             }
                         },
@@ -2837,6 +3255,22 @@
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Route-route.read"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Route.html-route.read"
+                                    }
+                                }
                             }
                         }
                     },
@@ -2892,6 +3326,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Route.jsonld-route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Route-route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Route.html-route.read"
                                 }
                             }
                         },
@@ -2971,6 +3415,16 @@
                             "schema": {
                                 "$ref": "#/components/schemas/Route-route.write"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Route-route.write"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Route-route.write"
+                            }
                         }
                     },
                     "required": true
@@ -2990,6 +3444,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Route.jsonld-route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Route-route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Route.html-route.read"
                                 }
                             }
                         }
@@ -3066,6 +3530,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Route.jsonld-route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Route-route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Route.html-route.read"
                                 }
                             }
                         },
@@ -3179,6 +3653,16 @@
                             "schema": {
                                 "$ref": "#/components/schemas/Route-route.write"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Route-route.write"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Route-route.write"
+                            }
                         }
                     },
                     "required": true
@@ -3265,6 +3749,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Route.jsonld-route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Route-route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Route.html-route.read"
                                 }
                             }
                         },
@@ -3418,6 +3912,22 @@
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/RouteStop-route_stop.read"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/RouteStop.html-route_stop.read"
+                                    }
+                                }
                             }
                         }
                     },
@@ -3473,6 +3983,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/RouteStop.jsonld-route_stop.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteStop-route_stop.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteStop.html-route_stop.read"
                                 }
                             }
                         },
@@ -3552,6 +4072,16 @@
                             "schema": {
                                 "$ref": "#/components/schemas/RouteStop-route_stop.write"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RouteStop-route_stop.write"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RouteStop-route_stop.write"
+                            }
                         }
                     },
                     "required": true
@@ -3571,6 +4101,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/RouteStop.jsonld-route_stop.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteStop-route_stop.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteStop.html-route_stop.read"
                                 }
                             }
                         }
@@ -3716,6 +4256,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/RouteStop.jsonld-route_stop.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteStop-route_stop.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RouteStop.html-route_stop.read"
                                 }
                             }
                         },
@@ -3869,6 +4419,22 @@
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/School"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/School.html"
+                                    }
+                                }
                             }
                         }
                     }
@@ -3903,6 +4469,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/School.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/School"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/School.html"
                                 }
                             }
                         },
@@ -3961,6 +4537,16 @@
                             "schema": {
                                 "$ref": "#/components/schemas/School"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/School"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/School"
+                            }
                         }
                     },
                     "required": true
@@ -3980,6 +4566,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/School.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/School"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/School.html"
                                 }
                             }
                         }
@@ -4083,6 +4679,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/School.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/School"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/School.html"
                                 }
                             }
                         },
@@ -4215,6 +4821,22 @@
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Student"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Student.html"
+                                    }
+                                }
                             }
                         }
                     }
@@ -4249,6 +4871,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Student.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Student"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Student.html"
                                 }
                             }
                         },
@@ -4307,6 +4939,16 @@
                             "schema": {
                                 "$ref": "#/components/schemas/Student"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Student"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Student"
+                            }
                         }
                     },
                     "required": true
@@ -4326,6 +4968,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Student.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Student"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Student.html"
                                 }
                             }
                         }
@@ -4429,6 +5081,16 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Student.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Student"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Student.html"
                                 }
                             }
                         },
@@ -4540,7 +5202,7 @@
                             "application/ld+json": {
                                 "schema": {
                                     "type": "object",
-                                    "description": "User.jsonld collection.",
+                                    "description": "User.jsonld-user.read collection.",
                                     "allOf": [
                                         {
                                             "$ref": "#/components/schemas/HydraCollectionBaseSchema"
@@ -4554,15 +5216,52 @@
                                                 "member": {
                                                     "type": "array",
                                                     "items": {
-                                                        "$ref": "#/components/schemas/User.jsonld"
+                                                        "$ref": "#/components/schemas/User.jsonld-user.read"
                                                     }
                                                 }
                                             }
                                         }
                                     ]
                                 }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/User-user.read"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/User.html-user.read"
+                                    }
+                                }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     }
                 },
                 "summary": "Retrieves the collection of User resources.",
@@ -4594,7 +5293,17 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User.jsonld"
+                                    "$ref": "#/components/schemas/User.jsonld-user.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User-user.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User.html-user.read"
                                 }
                             }
                         },
@@ -4641,6 +5350,27 @@
                             }
                         },
                         "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     }
                 },
                 "summary": "Creates a User resource.",
@@ -4651,7 +5381,17 @@
                     "content": {
                         "application/ld+json": {
                             "schema": {
-                                "$ref": "#/components/schemas/User"
+                                "$ref": "#/components/schemas/User-user.write"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/User-user.write"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/User-user.write"
                             }
                         }
                     },
@@ -4671,10 +5411,41 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User.jsonld"
+                                    "$ref": "#/components/schemas/User.jsonld-user.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User-user.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User.html-user.read"
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     },
                     "404": {
                         "description": "Not found",
@@ -4723,6 +5494,27 @@
                 "responses": {
                     "204": {
                         "description": "User resource deleted"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     },
                     "404": {
                         "description": "Not found",
@@ -4774,7 +5566,17 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User.jsonld"
+                                    "$ref": "#/components/schemas/User.jsonld-user.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User-user.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User.html-user.read"
                                 }
                             }
                         },
@@ -4817,6 +5619,27 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
                                 }
                             }
                         },
@@ -4865,7 +5688,7 @@
                     "content": {
                         "application/merge-patch+json": {
                             "schema": {
-                                "$ref": "#/components/schemas/User.jsonMergePatch"
+                                "$ref": "#/components/schemas/User-user.write.jsonMergePatch"
                             }
                         }
                     },
@@ -4876,6 +5699,65 @@
     },
     "components": {
         "schemas": {
+            "Absence-absence.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "type": {
+                        "enum": [
+                            "morning",
+                            "afternoon",
+                            "full_day"
+                        ],
+                        "type": "string"
+                    },
+                    "reason": {
+                        "enum": [
+                            "sick",
+                            "family_emergency",
+                            "vacation",
+                            "other"
+                        ],
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "reportedBy": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "routeRecalculated": {
+                        "default": false,
+                        "type": "boolean"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "student",
+                    "date"
+                ]
+            },
             "Absence-absence.write": {
                 "type": "object",
                 "required": [
@@ -4920,6 +5802,65 @@
                         "type": "boolean"
                     }
                 }
+            },
+            "Absence.html-absence.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "type": {
+                        "enum": [
+                            "morning",
+                            "afternoon",
+                            "full_day"
+                        ],
+                        "type": "string"
+                    },
+                    "reason": {
+                        "enum": [
+                            "sick",
+                            "family_emergency",
+                            "vacation",
+                            "other"
+                        ],
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "reportedBy": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "routeRecalculated": {
+                        "default": false,
+                        "type": "boolean"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "student",
+                    "date"
+                ]
             },
             "Absence.jsonld-absence.read": {
                 "allOf": [
@@ -4985,6 +5926,98 @@
                             "date"
                         ]
                     }
+                ]
+            },
+            "ActiveRoute-active_route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "routeTemplate": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "enum": [
+                            "scheduled",
+                            "in_progress",
+                            "completed",
+                            "cancelled"
+                        ],
+                        "default": "scheduled",
+                        "type": "string"
+                    },
+                    "startedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "completedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "currentLatitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currentLongitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "totalDistance": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "totalDuration": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "stops": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ActiveRouteStop-active_route.read"
+                        }
+                    }
+                },
+                "required": [
+                    "routeTemplate",
+                    "driver",
+                    "date"
                 ]
             },
             "ActiveRoute-active_route.write": {
@@ -5102,6 +6135,98 @@
                     }
                 }
             },
+            "ActiveRoute.html-active_route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "routeTemplate": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "enum": [
+                            "scheduled",
+                            "in_progress",
+                            "completed",
+                            "cancelled"
+                        ],
+                        "default": "scheduled",
+                        "type": "string"
+                    },
+                    "startedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "completedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "currentLatitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currentLongitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "totalDistance": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "totalDuration": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "stops": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ActiveRouteStop.html-active_route.read"
+                        }
+                    }
+                },
+                "required": [
+                    "routeTemplate",
+                    "driver",
+                    "date"
+                ]
+            },
             "ActiveRoute.jsonld-active_route.read": {
                 "allOf": [
                     {
@@ -5199,6 +6324,178 @@
                             "date"
                         ]
                     }
+                ]
+            },
+            "ActiveRouteStop-active_route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "stopOrder": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "status": {
+                        "enum": [
+                            "pending",
+                            "approaching",
+                            "arrived",
+                            "picked_up",
+                            "dropped_off",
+                            "skipped",
+                            "absent"
+                        ],
+                        "default": "pending",
+                        "type": "string"
+                    },
+                    "arrivedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "pickedUpAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "droppedOffAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "estimatedArrivalTime": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "geofenceRadius": {
+                        "default": 50,
+                        "type": "integer"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "student",
+                    "address",
+                    "stopOrder"
+                ]
+            },
+            "ActiveRouteStop-active_route_stop.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "activeRoute": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "stopOrder": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "status": {
+                        "enum": [
+                            "pending",
+                            "approaching",
+                            "arrived",
+                            "picked_up",
+                            "dropped_off",
+                            "skipped",
+                            "absent"
+                        ],
+                        "default": "pending",
+                        "type": "string"
+                    },
+                    "arrivedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "pickedUpAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "droppedOffAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "estimatedArrivalTime": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "geofenceRadius": {
+                        "default": 50,
+                        "type": "integer"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "activeRoute",
+                    "student",
+                    "address",
+                    "stopOrder"
                 ]
             },
             "ActiveRouteStop-active_route_stop.write": {
@@ -5342,6 +6639,178 @@
                         ]
                     }
                 }
+            },
+            "ActiveRouteStop.html-active_route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "stopOrder": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "status": {
+                        "enum": [
+                            "pending",
+                            "approaching",
+                            "arrived",
+                            "picked_up",
+                            "dropped_off",
+                            "skipped",
+                            "absent"
+                        ],
+                        "default": "pending",
+                        "type": "string"
+                    },
+                    "arrivedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "pickedUpAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "droppedOffAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "estimatedArrivalTime": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "geofenceRadius": {
+                        "default": 50,
+                        "type": "integer"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "student",
+                    "address",
+                    "stopOrder"
+                ]
+            },
+            "ActiveRouteStop.html-active_route_stop.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "activeRoute": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "stopOrder": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "status": {
+                        "enum": [
+                            "pending",
+                            "approaching",
+                            "arrived",
+                            "picked_up",
+                            "dropped_off",
+                            "skipped",
+                            "absent"
+                        ],
+                        "default": "pending",
+                        "type": "string"
+                    },
+                    "arrivedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "pickedUpAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "droppedOffAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "estimatedArrivalTime": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "geofenceRadius": {
+                        "default": 50,
+                        "type": "integer"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "activeRoute",
+                    "student",
+                    "address",
+                    "stopOrder"
+                ]
             },
             "ActiveRouteStop.jsonld-active_route.read": {
                 "allOf": [
@@ -5579,6 +7048,56 @@
                     }
                 }
             },
+            "Address.html": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "streetAddress": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "postalCode": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "string"
+                    },
+                    "longitude": {
+                        "type": "string"
+                    },
+                    "placeId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "isDefault": {
+                        "type": "boolean"
+                    },
+                    "user": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    }
+                }
+            },
             "Address.jsonMergePatch": {
                 "type": "object",
                 "properties": {
@@ -5685,6 +7204,254 @@
                         }
                     }
                 ]
+            },
+            "ArchivedRoute-archived_route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "originalActiveRouteId": {
+                        "type": "integer"
+                    },
+                    "school": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "routeName": {
+                        "type": "string"
+                    },
+                    "routeType": {
+                        "type": "string"
+                    },
+                    "driverName": {
+                        "type": "string"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "startedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "completedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "totalDistance": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "totalDuration": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "actualDuration": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "totalStops": {
+                        "type": "integer"
+                    },
+                    "completedStops": {
+                        "type": "integer"
+                    },
+                    "skippedStops": {
+                        "type": "integer"
+                    },
+                    "studentsPickedUp": {
+                        "type": "integer"
+                    },
+                    "studentsDroppedOff": {
+                        "type": "integer"
+                    },
+                    "noShows": {
+                        "type": "integer"
+                    },
+                    "onTimePercentage": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "stopData": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    "performanceMetrics": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "archivedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "ArchivedRoute.html-archived_route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "originalActiveRouteId": {
+                        "type": "integer"
+                    },
+                    "school": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "routeName": {
+                        "type": "string"
+                    },
+                    "routeType": {
+                        "type": "string"
+                    },
+                    "driverName": {
+                        "type": "string"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "startedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "completedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "totalDistance": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "totalDuration": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "actualDuration": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "totalStops": {
+                        "type": "integer"
+                    },
+                    "completedStops": {
+                        "type": "integer"
+                    },
+                    "skippedStops": {
+                        "type": "integer"
+                    },
+                    "studentsPickedUp": {
+                        "type": "integer"
+                    },
+                    "studentsDroppedOff": {
+                        "type": "integer"
+                    },
+                    "noShows": {
+                        "type": "integer"
+                    },
+                    "onTimePercentage": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "stopData": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    "performanceMetrics": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "archivedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
             },
             "ArchivedRoute.jsonld-archived_route.read": {
                 "allOf": [
@@ -5817,6 +7584,105 @@
                     }
                 ]
             },
+            "Attendance-attendance.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "activeRouteStop": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "enum": [
+                            "picked_up",
+                            "dropped_off",
+                            "no_show",
+                            "cancelled"
+                        ],
+                        "type": "string"
+                    },
+                    "pickedUpAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "droppedOffAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "pickupLatitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "pickupLongitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "dropoffLatitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "dropoffLongitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "recordedBy": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "student",
+                    "activeRouteStop",
+                    "date"
+                ]
+            },
             "Attendance-attendance.write": {
                 "type": "object",
                 "required": [
@@ -5901,6 +7767,105 @@
                         ]
                     }
                 }
+            },
+            "Attendance.html-attendance.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "activeRouteStop": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "enum": [
+                            "picked_up",
+                            "dropped_off",
+                            "no_show",
+                            "cancelled"
+                        ],
+                        "type": "string"
+                    },
+                    "pickedUpAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "droppedOffAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "pickupLatitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "pickupLongitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "dropoffLatitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "dropoffLongitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "recordedBy": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "student",
+                    "activeRouteStop",
+                    "date"
+                ]
             },
             "Attendance.jsonld-attendance.read": {
                 "allOf": [
@@ -6116,6 +8081,26 @@
                 "description": "Unprocessable entity"
             },
             "Driver": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "licenseNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "Driver.html": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -6421,6 +8406,66 @@
                     "@type"
                 ]
             },
+            "LocationUpdate-location.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "activeRoute": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "latitude": {
+                        "type": "string"
+                    },
+                    "longitude": {
+                        "type": "string"
+                    },
+                    "speed": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "heading": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "accuracy": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "driver",
+                    "latitude",
+                    "longitude"
+                ]
+            },
             "LocationUpdate-location.write": {
                 "type": "object",
                 "required": [
@@ -6471,6 +8516,66 @@
                         "format": "date-time"
                     }
                 }
+            },
+            "LocationUpdate.html-location.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "activeRoute": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "latitude": {
+                        "type": "string"
+                    },
+                    "longitude": {
+                        "type": "string"
+                    },
+                    "speed": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "heading": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "accuracy": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "driver",
+                    "latitude",
+                    "longitude"
+                ]
             },
             "LocationUpdate.jsonld-location.read": {
                 "allOf": [
@@ -6537,6 +8642,66 @@
                             "longitude"
                         ]
                     }
+                ]
+            },
+            "NotificationPreference-notification_pref.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "emailEnabled": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "smsEnabled": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "pushEnabled": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "notifyOnArriving": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "notifyOnPickup": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "notifyOnDropoff": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "notifyOnRouteStart": {
+                        "default": false,
+                        "type": "boolean"
+                    },
+                    "notifyOnDelay": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "notifyOnCancellation": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "arrivalNotificationMinutes": {
+                        "default": 5,
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "user"
                 ]
             },
             "NotificationPreference-notification_pref.write": {
@@ -6648,6 +8813,66 @@
                     }
                 }
             },
+            "NotificationPreference.html-notification_pref.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "emailEnabled": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "smsEnabled": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "pushEnabled": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "notifyOnArriving": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "notifyOnPickup": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "notifyOnDropoff": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "notifyOnRouteStart": {
+                        "default": false,
+                        "type": "boolean"
+                    },
+                    "notifyOnDelay": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "notifyOnCancellation": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "arrivalNotificationMinutes": {
+                        "default": 5,
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "user"
+                ]
+            },
             "NotificationPreference.jsonld-notification_pref.read": {
                 "allOf": [
                     {
@@ -6713,6 +8938,100 @@
                             "user"
                         ]
                     }
+                ]
+            },
+            "Route-route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "school": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "type": {
+                        "enum": [
+                            "morning",
+                            "afternoon"
+                        ],
+                        "type": "string"
+                    },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "startLatitude": {
+                        "type": "string"
+                    },
+                    "startLongitude": {
+                        "type": "string"
+                    },
+                    "endLatitude": {
+                        "type": "string"
+                    },
+                    "endLongitude": {
+                        "type": "string"
+                    },
+                    "estimatedDuration": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "estimatedDistance": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "polyline": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "isActive": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "isTemplate": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "stops": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RouteStop-route.read"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "school",
+                    "startLatitude",
+                    "startLongitude",
+                    "endLatitude",
+                    "endLongitude"
                 ]
             },
             "Route-route.write": {
@@ -6871,6 +9190,100 @@
                     }
                 }
             },
+            "Route.html-route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "school": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "type": {
+                        "enum": [
+                            "morning",
+                            "afternoon"
+                        ],
+                        "type": "string"
+                    },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "startLatitude": {
+                        "type": "string"
+                    },
+                    "startLongitude": {
+                        "type": "string"
+                    },
+                    "endLatitude": {
+                        "type": "string"
+                    },
+                    "endLongitude": {
+                        "type": "string"
+                    },
+                    "estimatedDuration": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "estimatedDistance": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "polyline": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "isActive": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "isTemplate": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "stops": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RouteStop.html-route.read"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "school",
+                    "startLatitude",
+                    "startLongitude",
+                    "endLatitude",
+                    "endLongitude"
+                ]
+            },
             "Route.jsonld-route.read": {
                 "allOf": [
                     {
@@ -6972,6 +9385,113 @@
                     }
                 ]
             },
+            "RouteStop-route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "stopOrder": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "estimatedArrivalTime": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "geofenceRadius": {
+                        "default": 50,
+                        "type": "integer"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "isActive": {
+                        "default": true,
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "student",
+                    "address",
+                    "stopOrder"
+                ]
+            },
+            "RouteStop-route_stop.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "route": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "stopOrder": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "estimatedArrivalTime": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "geofenceRadius": {
+                        "default": 50,
+                        "type": "integer"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "isActive": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "route",
+                    "student",
+                    "address",
+                    "stopOrder"
+                ]
+            },
             "RouteStop-route_stop.write": {
                 "type": "object",
                 "required": [
@@ -7065,6 +9585,113 @@
                         "type": "boolean"
                     }
                 }
+            },
+            "RouteStop.html-route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "stopOrder": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "estimatedArrivalTime": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "geofenceRadius": {
+                        "default": 50,
+                        "type": "integer"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "isActive": {
+                        "default": true,
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "student",
+                    "address",
+                    "stopOrder"
+                ]
+            },
+            "RouteStop.html-route_stop.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "route": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "stopOrder": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "estimatedArrivalTime": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "geofenceRadius": {
+                        "default": 50,
+                        "type": "integer"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "isActive": {
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "route",
+                    "student",
+                    "address",
+                    "stopOrder"
+                ]
             },
             "RouteStop.jsonld-route.read": {
                 "allOf": [
@@ -7215,6 +9842,34 @@
                     }
                 }
             },
+            "School.html": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "users": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    }
+                }
+            },
             "School.jsonMergePatch": {
                 "type": "object",
                 "properties": {
@@ -7306,6 +9961,34 @@
                     }
                 }
             },
+            "Student.html": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "school": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "parents": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    }
+                }
+            },
             "Student.jsonMergePatch": {
                 "type": "object",
                 "properties": {
@@ -7369,7 +10052,7 @@
                     }
                 ]
             },
-            "User": {
+            "User-user.read": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -7385,10 +10068,6 @@
                         "items": {
                             "type": "string"
                         }
-                    },
-                    "password": {
-                        "description": "The hashed password",
-                        "type": "string"
                     },
                     "school": {
                         "type": [
@@ -7430,15 +10109,88 @@
                         ],
                         "format": "iri-reference",
                         "example": "https://example.com/"
+                    }
+                }
+            },
+            "User-user.write": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string"
                     },
-                    "userIdentifier": {
-                        "readOnly": true,
-                        "description": "A visual identifier that represents this user.",
+                    "roles": {
+                        "description": "The user roles",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "plainPassword": {
+                        "description": "Plain password for input only (not persisted)",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "school": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "phoneNumber": {
                         "type": "string"
                     }
                 }
             },
-            "User.jsonMergePatch": {
+            "User-user.write.jsonMergePatch": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "roles": {
+                        "description": "The user roles",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "plainPassword": {
+                        "description": "Plain password for input only (not persisted)",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "school": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "phoneNumber": {
+                        "type": "string"
+                    }
+                }
+            },
+            "User.html-user.read": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -7454,10 +10206,6 @@
                         "items": {
                             "type": "string"
                         }
-                    },
-                    "password": {
-                        "description": "The hashed password",
-                        "type": "string"
                     },
                     "school": {
                         "type": [
@@ -7499,15 +10247,10 @@
                         ],
                         "format": "iri-reference",
                         "example": "https://example.com/"
-                    },
-                    "userIdentifier": {
-                        "readOnly": true,
-                        "description": "A visual identifier that represents this user.",
-                        "type": "string"
                     }
                 }
             },
-            "User.jsonld": {
+            "User.jsonld-user.read": {
                 "allOf": [
                     {
                         "$ref": "#/components/schemas/HydraItemBaseSchema"
@@ -7528,10 +10271,6 @@
                                 "items": {
                                     "type": "string"
                                 }
-                            },
-                            "password": {
-                                "description": "The hashed password",
-                                "type": "string"
                             },
                             "school": {
                                 "type": [
@@ -7573,11 +10312,6 @@
                                 ],
                                 "format": "iri-reference",
                                 "example": "https://example.com/"
-                            },
-                            "userIdentifier": {
-                                "readOnly": true,
-                                "description": "A visual identifier that represents this user.",
-                                "type": "string"
                             }
                         }
                     }

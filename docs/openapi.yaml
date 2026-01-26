@@ -24,6 +24,16 @@ paths:
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
                   - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/Absence.jsonld-absence.read' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Absence-absence.read'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Absence.html-absence.read'
         '403':
           description: Forbidden
           content:
@@ -62,6 +72,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Absence.jsonld-absence.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Absence-absence.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Absence.html-absence.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -111,6 +127,12 @@ paths:
           application/ld+json:
             schema:
               $ref: '#/components/schemas/Absence-absence.write'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Absence-absence.write'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/Absence-absence.write'
         required: true
   '/api/absences/{id}':
     get:
@@ -124,6 +146,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Absence.jsonld-absence.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Absence-absence.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Absence.html-absence.read'
         '403':
           description: Forbidden
           content:
@@ -179,6 +207,16 @@ paths:
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
                   - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/ActiveRoute.jsonld-active_route.read' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActiveRoute-active_route.read'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActiveRoute.html-active_route.read'
         '403':
           description: Forbidden
           content:
@@ -217,6 +255,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/ActiveRoute.jsonld-active_route.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveRoute-active_route.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/ActiveRoute.html-active_route.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -266,6 +310,12 @@ paths:
           application/ld+json:
             schema:
               $ref: '#/components/schemas/ActiveRoute-active_route.write'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActiveRoute-active_route.write'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/ActiveRoute-active_route.write'
         required: true
   '/api/active_routes/{id}':
     get:
@@ -279,6 +329,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/ActiveRoute.jsonld-active_route.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveRoute-active_route.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/ActiveRoute.html-active_route.read'
         '403':
           description: Forbidden
           content:
@@ -375,6 +431,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/ActiveRoute.jsonld-active_route.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveRoute-active_route.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/ActiveRoute.html-active_route.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -464,6 +526,16 @@ paths:
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
                   - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/ActiveRouteStop.jsonld-active_route_stop.read' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActiveRouteStop-active_route_stop.read'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActiveRouteStop.html-active_route_stop.read'
         '403':
           description: Forbidden
           content:
@@ -502,6 +574,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/ActiveRouteStop.jsonld-active_route_stop.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveRouteStop-active_route_stop.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/ActiveRouteStop.html-active_route_stop.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -551,6 +629,12 @@ paths:
           application/ld+json:
             schema:
               $ref: '#/components/schemas/ActiveRouteStop-active_route_stop.write'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActiveRouteStop-active_route_stop.write'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/ActiveRouteStop-active_route_stop.write'
         required: true
   '/api/active_route_stops/{id}':
     get:
@@ -564,6 +648,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/ActiveRouteStop.jsonld-active_route_stop.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveRouteStop-active_route_stop.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/ActiveRouteStop.html-active_route_stop.read'
         '403':
           description: Forbidden
           content:
@@ -660,6 +750,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/ActiveRouteStop.jsonld-active_route_stop.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveRouteStop-active_route_stop.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/ActiveRouteStop.html-active_route_stop.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -749,6 +845,16 @@ paths:
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
                   - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/Address.jsonld' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Address'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Address.html'
       summary: 'Retrieves the collection of Address resources.'
       description: 'Retrieves the collection of Address resources.'
       parameters:
@@ -774,6 +880,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Address.jsonld'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Address.html'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -810,6 +922,12 @@ paths:
           application/ld+json:
             schema:
               $ref: '#/components/schemas/Address'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Address'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/Address'
         required: true
   '/api/addresses/{id}':
     get:
@@ -823,6 +941,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Address.jsonld'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Address.html'
         '404':
           description: 'Not found'
           content:
@@ -893,6 +1017,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Address.jsonld'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Address.html'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -969,6 +1099,16 @@ paths:
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
                   - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/ArchivedRoute.jsonld-archived_route.read' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArchivedRoute-archived_route.read'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArchivedRoute.html-archived_route.read'
         '403':
           description: Forbidden
           content:
@@ -1008,6 +1148,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/ArchivedRoute.jsonld-archived_route.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchivedRoute-archived_route.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/ArchivedRoute.html-archived_route.read'
         '403':
           description: Forbidden
           content:
@@ -1063,6 +1209,16 @@ paths:
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
                   - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/Attendance.jsonld-attendance.read' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attendance-attendance.read'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attendance.html-attendance.read'
         '403':
           description: Forbidden
           content:
@@ -1101,6 +1257,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Attendance.jsonld-attendance.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attendance-attendance.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Attendance.html-attendance.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -1150,6 +1312,12 @@ paths:
           application/ld+json:
             schema:
               $ref: '#/components/schemas/Attendance-attendance.write'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Attendance-attendance.write'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/Attendance-attendance.write'
         required: true
   '/api/attendances/{id}':
     get:
@@ -1163,6 +1331,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Attendance.jsonld-attendance.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attendance-attendance.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Attendance.html-attendance.read'
         '403':
           description: Forbidden
           content:
@@ -1218,6 +1392,16 @@ paths:
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
                   - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/Driver.jsonld' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Driver'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Driver.html'
       summary: 'Retrieves the collection of Driver resources.'
       description: 'Retrieves the collection of Driver resources.'
       parameters:
@@ -1243,6 +1427,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Driver.jsonld'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Driver.html'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -1279,6 +1469,12 @@ paths:
           application/ld+json:
             schema:
               $ref: '#/components/schemas/Driver'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Driver'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/Driver'
         required: true
   '/api/drivers/{id}':
     get:
@@ -1292,6 +1488,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Driver.jsonld'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Driver.html'
         '404':
           description: 'Not found'
           content:
@@ -1362,6 +1564,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Driver.jsonld'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Driver.html'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -1438,6 +1646,16 @@ paths:
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
                   - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/LocationUpdate.jsonld-location.read' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LocationUpdate-location.read'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LocationUpdate.html-location.read'
         '403':
           description: Forbidden
           content:
@@ -1476,6 +1694,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/LocationUpdate.jsonld-location.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationUpdate-location.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/LocationUpdate.html-location.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -1523,6 +1747,12 @@ paths:
         description: 'The new LocationUpdate resource'
         content:
           application/ld+json:
+            schema:
+              $ref: '#/components/schemas/LocationUpdate-location.write'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationUpdate-location.write'
+          text/html:
             schema:
               $ref: '#/components/schemas/LocationUpdate-location.write'
         required: true
@@ -1573,6 +1803,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/NotificationPreference.jsonld-notification_pref.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreference-notification_pref.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/NotificationPreference.html-notification_pref.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -1622,6 +1858,12 @@ paths:
           application/ld+json:
             schema:
               $ref: '#/components/schemas/NotificationPreference-notification_pref.write'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreference-notification_pref.write'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/NotificationPreference-notification_pref.write'
         required: true
   '/api/notification_preferences/{id}':
     get:
@@ -1635,6 +1877,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/NotificationPreference.jsonld-notification_pref.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreference-notification_pref.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/NotificationPreference.html-notification_pref.read'
         '403':
           description: Forbidden
           content:
@@ -1685,6 +1933,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/NotificationPreference.jsonld-notification_pref.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreference-notification_pref.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/NotificationPreference.html-notification_pref.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -1774,6 +2028,16 @@ paths:
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
                   - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/Route.jsonld-route.read' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Route-route.read'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Route.html-route.read'
         '403':
           description: Forbidden
           content:
@@ -1812,6 +2076,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Route.jsonld-route.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Route-route.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Route.html-route.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -1861,6 +2131,12 @@ paths:
           application/ld+json:
             schema:
               $ref: '#/components/schemas/Route-route.write'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Route-route.write'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/Route-route.write'
         required: true
   '/api/routes/{id}':
     get:
@@ -1874,6 +2150,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Route.jsonld-route.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Route-route.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Route.html-route.read'
         '403':
           description: Forbidden
           content:
@@ -1924,6 +2206,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Route.jsonld-route.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Route-route.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Route.html-route.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -1996,6 +2284,12 @@ paths:
           application/ld+json:
             schema:
               $ref: '#/components/schemas/Route-route.write'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Route-route.write'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/Route-route.write'
         required: true
     delete:
       operationId: api_routes_id_delete
@@ -2054,6 +2348,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Route.jsonld-route.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Route-route.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Route.html-route.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -2143,6 +2443,16 @@ paths:
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
                   - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/RouteStop.jsonld-route_stop.read' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RouteStop-route_stop.read'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RouteStop.html-route_stop.read'
         '403':
           description: Forbidden
           content:
@@ -2181,6 +2491,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/RouteStop.jsonld-route_stop.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteStop-route_stop.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/RouteStop.html-route_stop.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -2230,6 +2546,12 @@ paths:
           application/ld+json:
             schema:
               $ref: '#/components/schemas/RouteStop-route_stop.write'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteStop-route_stop.write'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/RouteStop-route_stop.write'
         required: true
   '/api/route_stops/{id}':
     get:
@@ -2243,6 +2565,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/RouteStop.jsonld-route_stop.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteStop-route_stop.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/RouteStop.html-route_stop.read'
         '403':
           description: Forbidden
           content:
@@ -2339,6 +2667,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/RouteStop.jsonld-route_stop.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteStop-route_stop.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/RouteStop.html-route_stop.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -2428,6 +2762,16 @@ paths:
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
                   - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/School.jsonld' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/School'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/School.html'
       summary: 'Retrieves the collection of School resources.'
       description: 'Retrieves the collection of School resources.'
       parameters:
@@ -2453,6 +2797,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/School.jsonld'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/School'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/School.html'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -2489,6 +2839,12 @@ paths:
           application/ld+json:
             schema:
               $ref: '#/components/schemas/School'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/School'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/School'
         required: true
   '/api/schools/{id}':
     get:
@@ -2502,6 +2858,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/School.jsonld'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/School'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/School.html'
         '404':
           description: 'Not found'
           content:
@@ -2572,6 +2934,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/School.jsonld'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/School'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/School.html'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -2648,6 +3016,16 @@ paths:
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
                   - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/Student.jsonld' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student.html'
       summary: 'Retrieves the collection of Student resources.'
       description: 'Retrieves the collection of Student resources.'
       parameters:
@@ -2673,6 +3051,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Student.jsonld'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Student.html'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -2709,6 +3093,12 @@ paths:
           application/ld+json:
             schema:
               $ref: '#/components/schemas/Student'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Student'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/Student'
         required: true
   '/api/students/{id}':
     get:
@@ -2722,6 +3112,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Student.jsonld'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Student.html'
         '404':
           description: 'Not found'
           content:
@@ -2792,6 +3188,12 @@ paths:
             application/ld+json:
               schema:
                 $ref: '#/components/schemas/Student.jsonld'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/Student.html'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -2864,10 +3266,33 @@ paths:
             application/ld+json:
               schema:
                 type: object
-                description: 'User.jsonld collection.'
+                description: 'User.jsonld-user.read collection.'
                 allOf:
                   - { $ref: '#/components/schemas/HydraCollectionBaseSchema' }
-                  - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/User.jsonld' } } } }
+                  - { type: object, required: [member], properties: { member: { type: array, items: { $ref: '#/components/schemas/User.jsonld-user.read' } } } }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User-user.read'
+            text/html:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User.html-user.read'
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {  }
       summary: 'Retrieves the collection of User resources.'
       description: 'Retrieves the collection of User resources.'
       parameters:
@@ -2892,7 +3317,13 @@ paths:
           content:
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/User.jsonld'
+                $ref: '#/components/schemas/User.jsonld-user.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User-user.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/User.html-user.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -2920,6 +3351,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ConstraintViolation'
           links: {  }
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {  }
       summary: 'Creates a User resource.'
       description: 'Creates a User resource.'
       parameters: []
@@ -2928,7 +3372,13 @@ paths:
         content:
           application/ld+json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/User-user.write'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User-user.write'
+          text/html:
+            schema:
+              $ref: '#/components/schemas/User-user.write'
         required: true
   '/api/users/{id}':
     get:
@@ -2941,7 +3391,26 @@ paths:
           content:
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/User.jsonld'
+                $ref: '#/components/schemas/User.jsonld-user.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User-user.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/User.html-user.read'
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {  }
         '404':
           description: 'Not found'
           content:
@@ -2975,6 +3444,19 @@ paths:
       responses:
         '204':
           description: 'User resource deleted'
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          links: {  }
         '404':
           description: 'Not found'
           content:
@@ -3011,7 +3493,13 @@ paths:
           content:
             application/ld+json:
               schema:
-                $ref: '#/components/schemas/User.jsonld'
+                $ref: '#/components/schemas/User.jsonld-user.read'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User-user.read'
+            text/html:
+              schema:
+                $ref: '#/components/schemas/User.html-user.read'
           links: {  }
         '400':
           description: 'Invalid input'
@@ -3038,6 +3526,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConstraintViolation'
+          links: {  }
+        '403':
+          description: Forbidden
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Error.jsonld'
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
           links: {  }
         '404':
           description: 'Not found'
@@ -3070,10 +3571,54 @@ paths:
         content:
           application/merge-patch+json:
             schema:
-              $ref: '#/components/schemas/User.jsonMergePatch'
+              $ref: '#/components/schemas/User-user.write.jsonMergePatch'
         required: true
 components:
   schemas:
+    Absence-absence.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        student:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        date:
+          type: string
+          format: date-time
+        type:
+          enum:
+            - morning
+            - afternoon
+            - full_day
+          type: string
+        reason:
+          enum:
+            - sick
+            - family_emergency
+            - vacation
+            - other
+          type: string
+        notes:
+          type:
+            - string
+            - 'null'
+        reportedBy:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        routeRecalculated:
+          default: false
+          type: boolean
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+      required:
+        - student
+        - date
     Absence-absence.write:
       type: object
       required:
@@ -3107,6 +3652,50 @@ components:
         routeRecalculated:
           default: false
           type: boolean
+    Absence.html-absence.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        student:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        date:
+          type: string
+          format: date-time
+        type:
+          enum:
+            - morning
+            - afternoon
+            - full_day
+          type: string
+        reason:
+          enum:
+            - sick
+            - family_emergency
+            - vacation
+            - other
+          type: string
+        notes:
+          type:
+            - string
+            - 'null'
+        reportedBy:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        routeRecalculated:
+          default: false
+          type: boolean
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+      required:
+        - student
+        - date
     Absence.jsonld-absence.read:
       allOf:
         -
@@ -3155,6 +3744,73 @@ components:
           required:
             - student
             - date
+    ActiveRoute-active_route.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        routeTemplate:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        driver:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        date:
+          type: string
+          format: date-time
+        status:
+          enum:
+            - scheduled
+            - in_progress
+            - completed
+            - cancelled
+          default: scheduled
+          type: string
+        startedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        completedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        currentLatitude:
+          type:
+            - string
+            - 'null'
+        currentLongitude:
+          type:
+            - string
+            - 'null'
+        totalDistance:
+          type:
+            - integer
+            - 'null'
+        totalDuration:
+          type:
+            - integer
+            - 'null'
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+        updatedAt:
+          readOnly: true
+          type: string
+          format: date-time
+        stops:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActiveRouteStop-active_route.read'
+      required:
+        - routeTemplate
+        - driver
+        - date
     ActiveRoute-active_route.write:
       type: object
       required:
@@ -3239,6 +3895,73 @@ components:
           type:
             - string
             - 'null'
+    ActiveRoute.html-active_route.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        routeTemplate:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        driver:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        date:
+          type: string
+          format: date-time
+        status:
+          enum:
+            - scheduled
+            - in_progress
+            - completed
+            - cancelled
+          default: scheduled
+          type: string
+        startedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        completedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        currentLatitude:
+          type:
+            - string
+            - 'null'
+        currentLongitude:
+          type:
+            - string
+            - 'null'
+        totalDistance:
+          type:
+            - integer
+            - 'null'
+        totalDuration:
+          type:
+            - integer
+            - 'null'
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+        updatedAt:
+          readOnly: true
+          type: string
+          format: date-time
+        stops:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActiveRouteStop.html-active_route.read'
+      required:
+        - routeTemplate
+        - driver
+        - date
     ActiveRoute.jsonld-active_route.read:
       allOf:
         -
@@ -3310,6 +4033,135 @@ components:
             - routeTemplate
             - driver
             - date
+    ActiveRouteStop-active_route.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        student:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        address:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        stopOrder:
+          minimum: 0
+          type: integer
+        status:
+          enum:
+            - pending
+            - approaching
+            - arrived
+            - picked_up
+            - dropped_off
+            - skipped
+            - absent
+          default: pending
+          type: string
+        arrivedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        pickedUpAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        droppedOffAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        estimatedArrivalTime:
+          type:
+            - integer
+            - 'null'
+        geofenceRadius:
+          default: 50
+          type: integer
+        notes:
+          type:
+            - string
+            - 'null'
+      required:
+        - student
+        - address
+        - stopOrder
+    ActiveRouteStop-active_route_stop.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        activeRoute:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        student:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        address:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        stopOrder:
+          minimum: 0
+          type: integer
+        status:
+          enum:
+            - pending
+            - approaching
+            - arrived
+            - picked_up
+            - dropped_off
+            - skipped
+            - absent
+          default: pending
+          type: string
+        arrivedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        pickedUpAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        droppedOffAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        estimatedArrivalTime:
+          type:
+            - integer
+            - 'null'
+        geofenceRadius:
+          default: 50
+          type: integer
+        notes:
+          type:
+            - string
+            - 'null'
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+        updatedAt:
+          readOnly: true
+          type: string
+          format: date-time
+      required:
+        - activeRoute
+        - student
+        - address
+        - stopOrder
     ActiveRouteStop-active_route_stop.write:
       type: object
       required:
@@ -3417,6 +4269,135 @@ components:
           type:
             - string
             - 'null'
+    ActiveRouteStop.html-active_route.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        student:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        address:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        stopOrder:
+          minimum: 0
+          type: integer
+        status:
+          enum:
+            - pending
+            - approaching
+            - arrived
+            - picked_up
+            - dropped_off
+            - skipped
+            - absent
+          default: pending
+          type: string
+        arrivedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        pickedUpAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        droppedOffAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        estimatedArrivalTime:
+          type:
+            - integer
+            - 'null'
+        geofenceRadius:
+          default: 50
+          type: integer
+        notes:
+          type:
+            - string
+            - 'null'
+      required:
+        - student
+        - address
+        - stopOrder
+    ActiveRouteStop.html-active_route_stop.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        activeRoute:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        student:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        address:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        stopOrder:
+          minimum: 0
+          type: integer
+        status:
+          enum:
+            - pending
+            - approaching
+            - arrived
+            - picked_up
+            - dropped_off
+            - skipped
+            - absent
+          default: pending
+          type: string
+        arrivedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        pickedUpAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        droppedOffAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        estimatedArrivalTime:
+          type:
+            - integer
+            - 'null'
+        geofenceRadius:
+          default: 50
+          type: integer
+        notes:
+          type:
+            - string
+            - 'null'
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+        updatedAt:
+          readOnly: true
+          type: string
+          format: date-time
+      required:
+        - activeRoute
+        - student
+        - address
+        - stopOrder
     ActiveRouteStop.jsonld-active_route.read:
       allOf:
         -
@@ -3588,6 +4569,40 @@ components:
             - 'null'
           format: iri-reference
           example: 'https://example.com/'
+    Address.html:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        name:
+          type: string
+        streetAddress:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        postalCode:
+          type: string
+        latitude:
+          type: string
+        longitude:
+          type: string
+        placeId:
+          type:
+            - string
+            - 'null'
+        isDefault:
+          type: boolean
+        user:
+          type:
+            - string
+            - 'null'
+          format: iri-reference
+          example: 'https://example.com/'
     Address.jsonMergePatch:
       type: object
       properties:
@@ -3660,6 +4675,176 @@ components:
                 - 'null'
               format: iri-reference
               example: 'https://example.com/'
+    ArchivedRoute-archived_route.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        originalActiveRouteId:
+          type: integer
+        school:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        routeName:
+          type: string
+        routeType:
+          type: string
+        driverName:
+          type: string
+        date:
+          type: string
+          format: date-time
+        status:
+          type: string
+        startedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        completedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        totalDistance:
+          type:
+            - integer
+            - 'null'
+        totalDuration:
+          type:
+            - integer
+            - 'null'
+        actualDuration:
+          type:
+            - integer
+            - 'null'
+        totalStops:
+          type: integer
+        completedStops:
+          type: integer
+        skippedStops:
+          type: integer
+        studentsPickedUp:
+          type: integer
+        studentsDroppedOff:
+          type: integer
+        noShows:
+          type: integer
+        onTimePercentage:
+          type:
+            - string
+            - 'null'
+        stopData:
+          type:
+            - array
+            - 'null'
+          items:
+            type:
+              - string
+              - 'null'
+        performanceMetrics:
+          type:
+            - array
+            - 'null'
+          items:
+            type:
+              - string
+              - 'null'
+        notes:
+          type:
+            - string
+            - 'null'
+        archivedAt:
+          readOnly: true
+          type: string
+          format: date-time
+    ArchivedRoute.html-archived_route.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        originalActiveRouteId:
+          type: integer
+        school:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        routeName:
+          type: string
+        routeType:
+          type: string
+        driverName:
+          type: string
+        date:
+          type: string
+          format: date-time
+        status:
+          type: string
+        startedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        completedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        totalDistance:
+          type:
+            - integer
+            - 'null'
+        totalDuration:
+          type:
+            - integer
+            - 'null'
+        actualDuration:
+          type:
+            - integer
+            - 'null'
+        totalStops:
+          type: integer
+        completedStops:
+          type: integer
+        skippedStops:
+          type: integer
+        studentsPickedUp:
+          type: integer
+        studentsDroppedOff:
+          type: integer
+        noShows:
+          type: integer
+        onTimePercentage:
+          type:
+            - string
+            - 'null'
+        stopData:
+          type:
+            - array
+            - 'null'
+          items:
+            type:
+              - string
+              - 'null'
+        performanceMetrics:
+          type:
+            - array
+            - 'null'
+          items:
+            type:
+              - string
+              - 'null'
+        notes:
+          type:
+            - string
+            - 'null'
+        archivedAt:
+          readOnly: true
+          type: string
+          format: date-time
     ArchivedRoute.jsonld-archived_route.read:
       allOf:
         -
@@ -3749,6 +4934,78 @@ components:
               readOnly: true
               type: string
               format: date-time
+    Attendance-attendance.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        student:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        activeRouteStop:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        date:
+          type: string
+          format: date-time
+        status:
+          enum:
+            - picked_up
+            - dropped_off
+            - no_show
+            - cancelled
+          type: string
+        pickedUpAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        droppedOffAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        pickupLatitude:
+          type:
+            - string
+            - 'null'
+        pickupLongitude:
+          type:
+            - string
+            - 'null'
+        dropoffLatitude:
+          type:
+            - string
+            - 'null'
+        dropoffLongitude:
+          type:
+            - string
+            - 'null'
+        recordedBy:
+          type:
+            - string
+            - 'null'
+          format: iri-reference
+          example: 'https://example.com/'
+        notes:
+          type:
+            - string
+            - 'null'
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+        updatedAt:
+          readOnly: true
+          type: string
+          format: date-time
+      required:
+        - student
+        - activeRouteStop
+        - date
     Attendance-attendance.write:
       type: object
       required:
@@ -3810,6 +5067,78 @@ components:
           type:
             - string
             - 'null'
+    Attendance.html-attendance.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        student:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        activeRouteStop:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        date:
+          type: string
+          format: date-time
+        status:
+          enum:
+            - picked_up
+            - dropped_off
+            - no_show
+            - cancelled
+          type: string
+        pickedUpAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        droppedOffAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        pickupLatitude:
+          type:
+            - string
+            - 'null'
+        pickupLongitude:
+          type:
+            - string
+            - 'null'
+        dropoffLatitude:
+          type:
+            - string
+            - 'null'
+        dropoffLongitude:
+          type:
+            - string
+            - 'null'
+        recordedBy:
+          type:
+            - string
+            - 'null'
+          format: iri-reference
+          example: 'https://example.com/'
+        notes:
+          type:
+            - string
+            - 'null'
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+        updatedAt:
+          readOnly: true
+          type: string
+          format: date-time
+      required:
+        - student
+        - activeRouteStop
+        - date
     Attendance.jsonld-attendance.read:
       allOf:
         -
@@ -3958,6 +5287,20 @@ components:
                 - 'null'
       description: 'Unprocessable entity'
     Driver:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        user:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        licenseNumber:
+          type:
+            - string
+            - 'null'
+    Driver.html:
       type: object
       properties:
         id:
@@ -4162,6 +5505,49 @@ components:
       required:
         - '@id'
         - '@type'
+    LocationUpdate-location.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        driver:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        activeRoute:
+          type:
+            - string
+            - 'null'
+          format: iri-reference
+          example: 'https://example.com/'
+        latitude:
+          type: string
+        longitude:
+          type: string
+        speed:
+          type:
+            - string
+            - 'null'
+        heading:
+          type:
+            - string
+            - 'null'
+        accuracy:
+          type:
+            - string
+            - 'null'
+        timestamp:
+          type: string
+          format: date-time
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+      required:
+        - driver
+        - latitude
+        - longitude
     LocationUpdate-location.write:
       type: object
       required:
@@ -4198,6 +5584,49 @@ components:
         timestamp:
           type: string
           format: date-time
+    LocationUpdate.html-location.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        driver:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        activeRoute:
+          type:
+            - string
+            - 'null'
+          format: iri-reference
+          example: 'https://example.com/'
+        latitude:
+          type: string
+        longitude:
+          type: string
+        speed:
+          type:
+            - string
+            - 'null'
+        heading:
+          type:
+            - string
+            - 'null'
+        accuracy:
+          type:
+            - string
+            - 'null'
+        timestamp:
+          type: string
+          format: date-time
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+      required:
+        - driver
+        - latitude
+        - longitude
     LocationUpdate.jsonld-location.read:
       allOf:
         -
@@ -4245,6 +5674,50 @@ components:
             - driver
             - latitude
             - longitude
+    NotificationPreference-notification_pref.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        user:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        emailEnabled:
+          default: true
+          type: boolean
+        smsEnabled:
+          default: true
+          type: boolean
+        pushEnabled:
+          default: true
+          type: boolean
+        notifyOnArriving:
+          default: true
+          type: boolean
+        notifyOnPickup:
+          default: true
+          type: boolean
+        notifyOnDropoff:
+          default: true
+          type: boolean
+        notifyOnRouteStart:
+          default: false
+          type: boolean
+        notifyOnDelay:
+          default: true
+          type: boolean
+        notifyOnCancellation:
+          default: true
+          type: boolean
+        arrivalNotificationMinutes:
+          default: 5
+          type:
+            - integer
+            - 'null'
+      required:
+        - user
     NotificationPreference-notification_pref.write:
       type: object
       required:
@@ -4325,6 +5798,50 @@ components:
           type:
             - integer
             - 'null'
+    NotificationPreference.html-notification_pref.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        user:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        emailEnabled:
+          default: true
+          type: boolean
+        smsEnabled:
+          default: true
+          type: boolean
+        pushEnabled:
+          default: true
+          type: boolean
+        notifyOnArriving:
+          default: true
+          type: boolean
+        notifyOnPickup:
+          default: true
+          type: boolean
+        notifyOnDropoff:
+          default: true
+          type: boolean
+        notifyOnRouteStart:
+          default: false
+          type: boolean
+        notifyOnDelay:
+          default: true
+          type: boolean
+        notifyOnCancellation:
+          default: true
+          type: boolean
+        arrivalNotificationMinutes:
+          default: 5
+          type:
+            - integer
+            - 'null'
+      required:
+        - user
     NotificationPreference.jsonld-notification_pref.read:
       allOf:
         -
@@ -4373,6 +5890,74 @@ components:
                 - 'null'
           required:
             - user
+    Route-route.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        name:
+          type: string
+        school:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        type:
+          enum:
+            - morning
+            - afternoon
+          type: string
+        driver:
+          type:
+            - string
+            - 'null'
+          format: iri-reference
+          example: 'https://example.com/'
+        startLatitude:
+          type: string
+        startLongitude:
+          type: string
+        endLatitude:
+          type: string
+        endLongitude:
+          type: string
+        estimatedDuration:
+          type:
+            - integer
+            - 'null'
+        estimatedDistance:
+          type:
+            - integer
+            - 'null'
+        polyline:
+          type:
+            - string
+            - 'null'
+        isActive:
+          default: true
+          type: boolean
+        isTemplate:
+          default: true
+          type: boolean
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+        updatedAt:
+          readOnly: true
+          type: string
+          format: date-time
+        stops:
+          type: array
+          items:
+            $ref: '#/components/schemas/RouteStop-route.read'
+      required:
+        - name
+        - school
+        - startLatitude
+        - startLongitude
+        - endLatitude
+        - endLongitude
     Route-route.write:
       type: object
       required:
@@ -4484,6 +6069,74 @@ components:
             type: string
             format: iri-reference
             example: 'https://example.com/'
+    Route.html-route.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        name:
+          type: string
+        school:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        type:
+          enum:
+            - morning
+            - afternoon
+          type: string
+        driver:
+          type:
+            - string
+            - 'null'
+          format: iri-reference
+          example: 'https://example.com/'
+        startLatitude:
+          type: string
+        startLongitude:
+          type: string
+        endLatitude:
+          type: string
+        endLongitude:
+          type: string
+        estimatedDuration:
+          type:
+            - integer
+            - 'null'
+        estimatedDistance:
+          type:
+            - integer
+            - 'null'
+        polyline:
+          type:
+            - string
+            - 'null'
+        isActive:
+          default: true
+          type: boolean
+        isTemplate:
+          default: true
+          type: boolean
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+        updatedAt:
+          readOnly: true
+          type: string
+          format: date-time
+        stops:
+          type: array
+          items:
+            $ref: '#/components/schemas/RouteStop.html-route.read'
+      required:
+        - name
+        - school
+        - startLatitude
+        - startLongitude
+        - endLatitude
+        - endLongitude
     Route.jsonld-route.read:
       allOf:
         -
@@ -4556,6 +6209,85 @@ components:
             - startLongitude
             - endLatitude
             - endLongitude
+    RouteStop-route.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        student:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        address:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        stopOrder:
+          minimum: 0
+          type: integer
+        estimatedArrivalTime:
+          type:
+            - integer
+            - 'null'
+        geofenceRadius:
+          default: 50
+          type: integer
+        notes:
+          type:
+            - string
+            - 'null'
+        isActive:
+          default: true
+          type: boolean
+      required:
+        - student
+        - address
+        - stopOrder
+    RouteStop-route_stop.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        route:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        student:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        address:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        stopOrder:
+          minimum: 0
+          type: integer
+        estimatedArrivalTime:
+          type:
+            - integer
+            - 'null'
+        geofenceRadius:
+          default: 50
+          type: integer
+        notes:
+          type:
+            - string
+            - 'null'
+        isActive:
+          default: true
+          type: boolean
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+      required:
+        - route
+        - student
+        - address
+        - stopOrder
     RouteStop-route_stop.write:
       type: object
       required:
@@ -4625,6 +6357,85 @@ components:
         isActive:
           default: true
           type: boolean
+    RouteStop.html-route.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        student:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        address:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        stopOrder:
+          minimum: 0
+          type: integer
+        estimatedArrivalTime:
+          type:
+            - integer
+            - 'null'
+        geofenceRadius:
+          default: 50
+          type: integer
+        notes:
+          type:
+            - string
+            - 'null'
+        isActive:
+          default: true
+          type: boolean
+      required:
+        - student
+        - address
+        - stopOrder
+    RouteStop.html-route_stop.read:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        route:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        student:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        address:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        stopOrder:
+          minimum: 0
+          type: integer
+        estimatedArrivalTime:
+          type:
+            - integer
+            - 'null'
+        geofenceRadius:
+          default: 50
+          type: integer
+        notes:
+          type:
+            - string
+            - 'null'
+        isActive:
+          default: true
+          type: boolean
+        createdAt:
+          readOnly: true
+          type: string
+          format: date-time
+      required:
+        - route
+        - student
+        - address
+        - stopOrder
     RouteStop.jsonld-route.read:
       allOf:
         -
@@ -4732,6 +6543,26 @@ components:
             type: string
             format: iri-reference
             example: 'https://example.com/'
+    School.html:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        name:
+          type: string
+        users:
+          type: array
+          items:
+            type: string
+            format: iri-reference
+            example: 'https://example.com/'
+        students:
+          type: array
+          items:
+            type: string
+            format: iri-reference
+            example: 'https://example.com/'
     School.jsonMergePatch:
       type: object
       properties:
@@ -4796,6 +6627,26 @@ components:
             type: string
             format: iri-reference
             example: 'https://example.com/'
+    Student.html:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        school:
+          type: string
+          format: iri-reference
+          example: 'https://example.com/'
+        parents:
+          type: array
+          items:
+            type: string
+            format: iri-reference
+            example: 'https://example.com/'
     Student.jsonMergePatch:
       type: object
       properties:
@@ -4840,7 +6691,7 @@ components:
                 type: string
                 format: iri-reference
                 example: 'https://example.com/'
-    User:
+    User-user.read:
       type: object
       properties:
         id:
@@ -4853,9 +6704,6 @@ components:
           type: array
           items:
             type: string
-        password:
-          description: 'The hashed password'
-          type: string
         school:
           type:
             - string
@@ -4886,11 +6734,61 @@ components:
             - 'null'
           format: iri-reference
           example: 'https://example.com/'
-        userIdentifier:
-          readOnly: true
-          description: 'A visual identifier that represents this user.'
+    User-user.write:
+      type: object
+      properties:
+        email:
           type: string
-    User.jsonMergePatch:
+        roles:
+          description: 'The user roles'
+          type: array
+          items:
+            type: string
+        plainPassword:
+          description: 'Plain password for input only (not persisted)'
+          type:
+            - string
+            - 'null'
+        school:
+          type:
+            - string
+            - 'null'
+          format: iri-reference
+          example: 'https://example.com/'
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phoneNumber:
+          type: string
+    User-user.write.jsonMergePatch:
+      type: object
+      properties:
+        email:
+          type: string
+        roles:
+          description: 'The user roles'
+          type: array
+          items:
+            type: string
+        plainPassword:
+          description: 'Plain password for input only (not persisted)'
+          type:
+            - string
+            - 'null'
+        school:
+          type:
+            - string
+            - 'null'
+          format: iri-reference
+          example: 'https://example.com/'
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phoneNumber:
+          type: string
+    User.html-user.read:
       type: object
       properties:
         id:
@@ -4903,9 +6801,6 @@ components:
           type: array
           items:
             type: string
-        password:
-          description: 'The hashed password'
-          type: string
         school:
           type:
             - string
@@ -4936,11 +6831,7 @@ components:
             - 'null'
           format: iri-reference
           example: 'https://example.com/'
-        userIdentifier:
-          readOnly: true
-          description: 'A visual identifier that represents this user.'
-          type: string
-    User.jsonld:
+    User.jsonld-user.read:
       allOf:
         -
           $ref: '#/components/schemas/HydraItemBaseSchema'
@@ -4957,9 +6848,6 @@ components:
               type: array
               items:
                 type: string
-            password:
-              description: 'The hashed password'
-              type: string
             school:
               type:
                 - string
@@ -4990,10 +6878,6 @@ components:
                 - 'null'
               format: iri-reference
               example: 'https://example.com/'
-            userIdentifier:
-              readOnly: true
-              description: 'A visual identifier that represents this user.'
-              type: string
   responses: {  }
   parameters: {  }
   examples: {  }
