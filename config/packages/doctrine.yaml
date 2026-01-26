@@ -1,4 +1,3 @@
-# yaml-language-server: $schema=../../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'

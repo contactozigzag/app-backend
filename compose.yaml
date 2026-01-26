@@ -69,9 +69,10 @@ services:
 volumes:
   caddy_data:
   caddy_config:
-  database_data:
   rabbitmq_data:
   rabbitmq_logs:
   redis_data:
-###> symfony/mercure-bundle ###
-###< symfony/mercure-bundle ###
+
+###> doctrine/doctrine-bundle ###
+  database_data:
+###< doctrine/doctrine-bundle ###
