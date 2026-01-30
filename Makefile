@@ -3,7 +3,7 @@ DOCKER_COMP = docker compose
 
 DOCKER_COMP_DEBUG = XDEBUG_MODE=debug docker compose
 
-DOCKER_COMP_PROD = SERVER_NAME=zigzaguealo.com APP_SECRET=6674fccbfd14ad82fd10342653b9c2355dc1be357724350766318cab1af8eba2 CADDY_MERCURE_JWT_SECRET=MhbTcEFGXN70CAdWGyCYsSLWhABtCcEzebKkSHXIW4c= docker compose
+DOCKER_COMP_PROD = SERVER_NAME=${SERVER_NAME} APP_SECRET=${APP_SECRET} CADDY_MERCURE_JWT_SECRET=${CADDY_MERCURE_JWT_SECRET} docker compose
 
 # Docker containers
 PHP_CONT = $(DOCKER_COMP) exec php
@@ -26,7 +26,7 @@ build: ## Builds the Docker images
 	@$(DOCKER_COMP) build --pull --no-cache
 
 prod-build: ## Builds the Docker images for Production
-	@$(DOCKER_COMP)  -f compose.yaml -f compose.prod.yaml build --pull --no-cache
+	@$(DOCKER_COMP_PROD)  -f compose.yaml -f compose.prod.yaml build --pull --no-cache
 
 up: ## Start the docker hub in detached mode (no logs)
 	@$(DOCKER_COMP) up --detach
@@ -42,7 +42,7 @@ debug: ## Start the docker hub in detached mode (no logs) with xdebug enabled fo
 	@$(DOCKER_COMP_DEBUG) up --detach
 
 ps: ## List containers with status
-	@$(DOCKER_COMP) ps
+	@$(DOCKER_COMP) ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
 
 down: ## Stop the docker hub
 	@$(DOCKER_COMP) down --remove-orphans

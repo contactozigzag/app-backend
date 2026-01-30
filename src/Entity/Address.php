@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Repository\AddressRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: AddressRepository::class)]
 #[ApiResource]
@@ -17,33 +18,43 @@ class Address
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
+    #[Groups(['user:write'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(['user:write'])]
     private ?string $streetAddress = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(['user:write'])]
     private ?string $city = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(['user:write'])]
     private ?string $state = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(['user:write'])]
     private ?string $country = null;
 
     #[ORM\Column(length: 10)]
+    #[Groups(['user:write'])]
     private ?string $postalCode = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 8)]
+    #[Groups(['user:write'])]
     private ?string $latitude = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 11, scale: 8)]
+    #[Groups(['user:write'])]
     private ?string $longitude = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['user:write'])]
     private ?string $placeId = null;
 
     #[ORM\Column]
+    #[Groups(['user:write'])]
     private ?bool $isDefault = null;
 
     #[ORM\ManyToOne(inversedBy: 'addresses')]
