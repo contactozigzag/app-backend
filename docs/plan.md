@@ -55,6 +55,10 @@ Develop user interfaces for parents and school administrators.
     - Overview of all active routes.
     - Management of schools, drivers, and vehicles.
     - *Links: Requirement 4.1, 1.2*
+- **P4.3 Fleet & Vehicle Management**
+    - Implement vehicle CRUD and driver assignment.
+    - Surface vehicle capacity and profile data in admin workflows.
+    - *Links: Requirement 9.1*
 
 ## Phase 5: Notifications & Communication (Priority: Medium)
 Keep users informed via multiple channels.

@@ -102,3 +102,11 @@ The School Transportation Management System is designed to streamline and secure
 - **User Story**: As a parent, I want to report an absence in advance so that the driver doesn't wait at our stop.
 - **Acceptance Criteria**:
     - WHEN an absence is reported for a specific date THEN the system SHALL exclude that stop from the day's route manifest.
+
+### 9. Fleet & Vehicle Management
+9.1 **Vehicle Profiles**
+- **User Story**: As a school administrator, I want to manage vehicle profiles so that each driver is assigned to a specific vehicle with known capacity.
+- **Acceptance Criteria**:
+    - WHEN a vehicle is created THEN the system SHALL require a license plate, make, model, and capacity.
+    - WHEN a vehicle is created THEN the system SHALL allow optional year, color, and type fields.
+    - WHEN a vehicle is assigned to a driver THEN the system SHALL link the vehicle to that driver record.

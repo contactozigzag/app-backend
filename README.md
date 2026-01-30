@@ -123,6 +123,7 @@ The system implements automatic multi-tenant filtering through:
 - User (with roles: ROLE_USER, ROLE_PARENT, ROLE_DRIVER, ROLE_SCHOOL_ADMIN, ROLE_SUPER_ADMIN)
 - Student (with parent-student many-to-many relationships)
 - Driver
+- Vehicle
 - Address (geocoded locations)
 
 ### Phase 2: Route Planning & Optimization ✅

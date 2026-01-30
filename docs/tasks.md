@@ -63,6 +63,11 @@
 - Statistics on active routes, driver status, and school-wide alerts.
 - Link: Plan P4.2 | Req 4.1, 1.2
 
+[ ] **Task 4.3: Vehicle Entity & Driver Association**
+- Create Vehicle entity with required fields and optional attributes.
+- Associate vehicles to drivers and expose as API resources.
+- Link: Plan P4.3 | Req 9.1
+
 ## Phase 5: Notifications
 [x] **Task 5.1: Multi-provider Notification Service**
 - Generic service for Push, SMS, and Email delivery.
