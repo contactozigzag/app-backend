@@ -12,12 +12,15 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[UniqueEntity(fields: ['identificationNumber'], message: 'Identification number must be unique.')]
 #[ApiResource(
     operations: [
         new Post(security: 'is_granted("PUBLIC_ACCESS")'),
@@ -82,6 +85,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 20)]
     #[Groups(['user:read', 'user:write'])]
     private ?string $phoneNumber = null;
+
+    #[ORM\Column(length: 10, unique: true)]
+    #[Groups(['user:read', 'user:write'])]
+    #[Assert\NotBlank]
+    #[Assert\Regex(pattern: '/^\d{8,10}$/', message: 'Identification number must be 8 to 10 digits.')]
+    private ?string $identificationNumber = null;
 
     /**
      * @var Collection<int, Address>
@@ -246,6 +255,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPhoneNumber(string $phoneNumber): static
     {
         $this->phoneNumber = $phoneNumber;
+
+        return $this;
+    }
+
+    public function getIdentificationNumber(): ?string
+    {
+        return $this->identificationNumber;
+    }
+
+    public function setIdentificationNumber(string $identificationNumber): static
+    {
+        $this->identificationNumber = $identificationNumber;
 
         return $this;
     }
