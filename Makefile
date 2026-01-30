@@ -1,7 +1,7 @@
 # Executables (local)
-DOCKER_COMP = docker compose
+DOCKER_COMP = docker compose --env-file .env.local
 
-DOCKER_COMP_DEBUG = XDEBUG_MODE=debug docker compose
+DOCKER_COMP_DEBUG = XDEBUG_MODE=debug $(DOCKER_COMP)
 
 DOCKER_COMP_PROD = SERVER_NAME=${SERVER_NAME} APP_SECRET=${APP_SECRET} CADDY_MERCURE_JWT_SECRET=${CADDY_MERCURE_JWT_SECRET} docker compose
 
@@ -15,28 +15,29 @@ SYMFONY  = $(PHP) bin/console
 
 # Misc
 .DEFAULT_GOAL = help
-.PHONY        : help build up start down logs sh composer vendor sf cc test
+.PHONY        : help build up start down logs sh composer vendor sf cc test dev prod check-env debug ps bash
 
 ## —— 🎵 🐳 The Symfony Docker Makefile 🐳 🎵 ——————————————————————————————————
 help: ## Outputs this help screen
 	@grep -E '(^[a-zA-Z0-9\./_-]+:.*?##.*$$)|(^##)' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}{printf "\033[32m%-30s\033[0m %s\n", $$1, $$2}' | sed -e 's/\[32m##/[33m/'
 
+ENV := $(strip $(if $(filter prod,$(MAKECMDGOALS)),prod,$(if $(filter dev,$(MAKECMDGOALS)),dev,)))
+
 ## —— Docker 🐳 ————————————————————————————————————————————————————————————————
-build: ## Builds the Docker images
+build: check-env ## Builds the Docker images (make build dev|prod)
+ifeq ($(ENV),prod)
+	@$(DOCKER_COMP_PROD) -f compose.yaml -f compose.prod.yaml build --pull --no-cache
+else
 	@$(DOCKER_COMP) build --pull --no-cache
+endif
 
-prod-build: ## Builds the Docker images for Production
-	@$(DOCKER_COMP_PROD)  -f compose.yaml -f compose.prod.yaml build --pull --no-cache
-
-up: ## Start the docker hub in detached mode (no logs)
-	@$(DOCKER_COMP) up --detach
-
-prod-up: ## ## Start the docker hub in detached mode (no logs) for production
+up: check-env ## Start the docker hub in detached mode (make up dev|prod)
+ifeq ($(ENV),prod)
 	@$(DOCKER_COMP_PROD) -f compose.yaml -f compose.prod.yaml up --wait
-
-start: build up ## Build and start the containers
-
-prod-start: prod-build prod-up ## Build and start the containers for production
+else
+	@$(DOCKER_COMP) up --detach
+endif
+start: check-env build up ## Build and start the containers (make start dev|prod)
 
 debug: ## Start the docker hub in detached mode (no logs) with xdebug enabled for step debug
 	@$(DOCKER_COMP_DEBUG) up --detach
@@ -77,3 +78,14 @@ sf: ## List all Symfony commands or pass the parameter "c=" to run a given comma
 
 cc: c=c:c ## Clear the cache
 cc: sf
+
+check-env:
+ifeq ($(ENV),)
+	$(error Please specify environment: make <target> dev|prod)
+endif
+
+dev:
+	@:
+
+prod:
+	@:
