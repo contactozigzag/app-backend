@@ -31,6 +31,14 @@ The School Transportation Management System is designed to streamline and secure
 - **Acceptance Criteria**:
     - WHEN a parent views their profile THEN the system SHALL list all associated children.
     - WHEN a child's status changes THEN the system SHALL notify all linked parents/guardians.
+- **Implementation**: Many-to-many relationship between Student and User entities, with Student as the owning side.
+
+1.4 **User and School Address Management**
+- **User Story**: As a user or school administrator, I want to maintain a single primary address for my account/school so that the system knows my location.
+- **Acceptance Criteria**:
+    - WHEN a user or school is created THEN the system SHALL allow association with one address.
+    - WHEN an address is updated THEN the system SHALL geocode the new location for accurate mapping.
+- **Implementation**: One-to-one unidirectional relationships where User and School entities own their respective Address references.
 
 ### 2. Route Planning & Optimization
 2.1 **Google Routes Integration**
@@ -91,6 +99,14 @@ The School Transportation Management System is designed to streamline and secure
 - **Acceptance Criteria**:
     - WHEN an address is entered THEN the system SHALL use Google Places API to validate and geocode the coordinates.
 
+7.2 **Entity Address Relationships**
+- **Technical Requirement**: Address entities are shared resources that can be owned by Users or Schools through one-to-one relationships.
+- **Database Design**:
+    - User entity has `address_id` foreign key (nullable)
+    - School entity has `address_id` foreign key (nullable)
+    - Address entity is independent with no back-references
+    - Both relationships use cascade persist and remove for lifecycle management
+
 ### 8. Safety & Compliance
 8.1 **Child Check-in/Check-out**
 - **User Story**: As a driver, I want to confirm when each child enters or leaves the bus so that we have an accurate manifest at all times.
@@ -110,3 +126,12 @@ The School Transportation Management System is designed to streamline and secure
     - WHEN a vehicle is created THEN the system SHALL require a license plate, make, model, and capacity.
     - WHEN a vehicle is created THEN the system SHALL allow optional year, color, and type fields.
     - WHEN a vehicle is assigned to a driver THEN the system SHALL link the vehicle to that driver record.
+
+### 10. Command Line Administration
+10.1 **User Creation Command**
+- **User Story**: As a system administrator, I want to create users from the command line for initial setup and administrative purposes.
+- **Acceptance Criteria**:
+    - WHEN executing the create-user command THEN the system SHALL accept email, password, name, phone, and identification number.
+    - WHEN the --super-admin flag is provided THEN the system SHALL create the user with ROLE_SUPER_ADMIN.
+    - WHEN validation fails THEN the system SHALL display clear error messages.
+- **Implementation**: Symfony console command `app:create-user` with proper validation and password hashing.

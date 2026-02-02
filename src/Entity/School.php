@@ -20,6 +20,10 @@ class School
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
+    #[ORM\OneToOne(targetEntity: Address::class, cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(name: 'address_id', referencedColumnName: 'id', nullable: true)]
+    private ?Address $address = null;
+
     /**
      * @var Collection<int, User>
      */
@@ -51,6 +55,18 @@ class School
     public function setName(string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getAddress(): ?Address
+    {
+        return $this->address;
+    }
+
+    public function setAddress(?Address $address): static
+    {
+        $this->address = $address;
 
         return $this;
     }

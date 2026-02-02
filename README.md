@@ -91,14 +91,24 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 
 ```
 Schools
+  ├── Address (one-to-one)
   ├── Users (Parents, Drivers, Admins)
+  │   └── Address (one-to-one)
   ├── Students
+  │   └── Parents (many-to-many with Users)
   └── Routes
       ├── RouteStops
       └── ActiveRoutes
           ├── ActiveRouteStops
           ├── LocationUpdates
           └── Attendance Records
+
+Relationships:
+- School → Address (one-to-one, School owns)
+- User → Address (one-to-one, User owns)
+- Student ↔ User (many-to-many, Student owns)
+- User ↔ Driver (one-to-one, Driver owns)
+- Driver ↔ Vehicle (one-to-one, Driver owns)
 ```
 
 ### Multi-tenant Data Isolation
@@ -119,12 +129,12 @@ The system implements automatic multi-tenant filtering through:
 - Support for multiple user roles: Parent, Driver, School Admin, Super Admin
 
 **Entities Implemented:**
-- School
-- User (with roles: ROLE_USER, ROLE_PARENT, ROLE_DRIVER, ROLE_SCHOOL_ADMIN, ROLE_SUPER_ADMIN)
-- Student (with parent-student many-to-many relationships)
-- Driver
-- Vehicle
-- Address (geocoded locations)
+- School (one-to-one relationship with Address)
+- User (with roles: ROLE_USER, ROLE_PARENT, ROLE_DRIVER, ROLE_SCHOOL_ADMIN, ROLE_SUPER_ADMIN; one-to-one relationship with Address)
+- Student (many-to-many relationship with User as parents)
+- Driver (one-to-one relationship with User)
+- Vehicle (one-to-one relationship with Driver)
+- Address (geocoded locations, shared by User and School)
 
 ### Phase 2: Route Planning & Optimization ✅
 
@@ -390,6 +400,34 @@ Authorization: Bearer {token}
 }
 ```
 
+## 🛠️ Command Line Tools
+
+### Create User Command
+
+Create users directly from the command line:
+
+```bash
+# Create a regular user
+php bin/console app:create-user user@example.com password123 John Doe "555-1234" "12345678"
+
+# Create a super admin user
+php bin/console app:create-user admin@example.com password123 Jane Admin "555-5678" "87654321" --super-admin
+
+# Using short option
+php bin/console app:create-user admin@example.com password123 Jane Admin "555-5678" "87654321" -s
+```
+
+**Command arguments:**
+- `email` - User email address (required)
+- `password` - User password (required)
+- `firstName` - User first name (required)
+- `lastName` - User last name (required)
+- `phoneNumber` - User phone number (required)
+- `identificationNumber` - 8-10 digit identification number (required)
+
+**Options:**
+- `--super-admin` or `-s` - Create user with ROLE_SUPER_ADMIN
+
 ## 🔧 Installation & Setup
 
 ### Prerequisites
@@ -430,8 +468,20 @@ FCM_SERVER_KEY=your-fcm-server-key
 ```
 
 3. **Start Docker containers:**
+
+For development:
 ```bash
-docker compose up -d --wait
+make up dev
+```
+
+For production:
+```bash
+make up prod
+```
+
+Or using docker compose directly:
+```bash
+docker compose --env-file .env.local up -d --wait
 ```
 
 4. **Install dependencies:**

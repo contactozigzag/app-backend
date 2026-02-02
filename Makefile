@@ -1,9 +1,16 @@
+# Determine environment first
+ENV := $(strip $(if $(filter prod,$(MAKECMDGOALS)),prod,$(if $(filter dev,$(MAKECMDGOALS)),dev,)))
+
 # Executables (local)
-DOCKER_COMP = docker compose --env-file .env.local
+ifeq ($(ENV),dev)
+    DOCKER_COMP = docker compose --env-file .env.local
+else ifeq ($(ENV),prod)
+    DOCKER_COMP = SERVER_NAME=${SERVER_NAME} APP_SECRET=${APP_SECRET} CADDY_MERCURE_JWT_SECRET=${CADDY_MERCURE_JWT_SECRET} docker compose
+else
+    DOCKER_COMP = docker compose --env-file .env.local
+endif
 
-DOCKER_COMP_DEBUG = XDEBUG_MODE=debug $(DOCKER_COMP)
-
-DOCKER_COMP_PROD = SERVER_NAME=${SERVER_NAME} APP_SECRET=${APP_SECRET} CADDY_MERCURE_JWT_SECRET=${CADDY_MERCURE_JWT_SECRET} docker compose
+DOCKER_COMP_DEBUG = XDEBUG_MODE=debug docker compose --env-file .env.local
 
 # Docker containers
 PHP_CONT = $(DOCKER_COMP) exec php
@@ -21,19 +28,17 @@ SYMFONY  = $(PHP) bin/console
 help: ## Outputs this help screen
 	@grep -E '(^[a-zA-Z0-9\./_-]+:.*?##.*$$)|(^##)' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}{printf "\033[32m%-30s\033[0m %s\n", $$1, $$2}' | sed -e 's/\[32m##/[33m/'
 
-ENV := $(strip $(if $(filter prod,$(MAKECMDGOALS)),prod,$(if $(filter dev,$(MAKECMDGOALS)),dev,)))
-
 ## —— Docker 🐳 ————————————————————————————————————————————————————————————————
 build: check-env ## Builds the Docker images (make build dev|prod)
 ifeq ($(ENV),prod)
-	@$(DOCKER_COMP_PROD) -f compose.yaml -f compose.prod.yaml build --pull --no-cache
+	@$(DOCKER_COMP) -f compose.yaml -f compose.prod.yaml build --pull --no-cache
 else
 	@$(DOCKER_COMP) build --pull --no-cache
 endif
 
 up: check-env ## Start the docker hub in detached mode (make up dev|prod)
 ifeq ($(ENV),prod)
-	@$(DOCKER_COMP_PROD) -f compose.yaml -f compose.prod.yaml up --wait
+	@$(DOCKER_COMP) -f compose.yaml -f compose.prod.yaml up --wait
 else
 	@$(DOCKER_COMP) up --detach
 endif

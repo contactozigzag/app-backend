@@ -57,9 +57,6 @@ class Address
     #[Groups(['user:write'])]
     private ?bool $isDefault = null;
 
-    #[ORM\ManyToOne(inversedBy: 'addresses')]
-    private ?User $user = null;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -181,18 +178,6 @@ class Address
     public function setIsDefault(bool $isDefault): static
     {
         $this->isDefault = $isDefault;
-
-        return $this;
-    }
-
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
-
-    public function setUser(?User $user): static
-    {
-        $this->user = $user;
 
         return $this;
     }

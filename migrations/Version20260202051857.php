@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260126034257 extends AbstractMigration
+final class Version20260202051857 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -32,9 +32,10 @@ final class Version20260126034257 extends AbstractMigration
         $this->addSql('CREATE TABLE route_stops (id INT AUTO_INCREMENT NOT NULL, stop_order INT NOT NULL, estimated_arrival_time INT DEFAULT NULL, geofence_radius INT NOT NULL, notes LONGTEXT DEFAULT NULL, is_active TINYINT NOT NULL, created_at DATETIME NOT NULL, route_id INT NOT NULL, student_id INT NOT NULL, address_id INT NOT NULL, INDEX IDX_A4CABD0A34ECB4E6 (route_id), INDEX IDX_A4CABD0ACB944F1A (student_id), INDEX IDX_A4CABD0AF5B7AF75 (address_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE routes (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(20) NOT NULL, start_latitude NUMERIC(10, 6) NOT NULL, start_longitude NUMERIC(10, 6) NOT NULL, end_latitude NUMERIC(10, 6) NOT NULL, end_longitude NUMERIC(10, 6) NOT NULL, estimated_duration INT DEFAULT NULL, estimated_distance INT DEFAULT NULL, polyline LONGTEXT DEFAULT NULL, is_active TINYINT NOT NULL, is_template TINYINT NOT NULL, created_at DATETIME NOT NULL, updated_at DATETIME NOT NULL, school_id INT NOT NULL, driver_id INT DEFAULT NULL, INDEX IDX_32D5C2B3C32A47EE (school_id), INDEX IDX_32D5C2B3C3423909 (driver_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE school (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
-        $this->addSql('CREATE TABLE student (id INT AUTO_INCREMENT NOT NULL, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, school_id INT NOT NULL, INDEX IDX_B723AF33C32A47EE (school_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
-        $this->addSql('CREATE TABLE student_user (student_id INT NOT NULL, user_id INT NOT NULL, INDEX IDX_B2B0AD91CB944F1A (student_id), INDEX IDX_B2B0AD91A76ED395 (user_id), PRIMARY KEY (student_id, user_id)) DEFAULT CHARACTER SET utf8mb4');
-        $this->addSql('CREATE TABLE user (id INT AUTO_INCREMENT NOT NULL, email VARCHAR(180) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, first_name VARCHAR(80) NOT NULL, last_name VARCHAR(80) NOT NULL, phone_number VARCHAR(20) NOT NULL, school_id INT DEFAULT NULL, INDEX IDX_8D93D649C32A47EE (school_id), UNIQUE INDEX UNIQ_IDENTIFIER_EMAIL (email), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE student (id INT AUTO_INCREMENT NOT NULL, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, identification_number VARCHAR(10) NOT NULL, gender VARCHAR(255) DEFAULT NULL, birthday DATE DEFAULT NULL, medical_history LONGTEXT DEFAULT NULL, additional_info LONGTEXT DEFAULT NULL, emergency_contact VARCHAR(255) DEFAULT NULL, emergency_contact_number VARCHAR(30) DEFAULT NULL, educational_level VARCHAR(255) DEFAULT NULL, grade VARCHAR(255) DEFAULT NULL, school_id INT DEFAULT NULL, UNIQUE INDEX UNIQ_B723AF33347639A5 (identification_number), INDEX IDX_B723AF33C32A47EE (school_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE student_parent (student_id INT NOT NULL, parent_id INT NOT NULL, INDEX IDX_B3B8B8CFCB944F1A (student_id), INDEX IDX_B3B8B8CF727ACA70 (parent_id), PRIMARY KEY (student_id, parent_id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE user (id INT AUTO_INCREMENT NOT NULL, email VARCHAR(180) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, first_name VARCHAR(80) NOT NULL, last_name VARCHAR(80) NOT NULL, phone_number VARCHAR(20) NOT NULL, identification_number VARCHAR(10) NOT NULL, school_id INT DEFAULT NULL, UNIQUE INDEX UNIQ_8D93D649347639A5 (identification_number), INDEX IDX_8D93D649C32A47EE (school_id), UNIQUE INDEX UNIQ_IDENTIFIER_EMAIL (email), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE vehicle (id INT AUTO_INCREMENT NOT NULL, license_plate VARCHAR(50) NOT NULL, make VARCHAR(100) NOT NULL, model VARCHAR(100) NOT NULL, capacity INT NOT NULL, year INT DEFAULT NULL, color VARCHAR(50) DEFAULT NULL, type VARCHAR(50) DEFAULT NULL, driver_id INT DEFAULT NULL, INDEX IDX_1B80E486C3423909 (driver_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE messenger_messages (id BIGINT AUTO_INCREMENT NOT NULL, body LONGTEXT NOT NULL, headers LONGTEXT NOT NULL, queue_name VARCHAR(190) NOT NULL, created_at DATETIME NOT NULL, available_at DATETIME NOT NULL, delivered_at DATETIME DEFAULT NULL, INDEX IDX_75EA56E0FB7336F0E3BD61CE16BA31DBBF396750 (queue_name, available_at, delivered_at, id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('ALTER TABLE absences ADD CONSTRAINT FK_F9C0EFFFCB944F1A FOREIGN KEY (student_id) REFERENCES student (id)');
         $this->addSql('ALTER TABLE absences ADD CONSTRAINT FK_F9C0EFFF71CE806 FOREIGN KEY (reported_by_id) REFERENCES user (id)');
@@ -58,9 +59,10 @@ final class Version20260126034257 extends AbstractMigration
         $this->addSql('ALTER TABLE routes ADD CONSTRAINT FK_32D5C2B3C32A47EE FOREIGN KEY (school_id) REFERENCES school (id)');
         $this->addSql('ALTER TABLE routes ADD CONSTRAINT FK_32D5C2B3C3423909 FOREIGN KEY (driver_id) REFERENCES driver (id)');
         $this->addSql('ALTER TABLE student ADD CONSTRAINT FK_B723AF33C32A47EE FOREIGN KEY (school_id) REFERENCES school (id)');
-        $this->addSql('ALTER TABLE student_user ADD CONSTRAINT FK_B2B0AD91CB944F1A FOREIGN KEY (student_id) REFERENCES student (id) ON DELETE CASCADE');
-        $this->addSql('ALTER TABLE student_user ADD CONSTRAINT FK_B2B0AD91A76ED395 FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE');
+        $this->addSql('ALTER TABLE student_parent ADD CONSTRAINT FK_B3B8B8CFCB944F1A FOREIGN KEY (student_id) REFERENCES student (id)');
+        $this->addSql('ALTER TABLE student_parent ADD CONSTRAINT FK_B3B8B8CF727ACA70 FOREIGN KEY (parent_id) REFERENCES user (id)');
         $this->addSql('ALTER TABLE user ADD CONSTRAINT FK_8D93D649C32A47EE FOREIGN KEY (school_id) REFERENCES school (id)');
+        $this->addSql('ALTER TABLE vehicle ADD CONSTRAINT FK_1B80E486C3423909 FOREIGN KEY (driver_id) REFERENCES driver (id)');
     }
 
     public function down(Schema $schema): void
@@ -88,9 +90,10 @@ final class Version20260126034257 extends AbstractMigration
         $this->addSql('ALTER TABLE routes DROP FOREIGN KEY FK_32D5C2B3C32A47EE');
         $this->addSql('ALTER TABLE routes DROP FOREIGN KEY FK_32D5C2B3C3423909');
         $this->addSql('ALTER TABLE student DROP FOREIGN KEY FK_B723AF33C32A47EE');
-        $this->addSql('ALTER TABLE student_user DROP FOREIGN KEY FK_B2B0AD91CB944F1A');
-        $this->addSql('ALTER TABLE student_user DROP FOREIGN KEY FK_B2B0AD91A76ED395');
+        $this->addSql('ALTER TABLE student_parent DROP FOREIGN KEY FK_B3B8B8CFCB944F1A');
+        $this->addSql('ALTER TABLE student_parent DROP FOREIGN KEY FK_B3B8B8CF727ACA70');
         $this->addSql('ALTER TABLE user DROP FOREIGN KEY FK_8D93D649C32A47EE');
+        $this->addSql('ALTER TABLE vehicle DROP FOREIGN KEY FK_1B80E486C3423909');
         $this->addSql('DROP TABLE absences');
         $this->addSql('DROP TABLE active_route_stops');
         $this->addSql('DROP TABLE active_routes');
@@ -104,8 +107,9 @@ final class Version20260126034257 extends AbstractMigration
         $this->addSql('DROP TABLE routes');
         $this->addSql('DROP TABLE school');
         $this->addSql('DROP TABLE student');
-        $this->addSql('DROP TABLE student_user');
+        $this->addSql('DROP TABLE student_parent');
         $this->addSql('DROP TABLE user');
+        $this->addSql('DROP TABLE vehicle');
         $this->addSql('DROP TABLE messenger_messages');
     }
 }

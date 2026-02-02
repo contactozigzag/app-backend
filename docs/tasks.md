@@ -8,8 +8,14 @@
 - Link: Plan P1.0 | Req 1.0
 
 [x] **Task 1.1: Database Schema Design**
-- Design tables for `Schools`, `Users`, `Roles`, `Students`, `Parents`, `Drivers`.
-- Link: Plan P1.1, P1.2 | Req 1.1, 1.2, 1.3
+- Design tables for `Schools`, `Users`, `Roles`, `Students`, `Parents`, `Drivers`, `Address`.
+- Implement relationship mappings:
+  - Student ↔ User (many-to-many, Student owns via `student_parent` join table)
+  - User → Address (one-to-one, User owns via `address_id` FK)
+  - School → Address (one-to-one, School owns via `address_id` FK)
+  - User ↔ Driver (one-to-one, Driver owns)
+  - Driver ↔ Vehicle (one-to-one, Driver owns)
+- Link: Plan P1.1, P1.2 | Req 1.1, 1.2, 1.3, 1.4, 7.2
 
 [x] **Task 1.2: Authentication & Authorization Setup**
 - Implement JWT-based auth.
@@ -63,7 +69,7 @@
 - Statistics on active routes, driver status, and school-wide alerts.
 - Link: Plan P4.2 | Req 4.1, 1.2
 
-[ ] **Task 4.3: Vehicle Entity & Driver Association**
+[x] **Task 4.3: Vehicle Entity & Driver Association**
 - Create Vehicle entity with required fields and optional attributes.
 - Associate vehicles to drivers and expose as API resources.
 - Link: Plan P4.3 | Req 9.1
@@ -89,3 +95,26 @@
 [x] **Task 6.3: End-to-End Safety Audit**
 - Verification of check-in/check-out logs and child security.
 - Link: Plan P6.1 | Req 8.1
+
+## Phase 7: Administrative Tools
+[x] **Task 7.1: Create User Console Command**
+- Implement Symfony console command `app:create-user`.
+- Accept email, password, firstName, lastName, phoneNumber, identificationNumber.
+- Support --super-admin/-s flag for ROLE_SUPER_ADMIN creation.
+- Include validation (8-10 digit ID, unique email/ID).
+- Hash passwords securely and display created user info.
+- Link: Plan P7.1 | Req 10.1
+
+[x] **Task 7.2: Environment-Aware Makefile**
+- Update Makefile to detect dev/prod environment from command arguments.
+- Use --env-file .env.local only for dev environment.
+- Apply to all docker compose commands (build, up, down, etc.).
+- Link: Plan P7.2
+
+[x] **Task 7.3: Entity Relationship Refinement**
+- Update User-Address relationship from OneToMany to OneToOne.
+- Add School-Address OneToOne relationship.
+- Ensure User and School are owning sides with address_id FK.
+- Remove bidirectional references from Address entity.
+- Update all getter/setter methods accordingly.
+- Link: Plan P1.2 | Req 1.4, 7.2

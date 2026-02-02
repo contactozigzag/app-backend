@@ -92,12 +92,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Regex(pattern: '/^\d{8,10}$/', message: 'Identification number must be 8 to 10 digits.')]
     private ?string $identificationNumber = null;
 
-    /**
-     * @var Collection<int, Address>
-     */
-    #[ORM\OneToMany(targetEntity: Address::class, mappedBy: 'user', cascade: ['persist'])]
+    #[ORM\OneToOne(targetEntity: Address::class, cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(name: 'address_id', referencedColumnName: 'id', nullable: true)]
     #[Groups(['user:read', 'user:write'])]
-    private Collection $addresses;
+    private ?Address $address = null;
 
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     #[Groups(['user:read'])]
@@ -106,7 +104,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __construct()
     {
         $this->students = new ArrayCollection();
-        $this->addresses = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -271,32 +268,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @return Collection<int, Address>
-     */
-    public function getAddresses(): Collection
+    public function getAddress(): ?Address
     {
-        return $this->addresses;
+        return $this->address;
     }
 
-    public function addAddress(Address $address): static
+    public function setAddress(?Address $address): static
     {
-        if (!$this->addresses->contains($address)) {
-            $this->addresses->add($address);
-            $address->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAddress(Address $address): static
-    {
-        if ($this->addresses->removeElement($address)) {
-            // set the owning side to null (unless already changed)
-            if ($address->getUser() === $this) {
-                $address->setUser(null);
-            }
-        }
+        $this->address = $address;
 
         return $this;
     }

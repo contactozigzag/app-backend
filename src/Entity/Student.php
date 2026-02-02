@@ -66,6 +66,9 @@ class Student
      * @var Collection<int, User>
      */
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'students')]
+    #[ORM\JoinTable(name: 'student_parent')]
+    #[ORM\JoinColumn(name: 'student_id', referencedColumnName: 'id')]
+    #[ORM\InverseJoinColumn(name: 'parent_id', referencedColumnName: 'id')]
     private Collection $parents;
 
     public function __construct()

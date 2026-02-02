@@ -15,9 +15,10 @@ Establish the core infrastructure, multi-tenant database schema, and authenticat
     - Design schema for Schools, Users, Roles, and their associations.
     - *Links: Requirement 1.1, 1.2*
 - **P1.2 Family & Student Profiles**
-    - Develop Parent-Child relationship mapping.
-    - Implement Student profiles with associated school and home address links.
-    - *Links: Requirement 1.3*
+    - Develop Parent-Child relationship mapping (many-to-many with Student as owning side).
+    - Implement Student profiles with associated school.
+    - Implement User and School address relationships (one-to-one with User/School as owning sides).
+    - *Links: Requirement 1.3, 1.4, 7.2*
 
 ## Phase 2: Location & Route Core (Priority: High)
 Integrate external mapping services and build the routing engine.
@@ -79,3 +80,16 @@ Long-term data storage and performance reporting.
     - Build reporting dashboard for on-time rates and efficiency.
     - Driver and vehicle performance metrics.
     - *Links: Requirement 6.1*
+
+## Phase 7: Administrative Tools (Priority: Medium)
+Command-line tools for system administration and maintenance.
+
+- **P7.1 CLI User Management**
+    - Implement Symfony console command for user creation.
+    - Support super admin creation for initial system setup.
+    - Include validation and error handling.
+    - *Links: Requirement 10.1*
+- **P7.2 Environment-Aware Build System**
+    - Update Makefile to support dev/prod environments.
+    - Use .env.local for local development only.
+    - Ensure proper environment variable handling for production.
