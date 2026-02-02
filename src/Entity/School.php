@@ -2,7 +2,15 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Repository\SchoolRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,6 +19,21 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: SchoolRepository::class)]
 #[ApiResource(
+    operations: [
+        new Get(security: "is_granted('ROLE_USER')"),
+        new GetCollection(
+            security: "is_granted('ROLE_USER')",
+            parameters: [
+                'search[:property]' => new QueryParameter(
+                    filter: new PartialSearchFilter(),
+                    properties: ['name']
+                )
+            ]
+        ),
+        new Post(security: "is_granted('ROLE_SCHOOL_ADMIN')"),
+        new Patch(security: "is_granted('ROLE_SCHOOL_ADMIN')"),
+        new Delete(security: "is_granted('ROLE_SCHOOL_ADMIN')"),
+    ],
     normalizationContext: ['groups' => ['school:read']],
     denormalizationContext: ['groups' => ['school:write']]
 )]
