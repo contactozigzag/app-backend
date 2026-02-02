@@ -7,9 +7,13 @@ use App\Repository\SchoolRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: SchoolRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['school:read']],
+    denormalizationContext: ['groups' => ['school:write']]
+)]
 class School
 {
     #[ORM\Id]
@@ -18,10 +22,12 @@ class School
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['school:read', 'school:write'])]
     private ?string $name = null;
 
     #[ORM\OneToOne(targetEntity: Address::class, cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(name: 'address_id', referencedColumnName: 'id', nullable: true)]
+    #[Groups(['school:read', 'school:write'])]
     private ?Address $address = null;
 
     /**

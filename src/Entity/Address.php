@@ -17,61 +17,41 @@ class Address
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 30)]
-    #[Groups(['user:write'])]
-    private ?string $name = null;
-
     #[ORM\Column(length: 100)]
-    #[Groups(['user:write'])]
+    #[Groups(['user:write', 'school:write'])]
     private ?string $streetAddress = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:write'])]
+    #[Groups(['user:write', 'school:write'])]
     private ?string $city = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:write'])]
+    #[Groups(['user:write', 'school:write'])]
     private ?string $state = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:write'])]
+    #[Groups(['user:write', 'school:write'])]
     private ?string $country = null;
 
     #[ORM\Column(length: 10)]
-    #[Groups(['user:write'])]
+    #[Groups(['user:write', 'school:write'])]
     private ?string $postalCode = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 8)]
-    #[Groups(['user:write'])]
+    #[Groups(['user:write', 'school:write'])]
     private ?string $latitude = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 11, scale: 8)]
-    #[Groups(['user:write'])]
+    #[Groups(['user:write', 'school:write'])]
     private ?string $longitude = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['user:write'])]
+    #[Groups(['user:write', 'school:write'])]
     private ?string $placeId = null;
-
-    #[ORM\Column]
-    #[Groups(['user:write'])]
-    private ?bool $isDefault = null;
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(string $name): static
-    {
-        $this->name = $name;
-
-        return $this;
     }
 
     public function getStreetAddress(): ?string
@@ -166,18 +146,6 @@ class Address
     public function setPlaceId(?string $placeId): static
     {
         $this->placeId = $placeId;
-
-        return $this;
-    }
-
-    public function isDefault(): ?bool
-    {
-        return $this->isDefault;
-    }
-
-    public function setIsDefault(bool $isDefault): static
-    {
-        $this->isDefault = $isDefault;
 
         return $this;
     }
