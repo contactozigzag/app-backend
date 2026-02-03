@@ -37,7 +37,8 @@ class Vehicle
     private ?string $type = null;
 
     #[ORM\ManyToOne(inversedBy: 'vehicles')]
-    private ?Driver $driver = null;
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
     public function getId(): ?int
     {
@@ -128,14 +129,14 @@ class Vehicle
         return $this;
     }
 
-    public function getDriver(): ?Driver
+    public function getUser(): ?User
     {
-        return $this->driver;
+        return $this->user;
     }
 
-    public function setDriver(?Driver $driver): static
+    public function setUser(?User $user): static
     {
-        $this->driver = $driver;
+        $this->user = $user;
 
         return $this;
     }
