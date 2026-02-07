@@ -1,0 +1,32 @@
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+loki.source.docker "docker_logs" {
+  targets    = discovery.docker.containers.targets
+  forward_to = [loki.process.add_labels.receiver]
+}
+
+loki.process "add_labels" {
+  stage.docker { }
+
+  stage.static_labels {
+    values = {
+      "environment" = sys.env("APP_ENV"),
+      "project"     = "zigzag-pro",
+    }
+  }
+
+  forward_to = [loki.write.grafana_cloud.receiver]
+}
+
+loki.write "grafana_cloud" {
+  endpoint {
+    url = "https://logs-prod-024.grafana.net/loki/api/v1/push"
+    auth {
+      type     = "basic"
+      username = "1476451"
+      password = sys.env("GRAFANA_CLOUD_TOKEN")
+    }
+  }
+}

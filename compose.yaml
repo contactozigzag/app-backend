@@ -2,6 +2,7 @@
 services:
   php:
     image: ${IMAGES_PREFIX:-}app-php
+    container_name: zigzag_php
     restart: unless-stopped
     environment:
       SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
@@ -36,6 +37,7 @@ services:
 
   database:
     image: mysql:${MYSQL_VERSION:-8.4}
+    container_name: zigzag_database
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-db}
       MYSQL_USER: ${MYSQL_USER:-user}
@@ -51,6 +53,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:4.2-management-alpine
+    container_name: zigzag_rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -60,8 +63,10 @@ services:
 
   redis:
     image: redis:8.4-alpine
+    container_name: zigzag_redis
     volumes:
       - redis_data:/data
+
 # Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
