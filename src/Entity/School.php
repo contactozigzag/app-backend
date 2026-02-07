@@ -20,7 +20,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: SchoolRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(security: "is_granted('ROLE_USER')"),
+        new Get(
+            security: "is_granted('ROLE_USER')",
+            normalizationContext: ['groups' => ['school:read', 'school:address:read']]
+        ),
         new GetCollection(
             security: "is_granted('ROLE_USER')",
             parameters: [

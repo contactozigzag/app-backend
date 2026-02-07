@@ -15,38 +15,39 @@ class Address
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['school:address:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:write', 'school:write'])]
+    #[Groups(['user:write', 'school:write', 'school:address:read'])]
     private ?string $streetAddress = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:write', 'school:write'])]
+    #[Groups(['user:write', 'school:write', 'school:address:read'])]
     private ?string $city = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:write', 'school:write'])]
+    #[Groups(['user:write', 'school:write', 'school:address:read'])]
     private ?string $state = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:write', 'school:write'])]
+    #[Groups(['user:write', 'school:write', 'school:address:read'])]
     private ?string $country = null;
 
     #[ORM\Column(length: 10)]
-    #[Groups(['user:write', 'school:write'])]
+    #[Groups(['user:write', 'school:write', 'school:address:read'])]
     private ?string $postalCode = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 8)]
-    #[Groups(['user:write', 'school:write'])]
+    #[Groups(['user:write', 'school:write', 'school:address:read'])]
     private ?string $latitude = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 11, scale: 8)]
-    #[Groups(['user:write', 'school:write'])]
+    #[Groups(['user:write', 'school:write', 'school:address:read'])]
     private ?string $longitude = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['user:write', 'school:write'])]
+    #[Groups(['user:write', 'school:write', 'school:address:read'])]
     private ?string $placeId = null;
 
     public function getId(): ?int
