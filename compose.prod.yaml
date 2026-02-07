@@ -11,6 +11,12 @@ services:
       APP_SECRET: ${APP_SECRET}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/health/live" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
   database:
     command:
       - --transaction-isolation=READ-COMMITTED
@@ -19,6 +25,7 @@ services:
   alloy:
     image: grafana/alloy:latest
     container_name: zigzag_alloy
+    user: root
     environment:
       APP_ENV: prod
       GRAFANA_CLOUD_TOKEN: ${GRAFANA_CLOUD_TOKEN}
@@ -27,7 +34,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
     command: run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
-    user: root
+    depends_on:
+      php:
+        condition: service_healthy
 
 volumes:
   jwt_data:
