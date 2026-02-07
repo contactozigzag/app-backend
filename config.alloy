@@ -11,6 +11,11 @@ loki.source.docker "docker_logs" {
 loki.process "add_labels" {
   stage.docker { }
 
+  stage.drop {
+    source = "timestamp"
+    expression = "^$" // Drops if timestamp is empty
+  }
+
   stage.static_labels {
     values = {
       "environment" = sys.env("APP_ENV"),
