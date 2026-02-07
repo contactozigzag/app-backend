@@ -24,8 +24,7 @@ loki.process "add_labels" {
 loki.write "grafana_cloud" {
   endpoint {
     url = "https://logs-prod-024.grafana.net/loki/api/v1/push"
-    auth {
-      type     = "basic"
+    basic_auth {
       username = "1476451"
       password = sys.env("GRAFANA_CLOUD_TOKEN")
     }
