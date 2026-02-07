@@ -23,10 +23,10 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new Get(security: "is_granted('ROLE_USER')"),
         new GetCollection(security: "is_granted('ROLE_USER')"),
-        new Post(security: "is_granted('ROLE_SCHOOL_ADMIN') OR is_granted('ROLE_DRIVER')"),
-        new Put(security: "is_granted('ROLE_SCHOOL_ADMIN') OR is_granted('ROLE_DRIVER')"),
-        new Patch(security: "is_granted('ROLE_SCHOOL_ADMIN') OR is_granted('ROLE_DRIVER')"),
-        new Delete(security: "is_granted('ROLE_SCHOOL_ADMIN') OR is_granted('ROLE_DRIVER')"),
+        new Post(security: "is_granted('ROLE_DRIVER')"),
+        new Put(security: "is_granted('ROLE_DRIVER')"),
+        new Patch(security: "is_granted('ROLE_DRIVER')"),
+        new Delete(security: "is_granted('ROLE_DRIVER')"),
     ],
     normalizationContext: ['groups' => ['route:read']],
     denormalizationContext: ['groups' => ['route:write']]
