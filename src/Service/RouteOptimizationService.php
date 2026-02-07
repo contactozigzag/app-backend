@@ -23,7 +23,8 @@ class RouteOptimizationService
      *     optimized_order: array<int>,
      *     total_distance: int,
      *     total_duration: int,
-     *     segments: array<array{from: int, to: int, distance: int, duration: int}>
+     *     segments: array<array{from: int, to: int, distance: int, duration: int}>,
+     *     polyline: string|null
      * }|null
      */
     public function optimizeRoute(array $startPoint, array $endPoint, array $stops): ?array
@@ -34,6 +35,9 @@ class RouteOptimizationService
             if ($distance === null) {
                 return null;
             }
+
+            // Get polyline for direct route
+            $routeData = $this->googleMapsService->getOptimizedRoute($startPoint, $endPoint, [], false);
 
             return [
                 'optimized_order' => [],
@@ -47,6 +51,7 @@ class RouteOptimizationService
                         'duration' => $distance['duration'],
                     ]
                 ],
+                'polyline' => $routeData['polyline'] ?? null,
             ];
         }
 
@@ -99,6 +104,7 @@ class RouteOptimizationService
             'total_distance' => $result['total_distance'],
             'total_duration' => $result['total_duration'],
             'segments' => [],
+            'polyline' => $result['polyline'] ?? null,
         ];
     }
 
@@ -185,11 +191,30 @@ class RouteOptimizationService
             $totalDuration += $finalDistance['duration'];
         }
 
+        // Get polyline for the optimized route
+        $orderedWaypoints = [];
+        foreach ($route as $stopId) {
+            foreach ($stops as $stop) {
+                if ($stop['id'] === $stopId) {
+                    $orderedWaypoints[] = ['lat' => $stop['lat'], 'lng' => $stop['lng']];
+                    break;
+                }
+            }
+        }
+
+        $routeData = $this->googleMapsService->getOptimizedRoute(
+            $startPoint,
+            $endPoint,
+            $orderedWaypoints,
+            false // Don't optimize again, use our order
+        );
+
         return [
             'optimized_order' => $route,
             'total_distance' => $totalDistance,
             'total_duration' => $totalDuration,
             'segments' => $segments,
+            'polyline' => $routeData['polyline'] ?? null,
         ];
     }
 

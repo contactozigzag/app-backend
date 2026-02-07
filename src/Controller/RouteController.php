@@ -101,6 +101,11 @@ class RouteController extends AbstractController
         $route->setEstimatedDistance($result['total_distance']);
         $route->setEstimatedDuration($result['total_duration']);
 
+        // Update polyline from Google Maps
+        if (isset($result['polyline'])) {
+            $route->setPolyline($result['polyline']);
+        }
+
         $this->entityManager->flush();
 
         return $this->json([
