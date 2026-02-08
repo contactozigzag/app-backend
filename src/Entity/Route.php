@@ -17,6 +17,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: RouteRepository::class)]
 #[ORM\Table(name: 'routes')]
 #[ApiResource(
