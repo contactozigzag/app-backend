@@ -30,6 +30,11 @@ RUN set -eux; \
 		zip \
 		pdo_mysql \
 		sockets \
+		sodium \
+		dom \
+		xml \
+		simplexml \
+		xmlwriter \
 	;
 
 ENV GIT_CONFIG_COUNT=1
