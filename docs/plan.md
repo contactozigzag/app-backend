@@ -32,6 +32,11 @@ Integrate external mapping services and build the routing engine.
     - Implement multi-stop sequence optimization.
     - Handle morning/afternoon route templates.
     - *Links: Requirement 2.1, 2.2*
+- **P2.3 Parent-Driver Route Stop Workflow**
+    - Implement parent route stop creation endpoint.
+    - Add driver confirmation/rejection workflow for route stops.
+    - Ensure optimization only includes confirmed stops.
+    - *Links: Requirement 2.3, 2.4*
 
 ## Phase 3: Real-time Operations (Priority: High)
 Enable live tracking and the driver's operational flow.

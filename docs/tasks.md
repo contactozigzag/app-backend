@@ -43,6 +43,25 @@
 - CRUD for morning and afternoon route templates.
 - Link: Plan P2.2 | Req 2.2
 
+[x] **Task 2.5: Parent Route Stop Creation**
+- Implement POST /api/route-stops endpoint for parents.
+- Validate parent-student relationship and school associations.
+- Set isConfirmed to false by default.
+- Link: Plan P2.3 | Req 2.3
+
+[x] **Task 2.6: Driver Route Stop Confirmation**
+- Implement GET /api/route-stops/unconfirmed endpoint for drivers.
+- Implement PATCH /api/route-stops/{id}/confirm endpoint.
+- Implement PATCH /api/route-stops/{id}/reject endpoint.
+- Update route optimization to filter by isActive AND isConfirmed.
+- Link: Plan P2.3 | Req 2.4
+
+[x] **Task 2.7: RouteStop Entity Enhancement**
+- Add isConfirmed boolean field to RouteStop entity (default: false).
+- Create database migration for new field.
+- Update RouteStopRepository with filtering methods.
+- Link: Plan P2.3 | Req 2.3, 2.4
+
 ## Phase 3: Driver & Real-time Tracking
 [x] **Task 3.1: GPS Tracking API**
 - Endpoint for drivers to post location updates (5-10s interval).

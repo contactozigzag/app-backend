@@ -51,10 +51,10 @@ class RouteController extends AbstractController
             'lng' => (float)$route->getEndLongitude(),
         ];
 
-        // Extract stops
+        // Extract stops - only active and confirmed stops
         $stops = [];
         foreach ($route->getStops() as $stop) {
-            if ($stop->isActive()) {
+            if ($stop->isActive() && $stop->isConfirmed()) {
                 $address = $stop->getAddress();
                 $stops[] = [
                     'id' => $stop->getId(),
@@ -143,10 +143,11 @@ class RouteController extends AbstractController
             'lng' => (float)$route->getEndLongitude(),
         ];
 
+        // Extract stops - only active and confirmed stops
         $stops = [];
         $stopDetails = [];
         foreach ($route->getStops() as $stop) {
-            if ($stop->isActive()) {
+            if ($stop->isActive() && $stop->isConfirmed()) {
                 $address = $stop->getAddress();
                 $stops[] = [
                     'id' => $stop->getId(),
@@ -231,6 +232,7 @@ class RouteController extends AbstractController
             $newStop->setGeofenceRadius($stop->getGeofenceRadius());
             $newStop->setNotes($stop->getNotes());
             $newStop->setIsActive($stop->isActive());
+            $newStop->setIsConfirmed($stop->isConfirmed()); // Clone confirmation status
 
             $newRoute->addStop($newStop);
         }

@@ -143,10 +143,21 @@ The system implements automatic multi-tenant filtering through:
 - Route optimization with stop sequencing
 - Google Maps integration for routing
 - Estimated time and distance calculations
+- Parent-initiated route stop creation workflow
+- Driver confirmation/rejection system for route stops
+- Automatic filtering of confirmed stops in optimization
 
 **Entities Implemented:**
 - Route (templates with school association)
-- RouteStop (individual stops with estimated arrival times)
+- RouteStop (individual stops with estimated arrival times and confirmation status)
+
+**Parent-Driver Route Stop Workflow:**
+1. Parents create route stops for their students via `/api/route-stops`
+2. System validates parent-student relationship and school associations
+3. Route stops are created with `isConfirmed=false` by default
+4. Drivers view unconfirmed stops via `/api/route-stops/unconfirmed`
+5. Drivers can confirm (`/api/route-stops/{id}/confirm`) or reject (`/api/route-stops/{id}/reject`) stops
+6. Only stops with `isActive=true` AND `isConfirmed=true` are included in route optimization
 
 ### Phase 3: Real-time Tracking & Operations ✅
 
@@ -322,6 +333,12 @@ All API Platform resources support standard REST operations:
 - `PATCH /api/routes/{id}` - Update route
 - `DELETE /api/routes/{id}` - Delete route (admin only)
 
+#### Route Stops
+- `POST /api/route-stops` - Create route stop (parent/user only)
+- `GET /api/route-stops/unconfirmed` - List unconfirmed stops for driver's routes (driver only)
+- `PATCH /api/route-stops/{id}/confirm` - Confirm a route stop (driver only)
+- `PATCH /api/route-stops/{id}/reject` - Reject/deactivate a route stop (driver only)
+
 #### Active Routes
 - `GET /api/active_routes` - List active routes
 - `GET /api/active_routes/{id}` - Get active route details
@@ -397,6 +414,91 @@ Authorization: Bearer {token}
   "driverStatuses": [...],
   "recentAlerts": [...],
   "todayMetrics": {...}
+}
+```
+
+#### Route Stop Creation (Parent)
+```http
+POST /api/route-stops
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "route_id": 1,
+  "student_id": 5,
+  "address_id": 12,
+  "stop_order": 3,
+  "geofence_radius": 50,
+  "notes": "Please wait at the corner"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "route_stop_id": 42,
+  "message": "Route stop created successfully. Waiting for driver confirmation."
+}
+```
+
+#### List Unconfirmed Route Stops (Driver)
+```http
+GET /api/route-stops/unconfirmed
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "unconfirmed_stops": [
+    {
+      "id": 42,
+      "route_id": 1,
+      "route_name": "Morning Route A",
+      "student_id": 5,
+      "student_name": "John Doe",
+      "address": {
+        "id": 12,
+        "street": "123 Main St",
+        "latitude": "40.7128",
+        "longitude": "-74.0060"
+      },
+      "notes": "Please wait at the corner",
+      "created_at": "2026-02-09 10:30:00"
+    }
+  ],
+  "total": 1
+}
+```
+
+#### Confirm Route Stop (Driver)
+```http
+PATCH /api/route-stops/42/confirm
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Route stop confirmed successfully",
+  "route_stop_id": 42
+}
+```
+
+#### Reject Route Stop (Driver)
+```http
+PATCH /api/route-stops/42/reject
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Route stop rejected successfully",
+  "route_stop_id": 42
 }
 ```
 

@@ -51,8 +51,31 @@ The School Transportation Management System is designed to streamline and secure
 - **Acceptance Criteria**:
     - WHEN a set of stops is provided THEN the system SHALL apply an optimization algorithm to produce the most efficient sequence.
     - WHEN vehicle capacity is exceeded THEN the system SHALL flag the route as "Over-capacity".
+    - WHEN route optimization is performed THEN the system SHALL only include stops that are both active and confirmed by the driver.
 
-2.3 **Dynamic Route Adjustments**
+2.3 **Parent-Initiated Route Stops**
+- **User Story**: As a parent, I want to create a route stop for my child on a route associated with my school so that my child can be picked up/dropped off.
+- **Acceptance Criteria**:
+    - WHEN a parent creates a route stop THEN the system SHALL validate that the route belongs to the parent's school.
+    - WHEN a parent creates a route stop THEN the system SHALL validate that the student belongs to the parent.
+    - WHEN a parent creates a route stop THEN the system SHALL validate that the student and route belong to the same school.
+    - WHEN a route stop is created THEN the system SHALL set isConfirmed to false by default.
+    - WHEN a route stop is created THEN the system SHALL notify the driver for confirmation.
+- **Endpoint**: POST /api/route-stops
+
+2.4 **Driver Route Stop Confirmation**
+- **User Story**: As a driver, I want to review and confirm route stops created by parents so that I can manage my route effectively.
+- **Acceptance Criteria**:
+    - WHEN a driver views unconfirmed stops THEN the system SHALL display all unconfirmed stops for routes assigned to that driver.
+    - WHEN a driver confirms a route stop THEN the system SHALL set isConfirmed to true.
+    - WHEN a driver rejects a route stop THEN the system SHALL set isActive to false and isConfirmed to false.
+    - WHEN optimization is performed THEN the system SHALL only include stops with isActive=true AND isConfirmed=true.
+- **Endpoints**:
+    - GET /api/route-stops/unconfirmed
+    - PATCH /api/route-stops/{id}/confirm
+    - PATCH /api/route-stops/{id}/reject
+
+2.5 **Dynamic Route Adjustments**
 - **User Story**: As a driver, I want to receive updated routes based on real-time traffic or student absences so that I can avoid unnecessary stops.
 - **Acceptance Criteria**:
     - WHEN a student is marked as absent THEN the system SHALL recalculate the route and remove that stop.
