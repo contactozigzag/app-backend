@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\ExactFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -9,6 +10,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Repository\RouteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -23,7 +25,15 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new Get(security: "is_granted('ROLE_USER')"),
-        new GetCollection(security: "is_granted('ROLE_USER')"),
+        new GetCollection(
+            security: "is_granted('ROLE_USER')",
+            parameters: [
+                'search[:property]' => new QueryParameter(
+                    filter: new ExactFilter(),
+                    properties: ['driver', 'school']
+                )
+            ]
+        ),
         new Post(security: "is_granted('ROLE_DRIVER')"),
         new Put(security: "is_granted('ROLE_DRIVER')"),
         new Patch(security: "is_granted('ROLE_DRIVER')"),
