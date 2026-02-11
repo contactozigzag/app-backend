@@ -124,7 +124,7 @@ class RouteStopController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
-        // Get all routes assigned to this driver
+        /** @var Route[] $driverRoutes */
         $driverRoutes = $this->routeRepository->findBy(['driver' => $driver]);
 
         $unconfirmedStops = [];
@@ -140,7 +140,9 @@ class RouteStopController extends AbstractController
                 ->getResult();
 
             foreach ($stops as $stop) {
+                /** @var Student $student */
                 $student = $stop->getStudent();
+                /** @var Address $address */
                 $address = $stop->getAddress();
                 $unconfirmedStops[] = [
                     'id' => $stop->getId(),
@@ -150,7 +152,7 @@ class RouteStopController extends AbstractController
                     'student_name' => $student->getFirstName() . ' ' . $student->getLastName(),
                     'address' => [
                         'id' => $address->getId(),
-                        'street' => $address->getStreet(),
+                        'street' => $address->getStreetAddress(),
                         'latitude' => $address->getLatitude(),
                         'longitude' => $address->getLongitude(),
                     ],
