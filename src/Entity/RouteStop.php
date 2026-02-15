@@ -12,9 +12,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: RouteStopRepository::class)]
 #[ORM\Table(name: 'route_stops')]
 #[ApiResource(
-    security: "is_granted('ROLE_USER')",
     normalizationContext: ['groups' => ['route_stop:read']],
-    denormalizationContext: ['groups' => ['route_stop:write']]
+    denormalizationContext: ['groups' => ['route_stop:write']],
+    security: "is_granted('ROLE_USER')"
 )]
 class RouteStop
 {
@@ -65,7 +65,7 @@ class RouteStop
     private bool $isActive = true;
 
     #[ORM\Column]
-    #[Groups(['route_stop:read', 'route:read'])]
+    #[Groups(['route_stop:read', 'route:read', 'user:read'])]
     private bool $isConfirmed = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
