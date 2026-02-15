@@ -1,0 +1,36 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    # Payment Services
+    App\Service\Payment\:
+        resource: '../../src/Service/Payment/'
+
+    App\Service\Payment\MercadoPagoService:
+        arguments:
+            $accessToken: '%env(MERCADOPAGO_ACCESS_TOKEN)%'
+            $publicKey: '%env(MERCADOPAGO_PUBLIC_KEY)%'
+            $cache: '@cache.app'
+
+    App\Service\Payment\WebhookValidator:
+        arguments:
+            $webhookSecret: '%env(MERCADOPAGO_WEBHOOK_SECRET)%'
+
+    App\Service\Payment\IdempotencyService:
+        arguments:
+            $cache: '@cache.app'
+            $connection: '@doctrine.dbal.default_connection'
+
+    # Event Subscribers
+    App\EventSubscriber\PaymentEventSubscriber:
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # Rate Limiter
+    payment_rate_limiter:
+        class: Symfony\Component\RateLimiter\RateLimiterFactory
+        arguments:
+            - payment_api
+            - '@limiter.payment_api'
+        public: true

@@ -1,0 +1,4 @@
+framework:
+    scheduler:
+        # Enable the scheduler component
+        enabled: true

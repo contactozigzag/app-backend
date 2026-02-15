@@ -158,3 +158,99 @@ The School Transportation Management System is designed to streamline and secure
     - WHEN the --super-admin flag is provided THEN the system SHALL create the user with ROLE_SUPER_ADMIN.
     - WHEN validation fails THEN the system SHALL display clear error messages.
 - **Implementation**: Symfony console command `app:create-user` with proper validation and password hashing.
+
+### 11. Payment Processing & Integration
+11.1 **Payment Creation & Processing**
+- **User Story**: As a parent, I want to pay for my children's transportation service through the mobile app so that I can ensure continuous service.
+- **Acceptance Criteria**:
+    - WHEN creating a payment THEN the system SHALL support single or multiple students in one transaction.
+    - WHEN processing payment THEN the system SHALL use Mercado Pago as the payment gateway.
+    - WHEN payment is created THEN the system SHALL return a payment preference ID and checkout URL.
+    - WHEN payment is submitted THEN the system SHALL use idempotency keys to prevent duplicate charges.
+    - WHEN payment fails THEN the system SHALL implement automatic retry with exponential backoff.
+- **Endpoints**:
+    - POST /api/payments/create-preference
+    - GET /api/payments/{id}/status
+    - GET /api/payments (list user payments)
+
+11.2 **Idempotency & Fail Tolerance**
+- **User Story**: As a system, I want to prevent duplicate payment charges even when network failures or retries occur.
+- **Acceptance Criteria**:
+    - WHEN a payment request is received THEN the system SHALL check the idempotency key.
+    - WHEN an idempotency key exists THEN the system SHALL return the cached result without reprocessing.
+    - WHEN an idempotency key is new THEN the system SHALL process the payment and cache the result for 24 hours.
+    - WHEN Redis is unavailable THEN the system SHALL fall back to database-based idempotency checks.
+- **Implementation**: Redis-backed IdempotencyService with database fallback.
+
+11.3 **Webhook Processing**
+- **User Story**: As a system, I want to receive payment notifications from Mercado Pago so that I can update payment status in real-time.
+- **Acceptance Criteria**:
+    - WHEN webhook is received THEN the system SHALL validate the signature using Mercado Pago's public key.
+    - WHEN signature is invalid THEN the system SHALL return 401 Unauthorized.
+    - WHEN webhook is valid THEN the system SHALL return 200 immediately and process asynchronously.
+    - WHEN processing webhook THEN the system SHALL use RabbitMQ for async handling.
+    - WHEN webhook processing fails THEN the system SHALL retry up to 3 times with exponential backoff.
+- **Endpoint**: POST /api/webhooks/mercadopago
+
+11.4 **Subscription Management**
+- **User Story**: As a parent, I want to set up recurring monthly payments so that I don't have to manually pay each month.
+- **Acceptance Criteria**:
+    - WHEN creating a subscription THEN the system SHALL store the subscription details with billing cycle.
+    - WHEN a billing date arrives THEN the system SHALL automatically create a new payment.
+    - WHEN subscription payment fails THEN the system SHALL notify the user and retry according to policy.
+    - WHEN user cancels subscription THEN the system SHALL mark it as cancelled and stop future billing.
+- **Implementation**: Subscription entity with cron job for billing cycle processing.
+
+11.5 **Payment Status & History**
+- **User Story**: As a parent, I want to view my payment history and current payment status so that I can track my expenses.
+- **Acceptance Criteria**:
+    - WHEN viewing payment history THEN the system SHALL display all payments with status, date, and amount.
+    - WHEN checking payment status THEN the system SHALL show real-time status from Mercado Pago.
+    - WHEN payment is processing THEN the system SHALL provide estimated completion time.
+- **Endpoints**:
+    - GET /api/payments/{id}
+    - GET /api/payments?user_id={id}&status={status}
+
+11.6 **Real-time Payment Updates**
+- **User Story**: As a parent, I want to receive real-time updates about my payment status in the mobile app without refreshing.
+- **Acceptance Criteria**:
+    - WHEN payment status changes THEN the system SHALL publish update via Mercure.
+    - WHEN mobile app is connected THEN the system SHALL push status updates in real-time.
+    - WHEN payment is approved THEN the system SHALL send notifications via Push, Email, and SMS.
+- **Implementation**: Mercure integration with PaymentEventSubscriber.
+
+11.7 **Payment Security & Compliance**
+- **User Story**: As a system administrator, I want all payment operations to be secure and compliant with PCI-DSS standards.
+- **Acceptance Criteria**:
+    - WHEN handling payment data THEN the system SHALL never store credit card information.
+    - WHEN communicating with Mercado Pago THEN the system SHALL use HTTPS with TLS 1.2+.
+    - WHEN storing payment records THEN the system SHALL encrypt sensitive metadata.
+    - WHEN accessing payment endpoints THEN the system SHALL enforce rate limiting (10 requests/minute per user).
+    - WHEN suspicious activity is detected THEN the system SHALL log and alert administrators.
+- **Implementation**: Rate limiter configuration, audit logging, encrypted fields.
+
+11.8 **Refunds & Adjustments**
+- **User Story**: As a school administrator, I want to issue refunds or adjustments for payments when necessary.
+- **Acceptance Criteria**:
+    - WHEN issuing a refund THEN the system SHALL validate administrator permissions.
+    - WHEN refund is processed THEN the system SHALL call Mercado Pago refund API.
+    - WHEN refund completes THEN the system SHALL update payment status and notify the user.
+    - WHEN partial refund is issued THEN the system SHALL track the refunded amount separately.
+- **Endpoint**: POST /api/admin/payments/{id}/refund
+
+11.9 **Payment Reconciliation**
+- **User Story**: As a school administrator, I want to reconcile payments with Mercado Pago to ensure all transactions are accounted for.
+- **Acceptance Criteria**:
+    - WHEN running reconciliation THEN the system SHALL fetch all transactions from Mercado Pago for a date range.
+    - WHEN discrepancies are found THEN the system SHALL generate a report with missing or mismatched payments.
+    - WHEN reconciliation completes THEN the system SHALL update internal records and flag issues.
+- **Endpoint**: GET /api/admin/payments/reconciliation?from={date}&to={date}
+
+11.10 **Multi-Student Bundle Payments**
+- **User Story**: As a parent with multiple children, I want to pay for all my children's transportation in a single transaction.
+- **Acceptance Criteria**:
+    - WHEN creating payment THEN the system SHALL accept multiple student IDs.
+    - WHEN calculating amount THEN the system SHALL apply bundle discounts if configured.
+    - WHEN payment is approved THEN the system SHALL associate payment with all students.
+    - WHEN viewing history THEN the system SHALL show which students are covered by each payment.
+- **Implementation**: Payment entity with many-to-many relationship to Student entity.

@@ -885,6 +885,411 @@ export const setupNotificationListeners = () => {
 };
 ```
 
+## 💳 Payment Integration (Mercado Pago)
+
+### Overview
+
+The system integrates with Mercado Pago for secure payment processing, supporting monthly subscriptions and per-trip payments. The integration emphasizes **idempotency**, **resilience**, and **scalability**.
+
+### Architecture Features
+
+- **Idempotency**: Prevents duplicate charges using Redis-backed idempotency keys (24-hour TTL)
+- **Async Processing**: RabbitMQ handles webhook processing and payment notifications
+- **Real-time Updates**: Mercure pushes payment status changes to mobile apps
+- **Rate Limiting**: 10 requests/minute per user to prevent abuse
+- **Retry Logic**: Exponential backoff for failed operations (3 retries)
+- **Caching**: Redis caches payment preferences (30 min) and status (1 min)
+
+### Payment Flow
+
+```
+Mobile App → Create Preference → Mercado Pago Checkout → Webhook → Update Status → Notify User
+     ↓                                    ↓                  ↓
+Idempotency Check                  User Completes       RabbitMQ Queue
+     ↓                                    ↓                  ↓
+Redis Cache                         Payment Success     Async Processing
+                                         ↓                  ↓
+                                   Mercure Update     Send Notifications
+```
+
+### API Endpoints
+
+#### Create Payment Preference
+```http
+POST /api/payments/create-preference
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "student_ids": [1, 2],
+  "amount": 150.00,
+  "description": "Monthly transportation - February 2026",
+  "payment_type": "monthly_subscription",
+  "idempotency_key": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Response:**
+```json
+{
+  "payment_id": 42,
+  "preference_id": "123456-abc-def-ghi",
+  "init_point": "https://www.mercadopago.com/checkout/v1/redirect?pref_id=123456-abc-def-ghi",
+  "status": "pending",
+  "amount": 150.00,
+  "currency": "USD",
+  "expires_at": "2026-02-15T10:30:00+00:00"
+}
+```
+
+#### Check Payment Status
+```http
+GET /api/payments/{id}/status
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "payment_id": 42,
+  "status": "approved",
+  "payment_method": "credit_card",
+  "amount": 150.00,
+  "paid_at": "2026-02-14T08:45:00+00:00",
+  "mercado_pago_id": "1234567890",
+  "students": [
+    {"id": 1, "name": "John Doe"},
+    {"id": 2, "name": "Jane Doe"}
+  ]
+}
+```
+
+#### List Payments
+```http
+GET /api/payments?status=approved&from=2026-02-01&to=2026-02-28
+Authorization: Bearer {token}
+```
+
+#### Create Subscription
+```http
+POST /api/subscriptions
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "student_ids": [1, 2],
+  "plan_type": "monthly",
+  "billing_cycle": "monthly",
+  "amount": 150.00
+}
+```
+
+#### Cancel Subscription
+```http
+PATCH /api/subscriptions/{id}/cancel
+Authorization: Bearer {token}
+```
+
+### React Native Integration
+
+```javascript
+// api/payment.js
+import apiClient from './client';
+import { v4 as uuidv4 } from 'uuid';
+import { Linking } from 'react-native';
+
+export const createPayment = async (studentIds, amount, description) => {
+  const idempotencyKey = uuidv4();
+
+  try {
+    const response = await apiClient.post('/payments/create-preference', {
+      student_ids: studentIds,
+      amount: amount,
+      description: description,
+      payment_type: 'monthly_subscription',
+      idempotency_key: idempotencyKey
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Payment creation failed:', error);
+    throw error;
+  }
+};
+
+export const initiatePayment = async (studentIds, amount) => {
+  const payment = await createPayment(studentIds, amount, 'Monthly transportation');
+
+  // Open Mercado Pago checkout in browser
+  await Linking.openURL(payment.init_point);
+
+  // Return payment ID for status tracking
+  return payment.payment_id;
+};
+
+export const checkPaymentStatus = async (paymentId) => {
+  const response = await apiClient.get(`/payments/${paymentId}/status`);
+  return response.data;
+};
+
+export const pollPaymentStatus = async (paymentId, maxAttempts = 30) => {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+
+    const interval = setInterval(async () => {
+      attempts++;
+
+      try {
+        const status = await checkPaymentStatus(paymentId);
+
+        if (status.status === 'approved') {
+          clearInterval(interval);
+          resolve(status);
+        } else if (status.status === 'rejected' || status.status === 'cancelled') {
+          clearInterval(interval);
+          reject(new Error(`Payment ${status.status}`));
+        } else if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          reject(new Error('Payment timeout'));
+        }
+      } catch (error) {
+        console.error('Status check failed:', error);
+        if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          reject(error);
+        }
+      }
+    }, 2000); // Poll every 2 seconds
+  });
+};
+
+export const getPaymentHistory = async (filters = {}) => {
+  const params = new URLSearchParams(filters).toString();
+  const response = await apiClient.get(`/payments?${params}`);
+  return response.data;
+};
+
+export const createSubscription = async (studentIds, planType, amount) => {
+  const response = await apiClient.post('/subscriptions', {
+    student_ids: studentIds,
+    plan_type: planType,
+    billing_cycle: 'monthly',
+    amount: amount
+  });
+  return response.data;
+};
+
+export const cancelSubscription = async (subscriptionId) => {
+  const response = await apiClient.patch(`/subscriptions/${subscriptionId}/cancel`);
+  return response.data;
+};
+```
+
+### Real-time Payment Updates with Mercure
+
+```javascript
+// hooks/usePaymentStatus.js
+import { useEffect, useState } from 'react';
+import { EventSource } from 'react-native-sse';
+
+export const usePaymentStatus = (paymentId, jwtToken) => {
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const mercureUrl = 'https://your-api-domain.com/.well-known/mercure';
+    const topic = `/payments/${paymentId}`;
+
+    const url = new URL(mercureUrl);
+    url.searchParams.append('topic', topic);
+
+    const es = new EventSource(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${jwtToken}`,
+      },
+    });
+
+    es.addEventListener('message', (event) => {
+      const data = JSON.parse(event.data);
+      setStatus(data);
+      setLoading(false);
+    });
+
+    es.addEventListener('error', (error) => {
+      console.error('Mercure connection error:', error);
+      es.close();
+    });
+
+    return () => {
+      es.close();
+    };
+  }, [paymentId, jwtToken]);
+
+  return { status, loading };
+};
+
+// Usage in component
+const PaymentScreen = ({ paymentId }) => {
+  const { status, loading } = usePaymentStatus(paymentId, jwtToken);
+
+  if (loading) return <ActivityIndicator />;
+
+  return (
+    <View>
+      <Text>Payment Status: {status.status}</Text>
+      <Text>Amount: ${status.amount}</Text>
+    </View>
+  );
+};
+```
+
+### Environment Configuration
+
+Add the following to your `.env` file:
+
+```bash
+# Mercado Pago Configuration
+MERCADOPAGO_ACCESS_TOKEN=your-access-token
+MERCADOPAGO_PUBLIC_KEY=your-public-key
+MERCADOPAGO_WEBHOOK_SECRET=your-webhook-secret
+
+# Use TEST credentials for development
+# MERCADOPAGO_ACCESS_TOKEN=TEST-1234567890-020914-abcdef1234567890abcdef1234567890-123456789
+```
+
+### Webhook Setup
+
+Configure Mercado Pago webhooks to point to:
+```
+https://your-api-domain.com/api/webhooks/mercadopago
+```
+
+**Events to subscribe:**
+- `payment.created`
+- `payment.updated`
+
+### Admin Features
+
+#### Issue Refund
+```http
+POST /api/admin/payments/{id}/refund
+Authorization: Bearer {admin-token}
+Content-Type: application/json
+
+{
+  "amount": 50.00,  // Optional for partial refund
+  "reason": "Service not provided"
+}
+```
+
+#### Payment Reconciliation
+```http
+GET /api/admin/payments/reconciliation?from=2026-02-01&to=2026-02-28
+Authorization: Bearer {admin-token}
+```
+
+**Response:**
+```json
+{
+  "period": {
+    "from": "2026-02-01",
+    "to": "2026-02-28"
+  },
+  "summary": {
+    "total_payments": 150,
+    "total_amount": 22500.00,
+    "matched": 148,
+    "missing_in_mp": 1,
+    "missing_in_db": 1
+  },
+  "discrepancies": [
+    {
+      "type": "missing_in_mp",
+      "payment_id": 42,
+      "amount": 150.00,
+      "date": "2026-02-15"
+    }
+  ]
+}
+```
+
+### Security Best Practices
+
+1. **Never store credit card data** - All card data handled by Mercado Pago
+2. **Validate webhook signatures** - Prevents forged webhook requests
+3. **Use HTTPS only** - TLS 1.2+ for all communications
+4. **Rate limiting** - 10 requests/minute per user
+5. **Idempotency keys** - Client-generated UUID v4 for each request
+6. **Audit logging** - All payment operations logged with user, timestamp, IP
+7. **Encrypted metadata** - Sensitive data encrypted using Sodium
+
+### Performance Optimizations
+
+1. **Redis Caching**
+   - Payment preferences: 30 minutes TTL
+   - Payment status: 1 minute TTL
+   - Idempotency keys: 24 hours TTL
+
+2. **Database Indexing**
+   ```sql
+   idx_payments_user_status
+   idx_payments_provider_id
+   idx_payments_idempotency
+   idx_payments_created_at
+   ```
+
+3. **Async Processing**
+   - Webhook processing via RabbitMQ
+   - Notification sending via message queue
+   - Subscription billing via cron job
+
+4. **Circuit Breaker**
+   - Fails fast when Mercado Pago API unavailable
+   - Automatic recovery after cooldown period
+
+### Monitoring & Alerts
+
+**Metrics Tracked:**
+- `payments.created` - Counter
+- `payments.approved` - Counter
+- `payments.failed` - Counter
+- `payment.processing_time` - Histogram
+- `payments.pending` - Gauge
+
+**Alerts:**
+- Payment failure rate > 5%
+- Average processing time > 10 seconds
+- Mercado Pago API errors
+- Webhook validation failures
+
+### Subscription Processing
+
+Subscriptions are automatically processed using **Symfony Scheduler** (runs every 5 minutes):
+
+```bash
+# Start the scheduler worker (recommended for production with supervisord)
+docker compose exec php php bin/console messenger:consume scheduler_default -vv
+```
+
+**Supervisord Configuration:**
+```ini
+[program:scheduler_worker]
+command=php bin/console messenger:consume scheduler_default --time-limit=3600
+directory=/var/www/html
+autostart=true
+autorestart=true
+numprocs=1
+```
+
+**Alternative: Manual Command**
+```bash
+# Process subscriptions manually
+php bin/console app:process-subscriptions
+
+# Or via cron job (if not using Symfony Scheduler)
+*/5 * * * * cd /path/to/project && php bin/console app:process-subscriptions
+```
+
 ## 🔒 Security Features
 
 - JWT-based stateless authentication

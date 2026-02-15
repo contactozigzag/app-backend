@@ -98,3 +98,84 @@ Command-line tools for system administration and maintenance.
     - Update Makefile to support dev/prod environments.
     - Use .env.local for local development only.
     - Ensure proper environment variable handling for production.
+
+## Phase 8: Payment Processing & Integration (Priority: High)
+Integrate Mercado Pago for secure payment processing with emphasis on performance, scalability, and resilience.
+
+- **P8.1 Payment Core Infrastructure**
+    - Design and implement Payment, Subscription, and PaymentTransaction entities.
+    - Establish database schema with proper indexing for performance.
+    - Create many-to-many relationship between Payment and Student entities.
+    - Implement encrypted fields for sensitive payment metadata.
+    - *Links: Requirement 11.1, 11.4, 11.10*
+
+- **P8.2 Mercado Pago Integration Layer**
+    - Implement MercadoPagoService as SDK wrapper with error handling.
+    - Build payment preference creation with support for multi-student bundles.
+    - Implement payment status checking with caching strategy.
+    - Add support for refunds and partial refunds via API.
+    - Configure secure credential management via environment variables.
+    - *Links: Requirement 11.1, 11.5, 11.8*
+
+- **P8.3 Idempotency & Resilience**
+    - Implement Redis-backed IdempotencyService for duplicate prevention.
+    - Add database fallback for idempotency when Redis unavailable.
+    - Build retry mechanism with exponential backoff for failed operations.
+    - Implement circuit breaker pattern for Mercado Pago API calls.
+    - Cache payment preferences and status in Redis (TTL: 30 min and 1 min respectively).
+    - *Links: Requirement 11.2*
+
+- **P8.4 Webhook Processing & Async Operations**
+    - Create webhook endpoint with signature validation.
+    - Implement WebhookValidator using Mercado Pago public key.
+    - Build async webhook processing via RabbitMQ message handlers.
+    - Implement retry logic for failed webhook processing (3 retries with backoff).
+    - Ensure webhook endpoint returns 200 immediately per Mercado Pago requirements.
+    - *Links: Requirement 11.3*
+
+- **P8.5 Payment API Endpoints**
+    - Implement POST /api/payments/create-preference for payment initialization.
+    - Create GET /api/payments/{id}/status for real-time status checking.
+    - Build GET /api/payments for listing user payment history.
+    - Add GET /api/payments/{id} for detailed payment information.
+    - Implement filtering by status, date range, and student.
+    - *Links: Requirement 11.1, 11.5*
+
+- **P8.6 Real-time Updates & Notifications**
+    - Integrate Mercure for real-time payment status updates to mobile apps.
+    - Implement PaymentEventSubscriber for publishing status changes.
+    - Build payment notification system via Symfony Notifier (Push, Email, SMS).
+    - Create event classes: PaymentCreatedEvent, PaymentApprovedEvent, PaymentFailedEvent, PaymentRefundedEvent.
+    - *Links: Requirement 11.6*
+
+- **P8.7 Subscription Management**
+    - Implement subscription entity with billing cycle tracking.
+    - Build cron job for processing recurring billing (app:process-subscriptions).
+    - Add subscription cancellation workflow with grace period.
+    - Implement failed payment retry policy for subscriptions.
+    - Create subscription management API endpoints.
+    - *Links: Requirement 11.4*
+
+- **P8.8 Security & Rate Limiting**
+    - Configure rate limiting for payment endpoints (10 req/min per user).
+    - Implement comprehensive audit logging for all payment operations.
+    - Add encryption for sensitive payment metadata fields.
+    - Ensure HTTPS/TLS 1.2+ for all Mercado Pago communications.
+    - Implement anomaly detection and administrator alerting.
+    - *Links: Requirement 11.7*
+
+- **P8.9 Admin Tools & Reconciliation**
+    - Build POST /api/admin/payments/{id}/refund for refund processing.
+    - Implement GET /api/admin/payments/reconciliation for payment reconciliation.
+    - Create discrepancy reporting and resolution workflow.
+    - Add admin dashboard for payment monitoring and analytics.
+    - Implement payment export functionality for accounting.
+    - *Links: Requirement 11.8, 11.9*
+
+- **P8.10 Testing & Monitoring**
+    - Implement comprehensive unit tests for payment services.
+    - Create integration tests for Mercado Pago API interactions.
+    - Build end-to-end tests for complete payment flows.
+    - Configure monitoring metrics (payments.created, payment.processing_time, payments.pending).
+    - Set up alerting for payment failures and anomalies.
+    - Test idempotency under concurrent requests and network failures.
