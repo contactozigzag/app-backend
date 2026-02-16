@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Route;
 use App\Repository\RouteRepository;
-use App\Service\GoogleMapsService;
 use App\Service\RouteOptimizationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +18,6 @@ class RouteController extends AbstractController
 {
     public function __construct(
         private readonly RouteOptimizationService $optimizationService,
-        private readonly GoogleMapsService $googleMapsService,
         private readonly RouteRepository $routeRepository,
         private readonly EntityManagerInterface $entityManager
     ) {
@@ -29,7 +27,7 @@ class RouteController extends AbstractController
      * Optimize a route's stops
      */
     #[RouteAttribute('/{id}/optimize', name: 'optimize', methods: ['POST'])]
-    #[IsGranted('ROLE_SCHOOL_ADMIN')]
+    #[IsGranted('ROLE_DRIVER')]
     public function optimizeRoute(int $id): JsonResponse
     {
         $route = $this->routeRepository->find($id);
