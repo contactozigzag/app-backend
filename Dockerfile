@@ -30,7 +30,6 @@ RUN set -eux; \
 		intl \
 		opcache \
 		zip \
-		sockets \
 		pdo_mysql \
 		redis \
 	;
