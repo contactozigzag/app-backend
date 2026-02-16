@@ -31,6 +31,8 @@ RUN set -eux; \
 		opcache \
 		zip \
 		sockets \
+		pdo_mysql \
+		redis \
 	;
 
 ENV GIT_CONFIG_COUNT=1
