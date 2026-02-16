@@ -32,6 +32,7 @@ RUN set -eux; \
 		zip \
 		pdo_mysql \
 		redis \
+		sockets \
 	;
 
 ENV GIT_CONFIG_COUNT=1
