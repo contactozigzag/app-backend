@@ -120,7 +120,7 @@ class RouteController extends AbstractController
      * Preview route optimization without saving
      */
     #[RouteAttribute('/{id}/optimize-preview', name: 'optimize_preview', methods: ['POST'])]
-    #[IsGranted('ROLE_SCHOOL_ADMIN')]
+    #[IsGranted('ROLE_DRIVER')]
     public function previewOptimization(int $id): JsonResponse
     {
         $route = $this->routeRepository->find($id);
@@ -192,7 +192,7 @@ class RouteController extends AbstractController
      * Clone a route template
      */
     #[RouteAttribute('/{id}/clone', name: 'clone', methods: ['POST'])]
-    #[IsGranted('ROLE_SCHOOL_ADMIN')]
+    #[IsGranted('ROLE_DRIVER')]
     public function cloneRoute(int $id, Request $request): JsonResponse
     {
         $route = $this->routeRepository->find($id);
