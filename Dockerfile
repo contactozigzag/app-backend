@@ -17,24 +17,20 @@ VOLUME /app/var/
 
 # persistent / runtime deps
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
-	file \
-	git \
-	&& rm -rf /var/lib/apt/lists/*
-
 RUN set -eux; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends \
+		file \
+		git \
+	; \
+	rm -rf /var/lib/apt/lists/*; \
 	install-php-extensions \
 		@composer \
 		apcu \
 		intl \
+		opcache \
 		zip \
-		pdo_mysql \
 		sockets \
-		sodium \
-		dom \
-		xml \
-		simplexml \
-		xmlwriter \
 	;
 
 ENV GIT_CONFIG_COUNT=1
@@ -55,7 +51,7 @@ COPY --link frankenphp/Caddyfile /etc/frankenphp/Caddyfile
 
 ENTRYPOINT ["docker-entrypoint"]
 
-HEALTHCHECK --start-period=60s CMD curl -f http://localhost:2019/metrics || exit 1
+HEALTHCHECK --start-period=60s CMD curl http://localhost:2019/metrics --silent --show-error --fail --output /dev/null || exit 1
 CMD [ "frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile" ]
 
 # Dev FrankenPHP image
@@ -67,9 +63,10 @@ ENV FRANKENPHP_WORKER_CONFIG=watch
 
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
-COPY --from=ghcr.io/php/pie:bin /pie /usr/bin/pie
-
-RUN pie install xdebug/xdebug
+RUN set -eux; \
+	install-php-extensions \
+		xdebug \
+	;
 
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
 
@@ -97,4 +94,7 @@ RUN set -eux; \
 	composer dump-autoload --classmap-authoritative --no-dev; \
 	composer dump-env prod; \
 	composer run-script --no-dev post-install-cmd; \
+	if [ -f importmap.php ]; then \
+		php bin/console asset-map:compile; \
+	fi; \
 	chmod +x bin/console; sync;
