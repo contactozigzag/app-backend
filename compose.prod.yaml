@@ -7,7 +7,6 @@ services:
       target: frankenphp_prod
     volumes:
       - ./config/jwt:/app/config/jwt:rw,cached
-      - ./.env.prod.local:/app/.env.prod.local:ro
     environment:
       APP_SECRET: ${APP_SECRET}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
