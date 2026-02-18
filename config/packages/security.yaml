@@ -16,19 +16,24 @@ security:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
+
         login:
             pattern: ^/api/login
             stateless: true
+            provider: app_user_provider  # <-- ADD THIS, was missing
             json_login:
                 check_path: /api/login
                 username_path: email
                 password_path: password
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
         api:
             pattern: ^/api
             stateless: true
+            provider: app_user_provider  # <-- ADD THIS for consistency
             jwt: ~
+
         main:
             pattern: ^/
             lazy: true
@@ -37,6 +42,7 @@ security:
                 login_path: app_login
                 check_path: app_login
                 enable_csrf: true
+                default_target_path: /admin  # <-- set your post-login redirect
             logout:
                 path: app_logout
                 # where to redirect after logout
