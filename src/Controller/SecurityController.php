@@ -23,6 +23,7 @@ class SecurityController extends AbstractController
             'error' => $error,
             'csrf_token_intention' => 'authenticate',
             'remember_me_enabled' => true,
+            'target_path' => $this->generateUrl('admin'),
         ]);
     }
 
