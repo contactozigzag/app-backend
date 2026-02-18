@@ -5,7 +5,12 @@ framework:
         csrf_protection: true
 
     # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    session:
+        handler_id: '%env(REDIS_URL)%'
+        cookie_secure: auto
+        cookie_samesite: lax
+        cookie_lifetime: 7200
+        gc_maxlifetime: 7200
 
     #esi: true
     #fragments: true
