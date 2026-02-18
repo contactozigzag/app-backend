@@ -4,11 +4,10 @@ services:
   php:
     build:
       context: .
-      args:
-        APP_SECRET: ${APP_SECRET}
       target: frankenphp_prod
     volumes:
-      - jwt_data:/app/config/jwt:rw,cached
+      - ./config/jwt:/app/config/jwt:rw,cached
+      - ./.env.prod.local:/app/.env.prod.local:ro
     environment:
       APP_SECRET: ${APP_SECRET}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
@@ -39,6 +38,3 @@ services:
     depends_on:
       php:
         condition: service_healthy
-
-volumes:
-  jwt_data:
