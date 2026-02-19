@@ -61,7 +61,7 @@ services:
       - "127.0.0.1:2020:2020"
     environment:
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
-      APP_ENV: ${APP_ENV:-prod}
+      APP_ENV: prod
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:2020/api/v1/health"]
