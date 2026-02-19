@@ -65,7 +65,7 @@ class RouteStop
     private bool $isActive = true;
 
     #[ORM\Column]
-    #[Groups(['route_stop:read', 'route_stop:read', 'route:read'])]
+    #[Groups(['route_stop:read', 'route:read'])]
     private bool $isConfirmed = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
