@@ -11,7 +11,61 @@ services:
       APP_SECRET: ${APP_SECRET}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        fluentd-retry-wait: "1s"
+        fluentd-max-retries: "30"
+        tag: "docker.{{.Name}}"
+    depends_on:
+      fluent-bit:
+        condition: service_healthy
+
   database:
     command:
       - --transaction-isolation=READ-COMMITTED
       - --innodb_rollback_on_timeout=ON
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "docker.{{.Name}}"
+
+  rabbitmq:
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "docker.{{.Name}}"
+
+  redis:
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "docker.{{.Name}}"
+
+  fluent-bit:
+    image: fluent/fluent-bit:3.2
+    container_name: zigzag_fluent_bit
+    volumes:
+      - ./fluent-bit:/fluent-bit/etc:ro
+    ports:
+      - "127.0.0.1:24224:24224"
+      - "127.0.0.1:2020:2020"
+    environment:
+      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
+      APP_ENV: ${APP_ENV:-prod}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:2020/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
