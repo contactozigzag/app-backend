@@ -65,7 +65,7 @@ class RouteStop
     private bool $isActive = true;
 
     #[ORM\Column]
-    #[Groups(['route_stop:read', 'route:read', 'user:read'])]
+    #[Groups(['route_stop:read', 'route_stop:read', 'route:read'])]
     private bool $isConfirmed = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
@@ -159,7 +159,7 @@ class RouteStop
         return $this;
     }
 
-    public function isActive(): bool
+    public function getIsActive(): bool
     {
         return $this->isActive;
     }
@@ -170,7 +170,7 @@ class RouteStop
         return $this;
     }
 
-    public function isConfirmed(): bool
+    public function getIsConfirmed(): bool
     {
         return $this->isConfirmed;
     }

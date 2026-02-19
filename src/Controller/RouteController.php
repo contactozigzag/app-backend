@@ -52,7 +52,7 @@ class RouteController extends AbstractController
         // Extract stops - only active and confirmed stops
         $stops = [];
         foreach ($route->getStops() as $stop) {
-            if ($stop->isActive() && $stop->isConfirmed()) {
+            if ($stop->getIsActive() && $stop->getIsConfirmed()) {
                 $address = $stop->getAddress();
                 $stops[] = [
                     'id' => $stop->getId(),
@@ -145,7 +145,7 @@ class RouteController extends AbstractController
         $stops = [];
         $stopDetails = [];
         foreach ($route->getStops() as $stop) {
-            if ($stop->isActive() && $stop->isConfirmed()) {
+            if ($stop->getIsActive() && $stop->getIsConfirmed()) {
                 $address = $stop->getAddress();
                 $stops[] = [
                     'id' => $stop->getId(),
@@ -229,8 +229,8 @@ class RouteController extends AbstractController
             $newStop->setEstimatedArrivalTime($stop->getEstimatedArrivalTime());
             $newStop->setGeofenceRadius($stop->getGeofenceRadius());
             $newStop->setNotes($stop->getNotes());
-            $newStop->setIsActive($stop->isActive());
-            $newStop->setIsConfirmed($stop->isConfirmed()); // Clone confirmation status
+            $newStop->setIsActive($stop->getIsActive());
+            $newStop->setIsConfirmed($stop->getIsConfirmed()); // Clone confirmation status
 
             $newRoute->addStop($newStop);
         }
