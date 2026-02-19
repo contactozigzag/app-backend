@@ -52,6 +52,17 @@ jobs:
             app-php \
             php -d memory_limit=-1 /usr/local/bin/composer install \
               --prefer-dist --no-progress --no-interaction --no-scripts
+      - name: Generate JWT keys
+        # config/jwt/*.pem are gitignored; generate them before the entrypoint
+        # runs php bin/console -V, which boots the Symfony kernel and causes
+        # LexikJWTAuthenticationBundle to fail when the key files are missing.
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/app \
+            -w /app \
+            --entrypoint="" \
+            app-php \
+            php bin/console lexik:jwt:generate-keypair --skip-if-exists
       - name: Start services
         run: docker compose up --wait --no-build
       - name: Check HTTP reachability
@@ -102,3 +113,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_CHECKOV: false
           VALIDATE_TRIVY: false
+          # Exclude vendor/ so super-linter does not recursively find composer.json
+          # files inside dependencies and try to install their dev requirements.
+          FILTER_REGEX_EXCLUDE: (^|/)vendor/
