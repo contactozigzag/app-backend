@@ -20,9 +20,6 @@ services:
         fluentd-retry-wait: "1s"
         fluentd-max-retries: "30"
         tag: "docker.{{.Name}}"
-    depends_on:
-      fluent-bit:
-        condition: service_healthy
 
   database:
     command:
@@ -63,9 +60,3 @@ services:
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
       APP_ENV: prod
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:2020/api/v1/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
