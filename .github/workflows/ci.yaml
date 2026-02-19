@@ -91,7 +91,15 @@ jobs:
         run: curl -vI --insecure --fail-with-body https://localhost/.well-known/mercure?topic=test
       # Uncomment if Doctrine ORM is installed
       - name: Create test database
-        run: docker compose exec -T php bin/console -e test doctrine:database:create
+        # doctrine:database:create requires CREATE DATABASE privilege, which the
+        # app MySQL user ('user') does not have by default. Create the database
+        # and grant privileges using root credentials instead.
+        run: |
+          docker compose exec -T database \
+            mysql -uroot -p"${MYSQL_ROOT_PASSWORD:-passwd}" \
+            -e "CREATE DATABASE IF NOT EXISTS db_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                GRANT ALL PRIVILEGES ON db_test.* TO 'user'@'%';
+                FLUSH PRIVILEGES;"
       # Uncomment if Doctrine Migrations is installed
       - name: Run migrations
         run: docker compose exec -T php bin/console -e test doctrine:migrations:migrate --no-interaction
@@ -114,6 +122,14 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: PHP Syntax Check
+        # Super-linter cannot lint PHP reliably here: VALIDATE_PHP_BUILTIN,
+        # VALIDATE_PHP_PHPCS, and VALIDATE_PHP_PHPSTAN all trigger a
+        # composer install that fails either due to a PHP-version mismatch
+        # (our lock file targets PHP 8.5, super-linter ships PHP 8.4) or
+        # because super-linter recurses into vendor/ and tries to install
+        # sub-package dev deps. Run php -l directly instead.
+        run: find src/ bin/ config/ -name "*.php" | xargs -P4 php -l
       - name: Lint Code Base
         uses: super-linter/super-linter/slim@v8
         env:
@@ -121,9 +137,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_CHECKOV: false
           VALIDATE_TRIVY: false
-          # Disable validators that require composer install (PHPCS and PHPStan
-          # scan vendor/ looking for composer.json files in subdirectories and
-          # attempt to install their dev deps, e.g. mongodb/mongodb from monolog).
-          # VALIDATE_PHP_BUILTIN (php -l syntax check) runs without composer.
+          VALIDATE_PHP_BUILTIN: false
           VALIDATE_PHP_PHPCS: false
           VALIDATE_PHP_PHPSTAN: false
