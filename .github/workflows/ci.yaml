@@ -39,6 +39,19 @@ jobs:
             *.cache-from=type=gha,scope=${{github.ref}}
             *.cache-from=type=gha,scope=refs/heads/main
             *.cache-to=type=gha,scope=${{github.ref}},mode=max
+      - name: Install Composer dependencies
+        # Pre-populate vendor/ using the built image with unlimited memory so the
+        # entrypoint skips composer install at container startup, avoiding the
+        # 128 M OOM crash caused by cache:clear warming EasyAdmin Twig templates.
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/app \
+            -w /app \
+            -e COMPOSER_ALLOW_SUPERUSER=1 \
+            --entrypoint="" \
+            app-php \
+            php -d memory_limit=-1 /usr/local/bin/composer install \
+              --prefer-dist --no-progress --no-interaction --no-scripts
       - name: Start services
         run: docker compose up --wait --no-build
       - name: Check HTTP reachability
@@ -73,6 +86,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Install Composer dependencies
+        # Pre-populate vendor/ so super-linter skips its own composer install,
+        # which fails because its PHP 8.4 Alpine image lacks ext-sockets,
+        # ext-sodium and ext-xml. --ignore-platform-reqs bypasses the PHP version
+        # mismatch between the runner (8.3) and our lock file (8.5).
+        run: |
+          composer install \
+            --prefer-dist --no-progress --no-interaction \
+            --no-scripts --ignore-platform-reqs
       - name: Lint Code Base
         uses: super-linter/super-linter/slim@v8
         env:
