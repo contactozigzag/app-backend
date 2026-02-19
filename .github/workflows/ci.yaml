@@ -63,8 +63,25 @@ jobs:
             --entrypoint="" \
             app-php \
             php bin/console lexik:jwt:generate-keypair --skip-if-exists
+      - name: Verify Symfony console
+        # Smoke-test that php bin/console -V works before starting all services.
+        # The entrypoint calls this and exits via set -e if it fails, so a
+        # failure here identifies the root cause before the full stack is up.
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/app \
+            -w /app \
+            --entrypoint="" \
+            app-php \
+            php bin/console -V
       - name: Start services
-        run: docker compose up --wait --no-build
+        # Dump php logs on failure to surface the actual entrypoint error.
+        run: |
+          docker compose up --wait --no-build || {
+            echo "=== PHP container logs ==="
+            docker compose logs --no-color php
+            exit 1
+          }
       - name: Check HTTP reachability
         run: curl -v --fail-with-body http://localhost
       # Uncomment when the homepage is configured, or change the path to check
@@ -97,15 +114,6 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Install Composer dependencies
-        # Pre-populate vendor/ so super-linter skips its own composer install,
-        # which fails because its PHP 8.4 Alpine image lacks ext-sockets,
-        # ext-sodium and ext-xml. --ignore-platform-reqs bypasses the PHP version
-        # mismatch between the runner (8.3) and our lock file (8.5).
-        run: |
-          composer install \
-            --prefer-dist --no-progress --no-interaction \
-            --no-scripts --ignore-platform-reqs
       - name: Lint Code Base
         uses: super-linter/super-linter/slim@v8
         env:
@@ -113,6 +121,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_CHECKOV: false
           VALIDATE_TRIVY: false
-          # Exclude vendor/ so super-linter does not recursively find composer.json
-          # files inside dependencies and try to install their dev requirements.
-          FILTER_REGEX_EXCLUDE: (^|/)vendor/
+          # Disable validators that require composer install (PHPCS and PHPStan
+          # scan vendor/ looking for composer.json files in subdirectories and
+          # attempt to install their dev deps, e.g. mongodb/mongodb from monolog).
+          # VALIDATE_PHP_BUILTIN (php -l syntax check) runs without composer.
+          VALIDATE_PHP_PHPCS: false
+          VALIDATE_PHP_PHPSTAN: false
