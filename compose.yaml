@@ -47,10 +47,16 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-passwd}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-passwd}
     healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      # Use a real SQL query rather than mysqladmin ping. mysqladmin ping
+      # returns 0 as soon as the server process responds to admin requests,
+      # but before it accepts SQL connections. This race causes dbal:run-sql
+      # to get "Connection refused" (exit 255) and the entrypoint gives up
+      # immediately instead of retrying.
+      test: ["CMD-SHELL", "mysql -uroot -p$$MYSQL_ROOT_PASSWORD -e 'SELECT 1' 2>/dev/null"]
+      interval: 5s
       timeout: 5s
-      retries: 5
-      start_period: 60s
+      retries: 12
+      start_period: 30s
     volumes:
       - database_data:/var/lib/mysql:rw
 

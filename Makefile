@@ -5,7 +5,7 @@ ENV := $(strip $(if $(filter prod,$(MAKECMDGOALS)),prod,$(if $(filter dev,$(MAKE
 ifeq ($(ENV),dev)
     DOCKER_COMP = docker compose --env-file .env.local
 else ifeq ($(ENV),prod)
-    DOCKER_COMP = SERVER_NAME=${SERVER_NAME} APP_SECRET=${APP_SECRET} CADDY_MERCURE_JWT_SECRET=${CADDY_MERCURE_JWT_SECRET} docker compose
+    DOCKER_COMP = SERVER_NAME=${SERVER_NAME} APP_SECRET=${APP_SECRET} CADDY_MERCURE_JWT_SECRET=${CADDY_MERCURE_JWT_SECRET} NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY} docker compose
 else
     DOCKER_COMP = docker compose --env-file .env.local
 endif
