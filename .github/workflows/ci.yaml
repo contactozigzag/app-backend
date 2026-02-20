@@ -122,6 +122,19 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Install Composer dependencies
+        # Pre-populate vendor/ so super-linter finds it and skips its own
+        # composer install for the root project. Without vendor/, super-linter
+        # always runs composer install when composer.json is present, regardless
+        # of which PHP validators are enabled—and it fails because its internal
+        # PHP 8.4 is incompatible with our PHP 8.5 lock file.
+        # --ignore-platform-reqs bypasses the PHP version and ext mismatches on
+        # the runner. With all PHP validators disabled (see below) super-linter
+        # does not recurse into vendor/ subdirectories.
+        run: |
+          composer install \
+            --prefer-dist --no-progress --no-interaction \
+            --no-scripts --ignore-platform-reqs
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
