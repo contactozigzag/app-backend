@@ -122,13 +122,18 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
       - name: PHP Syntax Check
         # Super-linter cannot lint PHP reliably here: VALIDATE_PHP_BUILTIN,
         # VALIDATE_PHP_PHPCS, and VALIDATE_PHP_PHPSTAN all trigger a
         # composer install that fails either due to a PHP-version mismatch
         # (our lock file targets PHP 8.5, super-linter ships PHP 8.4) or
         # because super-linter recurses into vendor/ and tries to install
-        # sub-package dev deps. Run php -l directly instead.
+        # sub-package dev deps. Run php -l directly with PHP 8.4 instead;
+        # the project uses new X()->method() (PHP 8.4+) syntax.
         run: find src/ bin/ config/ -name "*.php" | xargs -P4 php -l
       - name: Lint Code Base
         uses: super-linter/super-linter/slim@v8
