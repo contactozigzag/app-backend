@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service\Payment;
 
-use DateTimeImmutable;
-use Doctrine\DBAL\Connection;
+use App\Entity\IdempotencyRecord;
+use App\Repository\IdempotencyRecordRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\LockFactory;
@@ -19,7 +20,8 @@ class IdempotencyService
 
     public function __construct(
         private readonly CacheInterface $cache,
-        private readonly Connection $connection,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly IdempotencyRecordRepository $repository,
         private readonly LockFactory $lockFactory,
         private readonly LoggerInterface $logger
     ) {
@@ -105,12 +107,7 @@ class IdempotencyService
 
         // Check database fallback
         try {
-            $result = $this->connection->fetchOne(
-                'SELECT COUNT(*) FROM idempotency_records WHERE idempotency_key = ? AND expires_at > NOW()',
-                [$key]
-            );
-
-            return (int) $result > 0;
+            return $this->repository->findActiveByKey($key) !== null;
         } catch (\Exception $e) {
             $this->logger->error('Database idempotency check failed', [
                 'key' => $key,
@@ -130,10 +127,11 @@ class IdempotencyService
             $cacheKey = $this->getCacheKey($key);
             $this->cache->delete($cacheKey);
 
-            $this->connection->executeStatement(
-                'DELETE FROM idempotency_records WHERE idempotency_key = ?',
-                [$key]
-            );
+            $record = $this->repository->findByKey($key);
+            if ($record !== null) {
+                $this->entityManager->remove($record);
+                $this->entityManager->flush();
+            }
         } catch (\Exception $e) {
             $this->logger->error('Failed to delete idempotency key', [
                 'key' => $key,
@@ -172,15 +170,19 @@ class IdempotencyService
     private function storeInDatabase(string $key, mixed $result, int $ttl): void
     {
         try {
-            $expiresAt = new DateTimeImmutable()->modify("+{$ttl} seconds");
+            $expiresAt = new \DateTimeImmutable("+{$ttl} seconds");
             $serializedResult = serialize($result);
 
-            $this->connection->executeStatement(
-                'INSERT INTO idempotency_records (idempotency_key, result, expires_at, created_at)
-                 VALUES (?, ?, ?, NOW())
-                 ON DUPLICATE KEY UPDATE result = VALUES(result), expires_at = VALUES(expires_at)',
-                [$key, $serializedResult, $expiresAt->format('Y-m-d H:i:s')]
-            );
+            $record = $this->repository->findByKey($key);
+            if ($record !== null) {
+                $record->setResult($serializedResult);
+                $record->setExpiresAt($expiresAt);
+            } else {
+                $record = new IdempotencyRecord($key, $serializedResult, $expiresAt);
+                $this->entityManager->persist($record);
+            }
+
+            $this->entityManager->flush();
         } catch (\Exception $e) {
             $this->logger->error('Failed to store idempotency record in database', [
                 'key' => $key,
@@ -192,14 +194,9 @@ class IdempotencyService
     private function getFromDatabase(string $key): mixed
     {
         try {
-            $result = $this->connection->fetchAssociative(
-                'SELECT result FROM idempotency_records
-                 WHERE idempotency_key = ? AND expires_at > NOW()',
-                [$key]
-            );
-
-            if ($result && isset($result['result'])) {
-                return unserialize($result['result']);
+            $record = $this->repository->findActiveByKey($key);
+            if ($record !== null) {
+                return unserialize($record->getResult());
             }
         } catch (\Exception $e) {
             $this->logger->error('Failed to get idempotency record from database', [
