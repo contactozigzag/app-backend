@@ -73,7 +73,7 @@ jobs:
       - name: Cache PHPStan result cache
         uses: actions/cache@v4
         with:
-          path: /tmp/phpstan-cache
+          path: /tmp/phpstan
           key: ${{ runner.os }}-phpstan-${{ hashFiles('src/**/*.php', 'tests/**/*.php', 'phpstan.dist.neon') }}
           restore-keys: ${{ runner.os }}-phpstan-
 
@@ -95,7 +95,6 @@ jobs:
           --configuration=phpstan.dist.neon
           --no-progress
           --error-format=github
-          --tmp-dir=/tmp/phpstan-cache
 
   # ——————————————————————————————————————————————————————————————————————————
   # Rector — dry-run (fails if any changes are detected)
