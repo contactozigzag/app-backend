@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Service\GoogleMapsService;
@@ -10,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/address', name: 'api_address_')]
+#[Route(name: 'api_address_')]
 class AddressController extends AbstractController
 {
     public function __construct(
@@ -21,15 +23,15 @@ class AddressController extends AbstractController
     /**
      * Validate and geocode an address
      */
-    #[Route('/validate', name: 'validate', methods: ['POST'])]
+    #[Route('/api/address/validate', name: 'api_address_validate', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function validateAddress(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['address']) || empty($data['address'])) {
+        if (! isset($data['address']) || empty($data['address'])) {
             return $this->json([
-                'error' => 'Address is required'
+                'error' => 'Address is required',
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -37,20 +39,20 @@ class AddressController extends AbstractController
 
         if ($result === null) {
             return $this->json([
-                'error' => 'Could not validate address'
+                'error' => 'Could not validate address',
             ], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json([
             'validated' => true,
-            'data' => $result
+            'data' => $result,
         ]);
     }
 
     /**
      * Get place details by place ID
      */
-    #[Route('/place/{placeId}', name: 'place_details', methods: ['GET'])]
+    #[Route('/api/address/place/{placeId}', name: 'api_address_place_details', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function getPlaceDetails(string $placeId): JsonResponse
     {
@@ -58,7 +60,7 @@ class AddressController extends AbstractController
 
         if ($result === null) {
             return $this->json([
-                'error' => 'Place not found'
+                'error' => 'Place not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -68,15 +70,15 @@ class AddressController extends AbstractController
     /**
      * Calculate distance and duration between two addresses
      */
-    #[Route('/distance', name: 'distance', methods: ['POST'])]
+    #[Route('/api/address/distance', name: 'api_address_distance', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function calculateDistance(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['origin']) || !isset($data['destination'])) {
+        if (! isset($data['origin']) || ! isset($data['destination'])) {
             return $this->json([
-                'error' => 'Origin and destination are required'
+                'error' => 'Origin and destination are required',
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -86,10 +88,14 @@ class AddressController extends AbstractController
             $geocoded = $this->googleMapsService->geocodeAddress($origin);
             if ($geocoded === null) {
                 return $this->json([
-                    'error' => 'Could not geocode origin address'
+                    'error' => 'Could not geocode origin address',
                 ], Response::HTTP_BAD_REQUEST);
             }
-            $origin = ['lat' => $geocoded['lat'], 'lng' => $geocoded['lng']];
+
+            $origin = [
+                'lat' => $geocoded['lat'],
+                'lng' => $geocoded['lng'],
+            ];
         }
 
         $destination = $data['destination'];
@@ -97,17 +103,21 @@ class AddressController extends AbstractController
             $geocoded = $this->googleMapsService->geocodeAddress($destination);
             if ($geocoded === null) {
                 return $this->json([
-                    'error' => 'Could not geocode destination address'
+                    'error' => 'Could not geocode destination address',
                 ], Response::HTTP_BAD_REQUEST);
             }
-            $destination = ['lat' => $geocoded['lat'], 'lng' => $geocoded['lng']];
+
+            $destination = [
+                'lat' => $geocoded['lat'],
+                'lng' => $geocoded['lng'],
+            ];
         }
 
         $result = $this->googleMapsService->getDistanceMatrix($origin, $destination);
 
         if ($result === null) {
             return $this->json([
-                'error' => 'Could not calculate distance'
+                'error' => 'Could not calculate distance',
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 

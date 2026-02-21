@@ -1,13 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
-use App\Entity\Address;
-use App\Entity\Driver;
-use App\Entity\Route;
-use App\Entity\RouteStop;
-use App\Entity\School;
-use App\Entity\Student;
 use App\Entity\User;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -18,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {
+    #[\Override]
     public function index(): Response
     {
         return parent::index();
@@ -43,18 +40,20 @@ class DashboardController extends AbstractDashboardController
         // return $this->render('some/path/my-dashboard.html.twig');
     }
 
+    #[\Override]
     public function configureDashboard(): Dashboard
     {
         return Dashboard::new()
             ->setTitle('Zigzag Dashboard');
     }
 
+    #[\Override]
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
         yield MenuItem::linkTo(AddressCrudController::class, 'Address', 'fas fa-address-book');
         yield MenuItem::linkTo(SchoolCrudController::class, 'School', 'fas fa-school');
-        yield MenuItem::linkTo(UserCrudController::class, 'User', 'fas fa-user', );
+        yield MenuItem::linkTo(UserCrudController::class, 'User', 'fas fa-user');
         yield MenuItem::linkTo(StudentCrudController::class, 'Student', 'fas fa-user-graduate');
         yield MenuItem::linkTo(DriverCrudController::class, 'Driver', 'fas fa-bus');
         yield MenuItem::linkTo(RouteCrudController::class, 'Route', 'fas fa-route');

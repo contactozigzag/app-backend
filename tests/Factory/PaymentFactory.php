@@ -18,28 +18,30 @@ final class PaymentFactory extends PersistentObjectFactory
         return Payment::class;
     }
 
-    protected function defaults(): array|callable
+    protected function defaults(): array
     {
         return [
-            'user'           => UserFactory::new(),
-            'driver'         => DriverFactory::new()->withMpAuthorized(),
-            'amount'         => (string) self::faker()->randomFloat(2, 10, 500),
-            'currency'       => 'ARS',
-            'status'         => PaymentStatus::PENDING,
+            'user' => UserFactory::new(),
+            'driver' => DriverFactory::new()->withMpAuthorized(),
+            'amount' => (string) self::faker()->randomFloat(2, 10, 500),
+            'currency' => 'ARS',
+            'status' => PaymentStatus::PENDING,
             'idempotencyKey' => self::faker()->uuid(),
-            'description'    => self::faker()->sentence(),
+            'description' => self::faker()->sentence(),
         ];
     }
 
     public function withStatus(PaymentStatus $status): static
     {
-        return $this->with(['status' => $status]);
+        return $this->with([
+            'status' => $status,
+        ]);
     }
 
     public function withProviderData(string $preferenceId = 'pref-123', string $providerId = 'pay-456'): static
     {
         return $this->with([
-            'preferenceId'      => $preferenceId,
+            'preferenceId' => $preferenceId,
             'paymentProviderId' => $providerId,
         ]);
     }

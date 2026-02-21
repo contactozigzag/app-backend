@@ -41,15 +41,16 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  *
  * ─────────────────────────────────────────────────────────────────────────────
  */
-#[Route('/api/mercure')]
 #[IsGranted('ROLE_USER')]
 class MercureController extends AbstractController
 {
-    /** How long (seconds) the subscriber JWT remains valid. */
-    private const TOKEN_TTL = 3600; // 1 hour
+    /**
+     * How long (seconds) the subscriber JWT remains valid.
+     */
+    private const int TOKEN_TTL = 3600; // 1 hour
 
     public function __construct(
-        private readonly HubInterface      $hub,
+        private readonly HubInterface $hub,
         private readonly PaymentRepository $paymentRepository,
     ) {
     }
@@ -67,7 +68,7 @@ class MercureController extends AbstractController
      *     "topics":  ["/payments/{id}"]
      *   }
      */
-    #[Route('/token', name: 'api_mercure_token', methods: ['GET'])]
+    #[Route('/api/mercure/token', name: 'api_mercure_token', methods: ['GET'])]
     public function token(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -75,9 +76,11 @@ class MercureController extends AbstractController
 
         $paymentId = $request->query->get('payment_id');
 
-        if ($paymentId === null || !ctype_digit((string) $paymentId)) {
+        if ($paymentId === null || ! ctype_digit((string) $paymentId)) {
             return new JsonResponse(
-                ['error' => 'Missing or invalid payment_id query parameter.'],
+                [
+                    'error' => 'Missing or invalid payment_id query parameter.',
+                ],
                 Response::HTTP_BAD_REQUEST
             );
         }
@@ -86,42 +89,48 @@ class MercureController extends AbstractController
 
         if ($payment === null) {
             return new JsonResponse(
-                ['error' => 'Payment not found.'],
+                [
+                    'error' => 'Payment not found.',
+                ],
                 Response::HTTP_NOT_FOUND
             );
         }
 
         // Only the payment owner may subscribe to its topic.
-        if ($payment->getUser()->getId() !== $user->getId()) {
+        if ($payment->getUser()?->getId() !== $user->getId()) {
             return new JsonResponse(
-                ['error' => 'Access denied.'],
+                [
+                    'error' => 'Access denied.',
+                ],
                 Response::HTTP_FORBIDDEN
             );
         }
 
         $factory = $this->hub->getFactory();
 
-        if ($factory === null) {
+        if (! $factory instanceof \Symfony\Component\Mercure\Jwt\TokenFactoryInterface) {
             return new JsonResponse(
-                ['error' => 'Mercure hub is not configured with a token factory.'],
+                [
+                    'error' => 'Mercure hub is not configured with a token factory.',
+                ],
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
 
-        $topic = "/payments/{$payment->getId()}";
+        $topic = '/payments/' . $payment->getId();
 
         $token = $factory->create(
-            subscribe:        [$topic],
-            publish:          [],
+            subscribe: [$topic],
+            publish: [],
             additionalClaims: [
                 'exp' => new \DateTimeImmutable('+' . self::TOKEN_TTL . ' seconds'),
             ],
         );
 
         return new JsonResponse([
-            'token'   => $token,
+            'token' => $token,
             'hub_url' => $this->hub->getPublicUrl(),
-            'topics'  => [$topic],
+            'topics' => [$topic],
         ]);
     }
 }

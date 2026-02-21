@@ -1,0 +1,227 @@
+---
+name: Quality
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch: ~
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  APP_ENV: test
+  APP_SECRET: "$ecretf0rt3st"
+  DATABASE_URL: "sqlite:///:memory:"
+  JWT_SECRET_KEY: "%kernel.project_dir%/config/jwt/private.pem"
+  JWT_PUBLIC_KEY: "%kernel.project_dir%/config/jwt/public.pem"
+  JWT_PASSPHRASE: "test"
+  MERCADOPAGO_ACCESS_TOKEN: "TEST-access-token"
+  MERCADOPAGO_PUBLIC_KEY: "TEST-public-key"
+  MERCADOPAGO_WEBHOOK_SECRET: "test-secret"
+  MERCADOPAGO_MARKETPLACE_FEE_PERCENT: "5"
+  MERCADOPAGO_APP_ID: "test-app-id"
+  MERCADOPAGO_APP_SECRET: "test-app-secret"
+  MERCADOPAGO_OAUTH_REDIRECT_URI: "http://localhost/oauth/mercadopago/callback"
+  TOKEN_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+  MERCURE_URL: "http://localhost/.well-known/mercure"
+  MERCURE_PUBLIC_URL: "http://localhost/.well-known/mercure"
+  MERCURE_JWT_SECRET: "test-secret"
+
+jobs:
+  # ——————————————————————————————————————————————————————————————————————————
+  # PHPStan — static analysis at level 9
+  # ——————————————————————————————————————————————————————————————————————————
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: ctype, iconv, intl, pdo, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Cache PHPStan result cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/phpstan-cache
+          key: ${{ runner.os }}-phpstan-${{ hashFiles('src/**/*.php', 'tests/**/*.php', 'phpstan.dist.neon') }}
+          restore-keys: ${{ runner.os }}-phpstan-
+
+      - name: Install Composer dependencies
+        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts
+
+      - name: Generate JWT keypair
+        run: |
+          mkdir -p config/jwt
+          openssl genrsa -out config/jwt/private.pem -passout pass:test 4096 2>/dev/null
+          openssl rsa -pubout -in config/jwt/private.pem -out config/jwt/public.pem -passin pass:test 2>/dev/null
+
+      - name: Warm up Symfony cache (needed for container XML)
+        run: php bin/console cache:warmup --env=dev --no-debug
+
+      - name: Run PHPStan
+        run: >
+          php -d memory_limit=512M vendor/bin/phpstan analyse
+          --configuration=phpstan.dist.neon
+          --no-progress
+          --error-format=github
+          --tmp-dir=/tmp/phpstan-cache
+
+  # ——————————————————————————————————————————————————————————————————————————
+  # Rector — dry-run (fails if any changes are detected)
+  # ——————————————————————————————————————————————————————————————————————————
+  rector:
+    name: Rector
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: ctype, iconv
+          coverage: none
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts
+
+      - name: Run Rector (dry-run)
+        run: vendor/bin/rector process --dry-run --no-progress-bar
+
+  # ——————————————————————————————————————————————————————————————————————————
+  # ECS — check mode (fails if any violations are found)
+  # ——————————————————————————————————————————————————————————————————————————
+  ecs:
+    name: ECS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: ctype, iconv
+          coverage: none
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts
+
+      - name: Run ECS
+        run: vendor/bin/ecs check --no-progress-bar
+
+  # ——————————————————————————————————————————————————————————————————————————
+  # Lint — Symfony native linters
+  # ——————————————————————————————————————————————————————————————————————————
+  lint:
+    name: Symfony Linters
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: ctype, iconv, intl, pdo, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts
+
+      - name: Generate JWT keypair
+        run: |
+          mkdir -p config/jwt
+          openssl genrsa -out config/jwt/private.pem -passout pass:test 4096 2>/dev/null
+          openssl rsa -pubout -in config/jwt/private.pem -out config/jwt/public.pem -passin pass:test 2>/dev/null
+
+      - name: Lint Twig templates
+        run: php bin/console lint:twig templates/
+
+      - name: Lint YAML configuration
+        run: php bin/console lint:yaml config/
+
+      - name: Lint XLIFF translations
+        run: php bin/console lint:xliff translations/
+
+      - name: Lint DI container
+        run: php bin/console lint:container
+
+      - name: Validate Doctrine entity mappings
+        run: php bin/console doctrine:schema:validate --skip-sync

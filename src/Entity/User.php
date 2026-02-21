@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Post;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -27,10 +29,14 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
         new GetCollection(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
         new Patch(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
-        new Delete(security: 'is_granted("IS_AUTHENTICATED_FULLY")')
+        new Delete(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
     ],
-    normalizationContext: ['groups' => ['user:read']],
-    denormalizationContext: ['groups' => ['user:write']]
+    normalizationContext: [
+        'groups' => ['user:read'],
+    ],
+    denormalizationContext: [
+        'groups' => ['user:write'],
+    ]
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -137,7 +143,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        /** @var non-empty-string $email */
+        $email = (string) $this->email;
+
+        return $email;
     }
 
     /**
@@ -199,7 +208,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function addStudent(Student $student): static
     {
-        if (!$this->students->contains($student)) {
+        if (! $this->students->contains($student)) {
             $this->students->add($student);
             $student->addParent($this);
         }
@@ -222,7 +231,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __serialize(): array
     {
         $data = (array) $this;
-        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
+        $data["\0" . self::class . "\0password"] = hash('crc32c', (string) $this->password);
 
         return $data;
     }
@@ -317,15 +326,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
-    {
-        // Clear the plain password after hashing
-        $this->plainPassword = null;
-    }
-
-    /**
      * @return Collection<int, Vehicle>
      */
     public function getVehicles(): Collection
@@ -335,7 +335,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function addVehicle(Vehicle $vehicle): static
     {
-        if (!$this->vehicles->contains($vehicle)) {
+        if (! $this->vehicles->contains($vehicle)) {
             $this->vehicles->add($vehicle);
             $vehicle->setUser($this);
         }
@@ -345,11 +345,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removeVehicle(Vehicle $vehicle): static
     {
-        if ($this->vehicles->removeElement($vehicle)) {
-            // set the owning side to null (unless already changed)
-            if ($vehicle->getUser() === $this) {
-                $vehicle->setUser(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->vehicles->removeElement($vehicle) && $vehicle->getUser() === $this) {
+            $vehicle->setUser(null);
         }
 
         return $this;
@@ -358,5 +356,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getfullName(): string
     {
         return $this->firstName . ' ' . $this->lastName;
+    }
+
+    public function serialize(): void
+    {
+        // Clear the plain password after hashing
+        $this->plainPassword = null;
     }
 }

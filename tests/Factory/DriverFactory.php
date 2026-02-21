@@ -17,11 +17,13 @@ final class DriverFactory extends PersistentObjectFactory
         return Driver::class;
     }
 
-    protected function defaults(): array|callable
+    protected function defaults(): array
     {
         return [
-            'user'          => UserFactory::new()->with(['roles' => ['ROLE_DRIVER']]),
-            'nickname'      => self::faker()->unique()->userName(),
+            'user' => UserFactory::new()->with([
+                'roles' => ['ROLE_DRIVER'],
+            ]),
+            'nickname' => self::faker()->unique()->userName(),
             'licenseNumber' => self::faker()->bothify('??-####-??'),
         ];
     }
@@ -36,9 +38,9 @@ final class DriverFactory extends PersistentObjectFactory
         string $mpAccountId = '987654321',
     ): static {
         return $this->with([
-            'mpAccessToken'    => $mpAccessToken,
-            'mpRefreshToken'   => $mpRefreshToken,
-            'mpAccountId'      => $mpAccountId,
+            'mpAccessToken' => $mpAccessToken,
+            'mpRefreshToken' => $mpRefreshToken,
+            'mpAccountId' => $mpAccountId,
             'mpTokenExpiresAt' => new \DateTimeImmutable('+90 days'),
         ]);
     }

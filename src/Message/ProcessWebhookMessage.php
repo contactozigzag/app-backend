@@ -14,16 +14,26 @@ namespace App\Message;
 final readonly class ProcessWebhookMessage
 {
     public function __construct(
-        /** Our internal payment.id — used by the handler to reload the entity. */
+        /**
+         * Our internal payment.id — used by the handler to reload the entity.
+         */
         public int $paymentId,
 
-        /** Mercado Pago's payment identifier — used to fetch the authoritative status. */
+        /**
+         * Mercado Pago's payment identifier — used to fetch the authoritative status.
+         */
         public string $paymentProviderId,
 
-        /** Raw webhook payload stored in the PaymentTransaction for audit. */
+        /**
+         * Raw webhook payload stored in the PaymentTransaction for audit.
+         *
+         * @param array<string, mixed> $webhookData
+         */
         public array $webhookData,
 
-        /** MP's x-request-id header, threaded through for log correlation. */
+        /**
+         * MP's x-request-id header, threaded through for log correlation.
+         */
         public string $requestId,
     ) {
     }

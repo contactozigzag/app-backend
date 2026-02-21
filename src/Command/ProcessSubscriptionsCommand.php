@@ -52,7 +52,7 @@ class ProcessSubscriptionsCommand extends Command
         $subscriptions = $this->subscriptionRepository->findDueForBilling();
         $subscriptions = array_slice($subscriptions, 0, $limit);
 
-        if (empty($subscriptions)) {
+        if ($subscriptions === []) {
             $io->success('No subscriptions due for billing');
             return Command::SUCCESS;
         }
@@ -84,7 +84,7 @@ class ProcessSubscriptionsCommand extends Command
                     $subscription->getNextBillingDate()->format('Y-m-d')
                 );
 
-                $studentIds = $subscription->getStudents()->map(fn($s) => $s->getId())->toArray();
+                $studentIds = $subscription->getStudents()->map(fn ($s): ?int => $s->getId())->toArray();
 
                 $payment = $this->paymentProcessor->createPayment(
                     user: $subscription->getUser(),
@@ -154,7 +154,7 @@ class ProcessSubscriptionsCommand extends Command
         $retrySubscriptions = $this->subscriptionRepository->findFailedPaymentRetries();
         $retrySubscriptions = array_slice($retrySubscriptions, 0, $limit - $processed);
 
-        if (!empty($retrySubscriptions)) {
+        if ($retrySubscriptions !== []) {
             $io->text(sprintf('Found %d subscription(s) to retry', count($retrySubscriptions)));
 
             foreach ($retrySubscriptions as $subscription) {
@@ -172,7 +172,7 @@ class ProcessSubscriptionsCommand extends Command
                         date('Y-m-d-H-i-s')
                     );
 
-                    $studentIds = $subscription->getStudents()->map(fn($s) => $s->getId())->toArray();
+                    $studentIds = $subscription->getStudents()->map(fn ($s): ?int => $s->getId())->toArray();
 
                     $payment = $this->paymentProcessor->createPayment(
                         user: $subscription->getUser(),

@@ -58,12 +58,12 @@ abstract class AbstractApiTestCase extends WebTestCase
      */
     protected function postJson(KernelBrowser $client, string $uri, array $data): array
     {
-        $client->request('POST', $uri, [], [], [
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, $uri, [], [], [
             'CONTENT_TYPE' => 'application/json',
-            'HTTP_ACCEPT'  => 'application/json',
+            'HTTP_ACCEPT' => 'application/json',
         ], json_encode($data));
 
-        return json_decode($client->getResponse()->getContent(), true) ?? [];
+        return json_decode((string) $client->getResponse()->getContent(), true) ?? [];
     }
 
     /**
@@ -71,10 +71,10 @@ abstract class AbstractApiTestCase extends WebTestCase
      */
     protected function getJson(KernelBrowser $client, string $uri): array
     {
-        $client->request('GET', $uri, [], [], [
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $uri, [], [], [
             'HTTP_ACCEPT' => 'application/json',
         ]);
 
-        return json_decode($client->getResponse()->getContent(), true) ?? [];
+        return json_decode((string) $client->getResponse()->getContent(), true) ?? [];
     }
 }

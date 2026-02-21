@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 final class WebhookValidatorTest extends TestCase
 {
-    private const SECRET = 'test-webhook-secret';
+    private const string SECRET = 'test-webhook-secret';
 
     private WebhookValidator $validator;
 
@@ -25,130 +25,148 @@ final class WebhookValidatorTest extends TestCase
     public function testIsValidReturnsTrueForCorrectSignature(): void
     {
         $requestId = 'req-abc123';
-        $dataId    = '987654321';
+        $dataId = '987654321';
         $timestamp = time();
 
-        $signedData = "id:{$dataId};request-id:{$requestId};ts:{$timestamp};";
-        $signature  = hash_hmac('sha256', $signedData, self::SECRET);
+        $signedData = sprintf('id:%s;request-id:%s;ts:%d;', $dataId, $requestId, $timestamp);
+        $signature = hash_hmac('sha256', $signedData, self::SECRET);
 
         $request = $this->buildRequest($requestId, $timestamp, $signature, $dataId);
 
-        self::assertTrue($this->validator->isValid($request));
+        $this->assertTrue($this->validator->isValid($request));
     }
 
     public function testIsValidReturnsFalseWhenXSignatureHeaderMissing(): void
     {
-        $request = Request::create('/api/webhooks/mercadopago', 'POST');
+        $request = Request::create('/api/webhooks/mercadopago', \Symfony\Component\HttpFoundation\Request::METHOD_POST);
         $request->headers->set('x-request-id', 'req-123');
 
-        self::assertFalse($this->validator->isValid($request));
+        $this->assertFalse($this->validator->isValid($request));
     }
 
     public function testIsValidReturnsFalseWhenXRequestIdHeaderMissing(): void
     {
-        $request = Request::create('/api/webhooks/mercadopago', 'POST');
+        $request = Request::create('/api/webhooks/mercadopago', \Symfony\Component\HttpFoundation\Request::METHOD_POST);
         $request->headers->set('x-signature', 'ts=123456,v1=abc');
 
-        self::assertFalse($this->validator->isValid($request));
+        $this->assertFalse($this->validator->isValid($request));
     }
 
     public function testIsValidReturnsFalseOnMalformedSignatureHeader(): void
     {
-        $request = Request::create('/api/webhooks/mercadopago', 'POST');
+        $request = Request::create('/api/webhooks/mercadopago', \Symfony\Component\HttpFoundation\Request::METHOD_POST);
         $request->headers->set('x-signature', 'invalid-format-no-equals');
         $request->headers->set('x-request-id', 'req-123');
 
-        self::assertFalse($this->validator->isValid($request));
+        $this->assertFalse($this->validator->isValid($request));
     }
 
     public function testIsValidReturnsFalseWhenTimestampTooOld(): void
     {
         $requestId = 'req-old';
-        $dataId    = '111';
+        $dataId = '111';
         $timestamp = time() - 600; // 10 minutes ago (tolerance is 5)
 
-        $signedData = "id:{$dataId};request-id:{$requestId};ts:{$timestamp};";
-        $signature  = hash_hmac('sha256', $signedData, self::SECRET);
+        $signedData = sprintf('id:%s;request-id:%s;ts:%d;', $dataId, $requestId, $timestamp);
+        $signature = hash_hmac('sha256', $signedData, self::SECRET);
 
         $request = $this->buildRequest($requestId, $timestamp, $signature, $dataId);
 
-        self::assertFalse($this->validator->isValid($request));
+        $this->assertFalse($this->validator->isValid($request));
     }
 
     public function testIsValidReturnsFalseOnSignatureMismatch(): void
     {
         $requestId = 'req-tampered';
-        $dataId    = '999';
+        $dataId = '999';
         $timestamp = time();
 
         $request = $this->buildRequest($requestId, $timestamp, 'wrong-signature', $dataId);
 
-        self::assertFalse($this->validator->isValid($request));
+        $this->assertFalse($this->validator->isValid($request));
     }
 
     public function testIsValidAcceptsTimestampAtEdgeOfTolerance(): void
     {
         $requestId = 'req-edge';
-        $dataId    = '123';
+        $dataId = '123';
         $timestamp = time() - 299; // Just inside the 300 s window
 
-        $signedData = "id:{$dataId};request-id:{$requestId};ts:{$timestamp};";
-        $signature  = hash_hmac('sha256', $signedData, self::SECRET);
+        $signedData = sprintf('id:%s;request-id:%s;ts:%d;', $dataId, $requestId, $timestamp);
+        $signature = hash_hmac('sha256', $signedData, self::SECRET);
 
         $request = $this->buildRequest($requestId, $timestamp, $signature, $dataId);
 
-        self::assertTrue($this->validator->isValid($request));
+        $this->assertTrue($this->validator->isValid($request));
     }
 
     // ── extractPaymentId ──────────────────────────────────────────────────────
 
     public function testExtractPaymentIdReturnsIdFromNestedDataKey(): void
     {
-        $data = ['data' => ['id' => '112233445']];
+        $data = [
+            'data' => [
+                'id' => '112233445',
+            ],
+        ];
 
-        self::assertSame('112233445', $this->validator->extractPaymentId($data));
+        $this->assertSame('112233445', $this->validator->extractPaymentId($data));
     }
 
     public function testExtractPaymentIdReturnsNullWhenMissing(): void
     {
-        self::assertNull($this->validator->extractPaymentId([]));
-        self::assertNull($this->validator->extractPaymentId(['data' => []]));
+        $this->assertNull($this->validator->extractPaymentId([]));
+        $this->assertNull($this->validator->extractPaymentId([
+            'data' => [],
+        ]));
     }
 
     // ── isPaymentEvent ────────────────────────────────────────────────────────
 
     public function testIsPaymentEventReturnsTrueForPaymentCreated(): void
     {
-        $data = ['type' => 'payment', 'action' => 'payment.created'];
+        $data = [
+            'type' => 'payment',
+            'action' => 'payment.created',
+        ];
 
-        self::assertTrue($this->validator->isPaymentEvent($data));
+        $this->assertTrue($this->validator->isPaymentEvent($data));
     }
 
     public function testIsPaymentEventReturnsTrueForPaymentUpdated(): void
     {
-        $data = ['type' => 'payment', 'action' => 'payment.updated'];
+        $data = [
+            'type' => 'payment',
+            'action' => 'payment.updated',
+        ];
 
-        self::assertTrue($this->validator->isPaymentEvent($data));
+        $this->assertTrue($this->validator->isPaymentEvent($data));
     }
 
     public function testIsPaymentEventReturnsFalseForUnknownType(): void
     {
-        self::assertFalse($this->validator->isPaymentEvent(['type' => 'subscription', 'action' => 'payment.created']));
-        self::assertFalse($this->validator->isPaymentEvent(['type' => 'payment', 'action' => 'merchant.order.closed']));
-        self::assertFalse($this->validator->isPaymentEvent([]));
+        $this->assertFalse($this->validator->isPaymentEvent([
+            'type' => 'subscription',
+            'action' => 'payment.created',
+        ]));
+        $this->assertFalse($this->validator->isPaymentEvent([
+            'type' => 'payment',
+            'action' => 'merchant.order.closed',
+        ]));
+        $this->assertFalse($this->validator->isPaymentEvent([]));
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private function buildRequest(
         string $requestId,
-        int    $timestamp,
+        int $timestamp,
         string $signature,
         string $dataId = '',
     ): Request {
-        $url = '/api/webhooks/mercadopago' . ($dataId ? "?id={$dataId}" : '');
-        $request = Request::create($url, 'POST');
-        $request->headers->set('x-signature', "ts={$timestamp},v1={$signature}");
+        $url = '/api/webhooks/mercadopago' . ($dataId !== '' && $dataId !== '0' ? '?id=' . $dataId : '');
+        $request = Request::create($url, \Symfony\Component\HttpFoundation\Request::METHOD_POST);
+        $request->headers->set('x-signature', sprintf('ts=%d,v1=%s', $timestamp, $signature));
         $request->headers->set('x-request-id', $requestId);
 
         return $request;

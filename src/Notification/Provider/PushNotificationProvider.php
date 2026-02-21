@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Notification\Provider;
 
 use App\Notification\AbstractNotificationProvider;
@@ -20,7 +22,7 @@ class PushNotificationProvider extends AbstractNotificationProvider
     ) {
         parent::__construct($logger);
         // Disable if FCM not configured
-        $this->enabled = !empty($this->fcmServerKey);
+        $this->enabled = ! in_array($this->fcmServerKey, [null, '', '0'], true);
     }
 
     public function getName(): string
@@ -30,14 +32,14 @@ class PushNotificationProvider extends AbstractNotificationProvider
 
     public function send(string $recipient, string $subject, string $message, array $data = []): bool
     {
-        if (!$this->isEnabled()) {
+        if (! $this->isEnabled()) {
             $this->logger->warning('Push notification provider is not configured. Skipping push notification.');
             return false;
         }
 
         try {
             // Send via Firebase Cloud Messaging (FCM)
-            $response = $this->httpClient->request('POST', $this->fcmUrl, [
+            $response = $this->httpClient->request('POST', (string) $this->fcmUrl, [
                 'headers' => [
                     'Authorization' => 'key=' . $this->fcmServerKey,
                     'Content-Type' => 'application/json',
@@ -69,8 +71,8 @@ class PushNotificationProvider extends AbstractNotificationProvider
             $this->logNotification($recipient, $subject, $success);
 
             return $success;
-        } catch (\Exception $e) {
-            $this->logError($recipient, $e->getMessage());
+        } catch (\Exception $exception) {
+            $this->logError($recipient, $exception->getMessage());
             return false;
         }
     }

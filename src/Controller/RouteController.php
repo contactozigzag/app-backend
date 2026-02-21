@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\Route;
@@ -13,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route as RouteAttribute;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[RouteAttribute('/api/routes', name: 'api_routes_')]
+#[RouteAttribute(name: 'api_routes_')]
 class RouteController extends AbstractController
 {
     public function __construct(
@@ -26,27 +28,27 @@ class RouteController extends AbstractController
     /**
      * Optimize a route's stops
      */
-    #[RouteAttribute('/{id}/optimize', name: 'optimize', methods: ['POST'])]
+    #[RouteAttribute('/api/routes/{id}/optimize', name: 'api_routes_optimize', methods: ['POST'])]
     #[IsGranted('ROLE_DRIVER')]
     public function optimizeRoute(int $id): JsonResponse
     {
         $route = $this->routeRepository->find($id);
 
-        if (!$route) {
+        if (! $route instanceof \App\Entity\Route) {
             return $this->json([
-                'error' => 'Route not found'
+                'error' => 'Route not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
         // Extract start and end points
         $startPoint = [
-            'lat' => (float)$route->getStartLatitude(),
-            'lng' => (float)$route->getStartLongitude(),
+            'lat' => (float) $route->getStartLatitude(),
+            'lng' => (float) $route->getStartLongitude(),
         ];
 
         $endPoint = [
-            'lat' => (float)$route->getEndLatitude(),
-            'lng' => (float)$route->getEndLongitude(),
+            'lat' => (float) $route->getEndLatitude(),
+            'lng' => (float) $route->getEndLongitude(),
         ];
 
         // Extract stops - only active and confirmed stops
@@ -56,8 +58,8 @@ class RouteController extends AbstractController
                 $address = $stop->getAddress();
                 $stops[] = [
                     'id' => $stop->getId(),
-                    'lat' => (float)$address->getLatitude(),
-                    'lng' => (float)$address->getLongitude(),
+                    'lat' => (float) $address->getLatitude(),
+                    'lng' => (float) $address->getLongitude(),
                 ];
             }
         }
@@ -67,7 +69,7 @@ class RouteController extends AbstractController
 
         if ($result === null) {
             return $this->json([
-                'error' => 'Could not optimize route'
+                'error' => 'Could not optimize route',
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
@@ -119,26 +121,26 @@ class RouteController extends AbstractController
     /**
      * Preview route optimization without saving
      */
-    #[RouteAttribute('/{id}/optimize-preview', name: 'optimize_preview', methods: ['POST'])]
+    #[RouteAttribute('/api/routes/{id}/optimize-preview', name: 'api_routes_optimize_preview', methods: ['POST'])]
     #[IsGranted('ROLE_DRIVER')]
     public function previewOptimization(int $id): JsonResponse
     {
         $route = $this->routeRepository->find($id);
 
-        if (!$route) {
+        if (! $route instanceof \App\Entity\Route) {
             return $this->json([
-                'error' => 'Route not found'
+                'error' => 'Route not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
         $startPoint = [
-            'lat' => (float)$route->getStartLatitude(),
-            'lng' => (float)$route->getStartLongitude(),
+            'lat' => (float) $route->getStartLatitude(),
+            'lng' => (float) $route->getStartLongitude(),
         ];
 
         $endPoint = [
-            'lat' => (float)$route->getEndLatitude(),
-            'lng' => (float)$route->getEndLongitude(),
+            'lat' => (float) $route->getEndLatitude(),
+            'lng' => (float) $route->getEndLongitude(),
         ];
 
         // Extract stops - only active and confirmed stops
@@ -149,8 +151,8 @@ class RouteController extends AbstractController
                 $address = $stop->getAddress();
                 $stops[] = [
                     'id' => $stop->getId(),
-                    'lat' => (float)$address->getLatitude(),
-                    'lng' => (float)$address->getLongitude(),
+                    'lat' => (float) $address->getLatitude(),
+                    'lng' => (float) $address->getLongitude(),
                 ];
                 $stopDetails[$stop->getId()] = [
                     'student_name' => $stop->getStudent()->getFirstName() . ' ' . $stop->getStudent()->getLastName(),
@@ -163,7 +165,7 @@ class RouteController extends AbstractController
 
         if ($result === null) {
             return $this->json([
-                'error' => 'Could not optimize route'
+                'error' => 'Could not optimize route',
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
@@ -191,15 +193,15 @@ class RouteController extends AbstractController
     /**
      * Clone a route template
      */
-    #[RouteAttribute('/{id}/clone', name: 'clone', methods: ['POST'])]
+    #[RouteAttribute('/api/routes/{id}/clone', name: 'api_routes_clone', methods: ['POST'])]
     #[IsGranted('ROLE_DRIVER')]
     public function cloneRoute(int $id, Request $request): JsonResponse
     {
         $route = $this->routeRepository->find($id);
 
-        if (!$route) {
+        if (! $route instanceof \App\Entity\Route) {
             return $this->json([
-                'error' => 'Route not found'
+                'error' => 'Route not found',
             ], Response::HTTP_NOT_FOUND);
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
@@ -19,8 +21,12 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Post(security: "is_granted('ROLE_USER')"),
         new Patch(security: "is_granted('ROLE_USER') and object.user == user"),
     ],
-    normalizationContext: ['groups' => ['notification_pref:read']],
-    denormalizationContext: ['groups' => ['notification_pref:write']]
+    normalizationContext: [
+        'groups' => ['notification_pref:read'],
+    ],
+    denormalizationContext: [
+        'groups' => ['notification_pref:write'],
+    ]
 )]
 class NotificationPreference
 {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use Psr\Log\LoggerInterface;
@@ -29,7 +31,7 @@ class RouteOptimizationService
      */
     public function optimizeRoute(array $startPoint, array $endPoint, array $stops): ?array
     {
-        if (empty($stops)) {
+        if ($stops === []) {
             // Direct route from start to end
             $distance = $this->googleMapsService->getDistanceMatrix($startPoint, $endPoint);
             if ($distance === null) {
@@ -49,7 +51,7 @@ class RouteOptimizationService
                         'to' => 'end',
                         'distance' => $distance['distance'],
                         'duration' => $distance['duration'],
-                    ]
+                    ],
                 ],
                 'polyline' => $routeData['polyline'] ?? null,
             ];
@@ -73,7 +75,10 @@ class RouteOptimizationService
         array $stops
     ): ?array {
         $waypoints = array_map(
-            fn($stop) => ['lat' => $stop['lat'], 'lng' => $stop['lng']],
+            fn (array $stop): array => [
+                'lat' => $stop['lat'],
+                'lng' => $stop['lng'],
+            ],
             $stops
         );
 
@@ -115,7 +120,7 @@ class RouteOptimizationService
         array $startPoint,
         array $endPoint,
         array $stops
-    ): ?array {
+    ): array {
         $unvisited = $stops;
         $route = [];
         $currentPoint = $startPoint;
@@ -124,7 +129,7 @@ class RouteOptimizationService
         $segments = [];
 
         // Build route by always choosing nearest unvisited stop
-        while (!empty($unvisited)) {
+        while ($unvisited !== []) {
             $nearestIndex = null;
             $nearestDistance = PHP_FLOAT_MAX;
             $nearestDuration = 0;
@@ -152,19 +157,22 @@ class RouteOptimizationService
             // Get actual distance from Google
             $distanceData = $this->googleMapsService->getDistanceMatrix(
                 $currentPoint,
-                ['lat' => $nearestStop['lat'], 'lng' => $nearestStop['lng']]
+                [
+                    'lat' => $nearestStop['lat'],
+                    'lng' => $nearestStop['lng'],
+                ]
             );
 
             if ($distanceData === null) {
                 // Fallback to Haversine estimate
                 $distanceData = [
-                    'distance' => (int)($nearestDistance * 1000), // Convert km to meters
-                    'duration' => (int)($nearestDistance * 1000 / 10), // Rough estimate: 36 km/h average
+                    'distance' => (int) ($nearestDistance * 1000), // Convert km to meters
+                    'duration' => (int) ($nearestDistance * 1000 / 10), // Rough estimate: 36 km/h average
                 ];
             }
 
             $segments[] = [
-                'from' => empty($route) ? 'start' : $route[count($route) - 1],
+                'from' => $route === [] ? 'start' : $route[count($route) - 1],
                 'to' => $nearestStop['id'],
                 'distance' => $distanceData['distance'],
                 'duration' => $distanceData['duration'],
@@ -173,7 +181,10 @@ class RouteOptimizationService
             $route[] = $nearestStop['id'];
             $totalDistance += $distanceData['distance'];
             $totalDuration += $distanceData['duration'];
-            $currentPoint = ['lat' => $nearestStop['lat'], 'lng' => $nearestStop['lng']];
+            $currentPoint = [
+                'lat' => $nearestStop['lat'],
+                'lng' => $nearestStop['lng'],
+            ];
 
             unset($unvisited[$nearestIndex]);
         }
@@ -196,7 +207,10 @@ class RouteOptimizationService
         foreach ($route as $stopId) {
             foreach ($stops as $stop) {
                 if ($stop['id'] === $stopId) {
-                    $orderedWaypoints[] = ['lat' => $stop['lat'], 'lng' => $stop['lng']];
+                    $orderedWaypoints[] = [
+                        'lat' => $stop['lat'],
+                        'lng' => $stop['lng'],
+                    ];
                     break;
                 }
             }
@@ -245,10 +259,7 @@ class RouteOptimizationService
      * Optimize route with time windows (advanced)
      * For future implementation when student pickup times are added
      *
-     * @param array $startPoint
-     * @param array $endPoint
      * @param array<array{id: int, lat: float, lng: float, time_window_start: int, time_window_end: int}> $stops
-     * @return array|null
      */
     public function optimizeRouteWithTimeWindows(
         array $startPoint,

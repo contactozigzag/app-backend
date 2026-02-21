@@ -26,22 +26,22 @@ final class MercureControllerTest extends AbstractApiTestCase
     public function testTokenEndpointMissingPaymentIdReturns400(): void
     {
         $client = $this->createApiClient();
-        $user   = UserFactory::createOne();
+        $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
         $body = $this->getJson($client, '/api/mercure/token');
 
         self::assertResponseStatusCodeSame(400);
-        self::assertStringContainsString('payment_id', $body['error']);
+        $this->assertStringContainsString('payment_id', (string) $body['error']);
     }
 
     public function testTokenEndpointNonNumericPaymentIdReturns400(): void
     {
         $client = $this->createApiClient();
-        $user   = UserFactory::createOne();
+        $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
-        $body = $this->getJson($client, '/api/mercure/token?payment_id=abc');
+        $this->getJson($client, '/api/mercure/token?payment_id=abc');
 
         self::assertResponseStatusCodeSame(400);
     }
@@ -51,51 +51,55 @@ final class MercureControllerTest extends AbstractApiTestCase
     public function testTokenEndpointPaymentNotFoundReturns404(): void
     {
         $client = $this->createApiClient();
-        $user   = UserFactory::createOne();
+        $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
         $body = $this->getJson($client, '/api/mercure/token?payment_id=999999');
 
         self::assertResponseStatusCodeSame(404);
-        self::assertStringContainsString('not found', $body['error']);
+        $this->assertStringContainsString('not found', (string) $body['error']);
     }
 
     // ── access control ────────────────────────────────────────────────────────
 
     public function testTokenEndpointForbiddenForNonOwnerReturns403(): void
     {
-        $client  = $this->createApiClient();
-        $owner   = UserFactory::createOne();
-        $other   = UserFactory::createOne();
-        $payment = PaymentFactory::createOne(['user' => $owner]);
+        $client = $this->createApiClient();
+        $owner = UserFactory::createOne();
+        $other = UserFactory::createOne();
+        $payment = PaymentFactory::createOne([
+            'user' => $owner,
+        ]);
         $this->loginUser($client, $other);
 
-        $body = $this->getJson($client, "/api/mercure/token?payment_id={$payment->getId()}");
+        $body = $this->getJson($client, '/api/mercure/token?payment_id=' . $payment->getId());
 
         self::assertResponseStatusCodeSame(403);
-        self::assertStringContainsString('denied', $body['error']);
+        $this->assertStringContainsString('denied', (string) $body['error']);
     }
 
     // ── success ───────────────────────────────────────────────────────────────
 
     public function testTokenEndpointReturnsJwtForPaymentOwner(): void
     {
-        $client  = $this->createApiClient();
-        $user    = UserFactory::createOne();
-        $payment = PaymentFactory::createOne(['user' => $user]);
+        $client = $this->createApiClient();
+        $user = UserFactory::createOne();
+        $payment = PaymentFactory::createOne([
+            'user' => $user,
+        ]);
         $this->loginUser($client, $user);
 
-        $body = $this->getJson($client, "/api/mercure/token?payment_id={$payment->getId()}");
+        $body = $this->getJson($client, '/api/mercure/token?payment_id=' . $payment->getId());
 
         self::assertResponseIsSuccessful();
-        self::assertArrayHasKey('token', $body);
-        self::assertArrayHasKey('hub_url', $body);
-        self::assertArrayHasKey('topics', $body);
+        $this->assertArrayHasKey('token', $body);
+        $this->assertArrayHasKey('hub_url', $body);
+        $this->assertArrayHasKey('topics', $body);
 
         // The topic must match the payment's private update URL
-        self::assertContains("/payments/{$payment->getId()}", $body['topics']);
+        $this->assertContains('/payments/' . $payment->getId(), $body['topics']);
 
         // The Mercure JWT must be a valid 3-part JWT
-        self::assertCount(3, explode('.', $body['token']));
+        $this->assertCount(3, explode('.', (string) $body['token']));
     }
 }

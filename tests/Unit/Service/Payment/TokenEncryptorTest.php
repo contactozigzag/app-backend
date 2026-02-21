@@ -9,14 +9,13 @@ use PHPUnit\Framework\TestCase;
 
 final class TokenEncryptorTest extends TestCase
 {
-    private string $validKey;
     private TokenEncryptor $encryptor;
 
     protected function setUp(): void
     {
         // Generate a fresh valid key for every test
-        $this->validKey = base64_encode(random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES));
-        $this->encryptor = new TokenEncryptor($this->validKey);
+        $validKey = base64_encode(random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES));
+        $this->encryptor = new TokenEncryptor($validKey);
     }
 
     public function testEncryptAndDecryptRoundTrip(): void
@@ -26,28 +25,28 @@ final class TokenEncryptorTest extends TestCase
         $encrypted = $this->encryptor->encrypt($plaintext);
         $decrypted = $this->encryptor->decrypt($encrypted);
 
-        self::assertSame($plaintext, $decrypted);
+        $this->assertSame($plaintext, $decrypted);
     }
 
     public function testEncryptProducesDifferentCiphertextsForSamePlaintext(): void
     {
         $plaintext = 'same-token-value';
 
-        $first  = $this->encryptor->encrypt($plaintext);
+        $first = $this->encryptor->encrypt($plaintext);
         $second = $this->encryptor->encrypt($plaintext);
 
         // Nonce is random per call → ciphertexts must differ
-        self::assertNotSame($first, $second);
+        $this->assertNotSame($first, $second);
         // But both decrypt to the same value
-        self::assertSame($plaintext, $this->encryptor->decrypt($first));
-        self::assertSame($plaintext, $this->encryptor->decrypt($second));
+        $this->assertSame($plaintext, $this->encryptor->decrypt($first));
+        $this->assertSame($plaintext, $this->encryptor->decrypt($second));
     }
 
     public function testEncryptOutputIsValidBase64(): void
     {
         $encrypted = $this->encryptor->encrypt('some-token');
 
-        self::assertNotFalse(base64_decode($encrypted, strict: true));
+        $this->assertNotFalse(base64_decode($encrypted, strict: true));
     }
 
     public function testDecryptThrowsOnInvalidBase64(): void
@@ -72,7 +71,7 @@ final class TokenEncryptorTest extends TestCase
         $encrypted = $this->encryptor->encrypt('secret-token');
 
         // Build a different encryptor with a different key
-        $wrongKey       = base64_encode(random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES));
+        $wrongKey = base64_encode(random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES));
         $wrongEncryptor = new TokenEncryptor($wrongKey);
 
         $this->expectException(\RuntimeException::class);
@@ -104,6 +103,6 @@ final class TokenEncryptorTest extends TestCase
     {
         $plaintext = "Ñoño token with 🚀 emoji and \n newlines";
 
-        self::assertSame($plaintext, $this->encryptor->decrypt($this->encryptor->encrypt($plaintext)));
+        $this->assertSame($plaintext, $this->encryptor->decrypt($this->encryptor->encrypt($plaintext)));
     }
 }

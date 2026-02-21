@@ -18,13 +18,13 @@ final class StudentFactory extends PersistentObjectFactory
         return Student::class;
     }
 
-    protected function defaults(): array|callable
+    protected function defaults(): array
     {
         return [
-            'firstName'            => self::faker()->firstName(),
-            'lastName'             => self::faker()->lastName(),
+            'firstName' => self::faker()->firstName(),
+            'lastName' => self::faker()->lastName(),
             'identificationNumber' => self::faker()->unique()->numerify('##########'),
-            'school'               => SchoolFactory::new(),
+            'school' => SchoolFactory::new(),
         ];
     }
 

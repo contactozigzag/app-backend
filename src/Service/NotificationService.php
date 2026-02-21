@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use App\Entity\User;
@@ -10,7 +12,9 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 class NotificationService
 {
-    /** @var array<string, NotificationInterface> */
+    /**
+     * @var array<string, NotificationInterface>
+     */
     private array $providers = [];
 
     public function __construct(
@@ -40,29 +44,29 @@ class NotificationService
         $preferences = $this->preferenceRepository->findByUser($user);
 
         // If no preferences exist, use all channels by default
-        if (!$preferences) {
-            $channels = $channels ?? array_keys($this->providers);
+        if (! $preferences instanceof \App\Entity\NotificationPreference) {
+            $channels ??= array_keys($this->providers);
         } else {
             // Use preference-based channels if not explicitly specified
-            $channels = $channels ?? $this->getEnabledChannels($preferences);
+            $channels ??= $this->getEnabledChannels($preferences);
         }
 
         foreach ($channels as $channel) {
-            if (!isset($this->providers[$channel])) {
+            if (! isset($this->providers[$channel])) {
                 $this->logger->warning(sprintf('Notification provider "%s" not found', $channel));
                 continue;
             }
 
             $provider = $this->providers[$channel];
 
-            if (!$provider->isEnabled()) {
+            if (! $provider->isEnabled()) {
                 $this->logger->info(sprintf('Provider "%s" is disabled, skipping', $channel));
                 continue;
             }
 
             $recipient = $this->getRecipientForChannel($user, $channel);
 
-            if (!$recipient) {
+            if (! $recipient) {
                 $this->logger->warning(sprintf(
                     'No recipient information for user %d on channel %s',
                     $user->getId(),
@@ -85,7 +89,7 @@ class NotificationService
         $results = [];
 
         foreach ($users as $user) {
-            if (!$user instanceof User) {
+            if (! $user instanceof User) {
                 continue;
             }
 
@@ -100,7 +104,7 @@ class NotificationService
      */
     public function sendViaChannel(string $channel, string $recipient, string $subject, string $message, array $data = []): bool
     {
-        if (!isset($this->providers[$channel])) {
+        if (! isset($this->providers[$channel])) {
             $this->logger->error(sprintf('Notification provider "%s" not found', $channel));
             return false;
         }
@@ -113,28 +117,30 @@ class NotificationService
         return match ($channel) {
             'email' => $user->getEmail(),
             'sms' => $user->getPhoneNumber(),
-            'push' => $this->getUserPushToken($user),
+            'push' => $this->getUserPushToken(),
             default => null,
         };
     }
 
-    private function getUserPushToken(User $user): ?string
+    private function getUserPushToken(): ?string
     {
         // In a real implementation, this would fetch the FCM token from a UserDevice entity
         // For now, return null (would need to be implemented with device registration)
         return null;
     }
 
-    private function getEnabledChannels($preferences): array
+    private function getEnabledChannels(\App\Entity\NotificationPreference $preferences): array
     {
         $channels = [];
 
         if ($preferences->isEmailEnabled()) {
             $channels[] = 'email';
         }
+
         if ($preferences->isSmsEnabled()) {
             $channels[] = 'sms';
         }
+
         if ($preferences->isPushEnabled()) {
             $channels[] = 'push';
         }

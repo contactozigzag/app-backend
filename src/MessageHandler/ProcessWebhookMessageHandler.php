@@ -31,19 +31,19 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 class ProcessWebhookMessageHandler
 {
     public function __construct(
-        private readonly PaymentRepository       $paymentRepository,
-        private readonly PaymentProcessor        $paymentProcessor,
+        private readonly PaymentRepository $paymentRepository,
+        private readonly PaymentProcessor $paymentProcessor,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly LoggerInterface         $logger,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
     public function __invoke(ProcessWebhookMessage $message): void
     {
         $this->logger->info('Webhook handler started', [
-            'payment_id'          => $message->paymentId,
+            'payment_id' => $message->paymentId,
             'payment_provider_id' => $message->paymentProviderId,
-            'request_id'          => $message->requestId,
+            'request_id' => $message->requestId,
         ]);
 
         $payment = $this->paymentRepository->find($message->paymentId);
@@ -76,13 +76,16 @@ class ProcessWebhookMessageHandler
         }
 
         $this->logger->info('Webhook handler completed', [
-            'payment_id'  => $message->paymentId,
-            'old_status'  => $oldStatus->value,
-            'new_status'  => $newStatus->value,
-            'request_id'  => $message->requestId,
+            'payment_id' => $message->paymentId,
+            'old_status' => $oldStatus->value,
+            'new_status' => $newStatus->value,
+            'request_id' => $message->requestId,
         ]);
     }
 
+    /**
+     * @param array<string, mixed> $webhookData
+     */
     private function dispatchStatusEvent(
         Payment $payment,
         PaymentStatus $newStatus,

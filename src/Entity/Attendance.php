@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
@@ -14,16 +16,20 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AttendanceRepository::class)]
 #[ORM\Table(name: 'attendance')]
-#[ORM\Index(columns: ['student_id', 'date'], name: 'idx_student_date')]
-#[ORM\Index(columns: ['active_route_stop_id'], name: 'idx_route_stop')]
+#[ORM\Index(name: 'idx_student_date', columns: ['student_id', 'date'])]
+#[ORM\Index(name: 'idx_route_stop', columns: ['active_route_stop_id'])]
 #[ApiResource(
     operations: [
         new Get(security: "is_granted('ROLE_USER')"),
         new GetCollection(security: "is_granted('ROLE_USER')"),
         new Post(security: "is_granted('ROLE_DRIVER') or is_granted('ROLE_SCHOOL_ADMIN')"),
     ],
-    normalizationContext: ['groups' => ['attendance:read']],
-    denormalizationContext: ['groups' => ['attendance:write']]
+    normalizationContext: [
+        'groups' => ['attendance:read'],
+    ],
+    denormalizationContext: [
+        'groups' => ['attendance:write'],
+    ]
 )]
 class Attendance
 {
@@ -90,11 +96,11 @@ class Attendance
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['attendance:read'])]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['attendance:read'])]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     public function __construct()
     {
@@ -245,12 +251,12 @@ class Attendance
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }

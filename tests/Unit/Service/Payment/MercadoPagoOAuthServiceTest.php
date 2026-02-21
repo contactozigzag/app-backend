@@ -17,8 +17,11 @@ use Psr\Log\NullLogger;
 final class MercadoPagoOAuthServiceTest extends TestCase
 {
     private CacheItemPoolInterface $cache;
+
     private EntityManagerInterface $em;
+
     private DriverRepository $driverRepo;
+
     private TokenEncryptor $encryptor;
 
     private MercadoPagoOAuthService $service;
@@ -27,10 +30,10 @@ final class MercadoPagoOAuthServiceTest extends TestCase
     {
         // Use stubs for collaborators that don't need expectation tracking in setUp.
         // Tests that need expectations re-configure them individually.
-        $this->cache      = $this->createStub(CacheItemPoolInterface::class);
-        $this->em         = $this->createStub(EntityManagerInterface::class);
+        $this->cache = $this->createStub(CacheItemPoolInterface::class);
+        $this->em = $this->createStub(EntityManagerInterface::class);
         $this->driverRepo = $this->createStub(DriverRepository::class);
-        $this->encryptor  = new TokenEncryptor(
+        $this->encryptor = new TokenEncryptor(
             base64_encode(random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES))
         );
 
@@ -43,14 +46,14 @@ final class MercadoPagoOAuthServiceTest extends TestCase
         ?DriverRepository $repo = null,
     ): MercadoPagoOAuthService {
         return new MercadoPagoOAuthService(
-            appId:            '12345678',
-            appSecret:        'test-secret',
-            redirectUri:      'http://localhost/callback',
-            statePool:        $cache ?? $this->cache,
-            entityManager:    $em ?? $this->em,
+            appId: '12345678',
+            appSecret: 'test-secret',
+            redirectUri: 'http://localhost/callback',
+            statePool: $cache ?? $this->cache,
+            entityManager: $em ?? $this->em,
             driverRepository: $repo ?? $this->driverRepo,
-            tokenEncryptor:   $this->encryptor,
-            logger:           new NullLogger(),
+            tokenEncryptor: $this->encryptor,
+            logger: new NullLogger(),
         );
     }
 
@@ -61,21 +64,21 @@ final class MercadoPagoOAuthServiceTest extends TestCase
         $driver = $this->makeDriver(42);
 
         $cacheItem = $this->createMock(CacheItemInterface::class);
-        $cacheItem->expects(self::once())->method('set')->with(42);
-        $cacheItem->expects(self::once())->method('expiresAfter')->with(600);
+        $cacheItem->expects($this->once())->method('set')->with(42);
+        $cacheItem->expects($this->once())->method('expiresAfter')->with(600);
 
         $cache = $this->createMock(CacheItemPoolInterface::class);
-        $cache->expects(self::once())
+        $cache->expects($this->once())
             ->method('getItem')
             ->with(self::stringStartsWith('mp_oauth_state.'))
             ->willReturn($cacheItem);
-        $cache->expects(self::once())->method('save')->with($cacheItem);
+        $cache->expects($this->once())->method('save')->with($cacheItem);
 
         $service = $this->buildService(cache: $cache);
-        $url     = $service->buildAuthorizationUrl($driver);
+        $url = $service->buildAuthorizationUrl($driver);
 
-        self::assertStringContainsString('12345678', $url);
-        self::assertStringContainsString('http', $url);
+        $this->assertStringContainsString('12345678', $url);
+        $this->assertStringContainsString('http', $url);
     }
 
     // ── handleCallback ────────────────────────────────────────────────────────
@@ -122,7 +125,7 @@ final class MercadoPagoOAuthServiceTest extends TestCase
 
         $result = $this->service->getAccessToken($driver);
 
-        self::assertSame($plaintext, $result);
+        $this->assertSame($plaintext, $result);
     }
 
     // ── needsRefresh ──────────────────────────────────────────────────────────
@@ -132,7 +135,7 @@ final class MercadoPagoOAuthServiceTest extends TestCase
         $driver = $this->makeDriver(1);
         // mpRefreshToken is null by default in our makeDriver helper
 
-        self::assertFalse($this->service->needsRefresh($driver));
+        $this->assertFalse($this->service->needsRefresh($driver));
     }
 
     public function testNeedsRefreshReturnsTrueWhenTokenExpiresSoon(): void
@@ -141,7 +144,7 @@ final class MercadoPagoOAuthServiceTest extends TestCase
         $driver->setMpRefreshToken('enc-refresh');
         $driver->setMpTokenExpiresAt(new \DateTimeImmutable('+1 hour')); // within 24h buffer
 
-        self::assertTrue($this->service->needsRefresh($driver));
+        $this->assertTrue($this->service->needsRefresh($driver));
     }
 
     public function testNeedsRefreshReturnsFalseWhenTokenIsFresh(): void
@@ -150,7 +153,7 @@ final class MercadoPagoOAuthServiceTest extends TestCase
         $driver->setMpRefreshToken('enc-refresh');
         $driver->setMpTokenExpiresAt(new \DateTimeImmutable('+30 days')); // well beyond buffer
 
-        self::assertFalse($this->service->needsRefresh($driver));
+        $this->assertFalse($this->service->needsRefresh($driver));
     }
 
     public function testNeedsRefreshReturnsTrueWhenNoExpiryOnRecord(): void
@@ -159,7 +162,7 @@ final class MercadoPagoOAuthServiceTest extends TestCase
         $driver->setMpRefreshToken('enc-refresh');
         // mpTokenExpiresAt is null → treat as expired
 
-        self::assertTrue($this->service->needsRefresh($driver));
+        $this->assertTrue($this->service->needsRefresh($driver));
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────

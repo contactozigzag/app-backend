@@ -19,16 +19,15 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  */
 class TokenEncryptor
 {
-    private string $key;
+    private readonly string $key;
 
     public function __construct(
         #[Autowire(env: 'TOKEN_ENCRYPTION_KEY')]
         string $encryptionKey,
-    )
-    {
-        $this->key = base64_decode($encryptionKey, strict: true);
+    ) {
+        $decoded = base64_decode($encryptionKey, strict: true);
 
-        if ($this->key === false || strlen($this->key) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
+        if ($decoded === false || strlen($decoded) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
             throw new \InvalidArgumentException(
                 sprintf(
                     'TOKEN_ENCRYPTION_KEY must be a base64-encoded %d-byte string.',
@@ -36,11 +35,13 @@ class TokenEncryptor
                 )
             );
         }
+
+        $this->key = $decoded;
     }
 
     public function encrypt(string $plaintext): string
     {
-        $nonce      = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
         $ciphertext = sodium_crypto_secretbox($plaintext, $nonce, $this->key);
 
         return base64_encode($nonce . $ciphertext);
@@ -54,7 +55,7 @@ class TokenEncryptor
             throw new \RuntimeException('Encrypted token is malformed.');
         }
 
-        $nonce      = substr($decoded, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $nonce = substr($decoded, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
         $ciphertext = substr($decoded, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
 
         $plaintext = sodium_crypto_secretbox_open($ciphertext, $nonce, $this->key);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use GuzzleHttp\Client;
@@ -9,10 +11,10 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class GoogleMapsService
 {
-    private Client $client;
+    private readonly Client $client;
 
     public function __construct(
-        #[Autowire('%env(GOOGLE_MAPS_API_KEY)%')]
+        #[Autowire(env: 'GOOGLE_MAPS_API_KEY')]
         private readonly string $apiKey,
         private readonly LoggerInterface $logger
     ) {
@@ -35,12 +37,12 @@ class GoogleMapsService
                 'query' => [
                     'address' => $address,
                     'key' => $this->apiKey,
-                ]
+                ],
             ]);
 
             $data = json_decode($response->getBody()->getContents(), true);
 
-            if ($data['status'] === 'OK' && !empty($data['results'])) {
+            if ($data['status'] === 'OK' && ! empty($data['results'])) {
                 $result = $data['results'][0];
 
                 return [
@@ -53,14 +55,14 @@ class GoogleMapsService
 
             $this->logger->warning('Geocoding failed', [
                 'address' => $address,
-                'status' => $data['status']
+                'status' => $data['status'],
             ]);
 
             return null;
-        } catch (GuzzleException $e) {
+        } catch (GuzzleException $guzzleException) {
             $this->logger->error('Geocoding API error', [
                 'address' => $address,
-                'error' => $e->getMessage()
+                'error' => $guzzleException->getMessage(),
             ]);
 
             return null;
@@ -77,8 +79,8 @@ class GoogleMapsService
     public function getDistanceMatrix(array $origin, array $destination): ?array
     {
         try {
-            $originStr = "{$origin['lat']},{$origin['lng']}";
-            $destinationStr = "{$destination['lat']},{$destination['lng']}";
+            $originStr = sprintf('%s,%s', $origin['lat'], $origin['lng']);
+            $destinationStr = sprintf('%s,%s', $destination['lat'], $destination['lng']);
 
             $response = $this->client->get('distancematrix/json', [
                 'query' => [
@@ -86,12 +88,12 @@ class GoogleMapsService
                     'destinations' => $destinationStr,
                     'key' => $this->apiKey,
                     'mode' => 'driving',
-                ]
+                ],
             ]);
 
             $data = json_decode($response->getBody()->getContents(), true);
 
-            if ($data['status'] === 'OK' && !empty($data['rows'])) {
+            if ($data['status'] === 'OK' && ! empty($data['rows'])) {
                 $element = $data['rows'][0]['elements'][0];
 
                 if ($element['status'] === 'OK') {
@@ -105,13 +107,13 @@ class GoogleMapsService
             $this->logger->warning('Distance Matrix failed', [
                 'origin' => $originStr,
                 'destination' => $destinationStr,
-                'status' => $data['status'] ?? 'UNKNOWN'
+                'status' => $data['status'] ?? 'UNKNOWN',
             ]);
 
             return null;
-        } catch (GuzzleException $e) {
+        } catch (GuzzleException $guzzleException) {
             $this->logger->error('Distance Matrix API error', [
-                'error' => $e->getMessage()
+                'error' => $guzzleException->getMessage(),
             ]);
 
             return null;
@@ -134,13 +136,13 @@ class GoogleMapsService
         bool $optimize = true
     ): ?array {
         try {
-            $originStr = "{$origin['lat']},{$origin['lng']}";
-            $destinationStr = "{$destination['lat']},{$destination['lng']}";
+            $originStr = sprintf('%s,%s', $origin['lat'], $origin['lng']);
+            $destinationStr = sprintf('%s,%s', $destination['lat'], $destination['lng']);
 
             $waypointsStr = '';
-            if (!empty($waypoints)) {
+            if ($waypoints !== []) {
                 $waypointCoords = array_map(
-                    fn($wp) => "{$wp['lat']},{$wp['lng']}",
+                    fn (array $wp): string => sprintf('%s,%s', $wp['lat'], $wp['lng']),
                     $waypoints
                 );
                 $prefix = $optimize ? 'optimize:true|' : '';
@@ -154,17 +156,17 @@ class GoogleMapsService
                 'mode' => 'driving',
             ];
 
-            if ($waypointsStr) {
+            if ($waypointsStr !== '' && $waypointsStr !== '0') {
                 $params['waypoints'] = $waypointsStr;
             }
 
             $response = $this->client->get('directions/json', [
-                'query' => $params
+                'query' => $params,
             ]);
 
             $data = json_decode($response->getBody()->getContents(), true);
 
-            if ($data['status'] === 'OK' && !empty($data['routes'])) {
+            if ($data['status'] === 'OK' && ! empty($data['routes'])) {
                 $route = $data['routes'][0];
 
                 $totalDistance = 0;
@@ -189,13 +191,13 @@ class GoogleMapsService
             }
 
             $this->logger->warning('Directions API failed', [
-                'status' => $data['status'] ?? 'UNKNOWN'
+                'status' => $data['status'] ?? 'UNKNOWN',
             ]);
 
             return null;
-        } catch (GuzzleException $e) {
+        } catch (GuzzleException $guzzleException) {
             $this->logger->error('Directions API error', [
-                'error' => $e->getMessage()
+                'error' => $guzzleException->getMessage(),
             ]);
 
             return null;
@@ -205,7 +207,6 @@ class GoogleMapsService
     /**
      * Validate a place ID using Places API
      *
-     * @param string $placeId
      * @return array{name: string, formatted_address: string, lat: float, lng: float}|null
      */
     public function getPlaceDetails(string $placeId): ?array
@@ -216,12 +217,12 @@ class GoogleMapsService
                     'place_id' => $placeId,
                     'key' => $this->apiKey,
                     'fields' => 'name,formatted_address,geometry',
-                ]
+                ],
             ]);
 
             $data = json_decode($response->getBody()->getContents(), true);
 
-            if ($data['status'] === 'OK' && !empty($data['result'])) {
+            if ($data['status'] === 'OK' && ! empty($data['result'])) {
                 $result = $data['result'];
 
                 return [
@@ -233,10 +234,10 @@ class GoogleMapsService
             }
 
             return null;
-        } catch (GuzzleException $e) {
+        } catch (GuzzleException $guzzleException) {
             $this->logger->error('Place Details API error', [
                 'place_id' => $placeId,
-                'error' => $e->getMessage()
+                'error' => $guzzleException->getMessage(),
             ]);
 
             return null;

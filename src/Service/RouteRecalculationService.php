@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use App\Entity\Absence;
 use App\Entity\ActiveRoute;
 use App\Entity\ActiveRouteStop;
-use App\Repository\ActiveRouteRepository;
 use App\Repository\ActiveRouteStopRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -14,7 +15,6 @@ class RouteRecalculationService
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly ActiveRouteRepository $activeRouteRepository,
         private readonly ActiveRouteStopRepository $stopRepository,
         private readonly RouteOptimizationService $optimizationService,
         private readonly LoggerInterface $logger
@@ -53,7 +53,10 @@ class RouteRecalculationService
 
         if (empty($stops)) {
             $this->logger->info('No stops found for recalculation');
-            return ['affected_routes' => [], 'recalculated' => false];
+            return [
+                'affected_routes' => [],
+                'recalculated' => false,
+            ];
         }
 
         $affectedRoutes = [];
@@ -84,7 +87,7 @@ class RouteRecalculationService
 
         return [
             'affected_routes' => $affectedRoutes,
-            'recalculated' => !empty($affectedRoutes),
+            'recalculated' => $affectedRoutes !== [],
         ];
     }
 
@@ -96,11 +99,9 @@ class RouteRecalculationService
         $stops = $this->stopRepository->findByActiveRouteOrdered($activeRoute);
 
         // Filter out absent/skipped stops
-        $activeStops = array_filter($stops, function (ActiveRouteStop $stop) {
-            return !in_array($stop->getStatus(), ['absent', 'skipped']);
-        });
+        $activeStops = array_filter($stops, fn (ActiveRouteStop $stop): bool => ! in_array($stop->getStatus(), ['absent', 'skipped'], true));
 
-        if (empty($activeStops)) {
+        if ($activeStops === []) {
             $this->logger->warning('No active stops remaining for route', [
                 'route_id' => $activeRoute->getId(),
             ]);
@@ -110,13 +111,13 @@ class RouteRecalculationService
         $routeTemplate = $activeRoute->getRouteTemplate();
 
         $startPoint = [
-            'lat' => (float)$routeTemplate->getStartLatitude(),
-            'lng' => (float)$routeTemplate->getStartLongitude(),
+            'lat' => (float) $routeTemplate->getStartLatitude(),
+            'lng' => (float) $routeTemplate->getStartLongitude(),
         ];
 
         $endPoint = [
-            'lat' => (float)$routeTemplate->getEndLatitude(),
-            'lng' => (float)$routeTemplate->getEndLongitude(),
+            'lat' => (float) $routeTemplate->getEndLatitude(),
+            'lng' => (float) $routeTemplate->getEndLongitude(),
         ];
 
         // Prepare stops for optimization
@@ -127,8 +128,8 @@ class RouteRecalculationService
             $address = $stop->getAddress();
             $optimizationStops[] = [
                 'id' => $stop->getId(),
-                'lat' => (float)$address->getLatitude(),
-                'lng' => (float)$address->getLongitude(),
+                'lat' => (float) $address->getLatitude(),
+                'lng' => (float) $address->getLongitude(),
             ];
             $stopMap[$stop->getId()] = $stop;
         }

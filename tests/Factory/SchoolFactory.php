@@ -17,7 +17,7 @@ final class SchoolFactory extends PersistentObjectFactory
         return School::class;
     }
 
-    protected function defaults(): array|callable
+    protected function defaults(): array
     {
         return [
             'name' => self::faker()->company() . ' School',

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\NotificationPreference;
@@ -19,14 +21,16 @@ class NotificationPreferenceRepository extends ServiceEntityRepository
 
     public function findByUser(User $user): ?NotificationPreference
     {
-        return $this->findOneBy(['user' => $user]);
+        return $this->findOneBy([
+            'user' => $user,
+        ]);
     }
 
     public function findOrCreateForUser(User $user): NotificationPreference
     {
         $preference = $this->findByUser($user);
 
-        if (!$preference) {
+        if (! $preference instanceof \App\Entity\NotificationPreference) {
             $preference = new NotificationPreference();
             $preference->setUser($user);
             $this->getEntityManager()->persist($preference);

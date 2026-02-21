@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
@@ -26,8 +28,12 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Patch(security: "is_granted('ROLE_DRIVER') or is_granted('ROLE_SCHOOL_ADMIN')"),
         new Delete(security: "is_granted('ROLE_SCHOOL_ADMIN')"),
     ],
-    normalizationContext: ['groups' => ['active_route:read']],
-    denormalizationContext: ['groups' => ['active_route:write']]
+    normalizationContext: [
+        'groups' => ['active_route:read'],
+    ],
+    denormalizationContext: [
+        'groups' => ['active_route:write'],
+    ]
 )]
 class ActiveRoute
 {
@@ -85,17 +91,19 @@ class ActiveRoute
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['active_route:read'])]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['active_route:read'])]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     /**
      * @var Collection<int, ActiveRouteStop>
      */
     #[ORM\OneToMany(targetEntity: ActiveRouteStop::class, mappedBy: 'activeRoute', cascade: ['persist', 'remove'], orphanRemoval: true)]
-    #[ORM\OrderBy(['stopOrder' => 'ASC'])]
+    #[ORM\OrderBy([
+        'stopOrder' => 'ASC',
+    ])]
     #[Groups(['active_route:read'])]
     private Collection $stops;
 
@@ -227,12 +235,12 @@ class ActiveRoute
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -247,7 +255,7 @@ class ActiveRoute
 
     public function addStop(ActiveRouteStop $stop): static
     {
-        if (!$this->stops->contains($stop)) {
+        if (! $this->stops->contains($stop)) {
             $this->stops->add($stop);
             $stop->setActiveRoute($this);
         }
@@ -257,10 +265,8 @@ class ActiveRoute
 
     public function removeStop(ActiveRouteStop $stop): static
     {
-        if ($this->stops->removeElement($stop)) {
-            if ($stop->getActiveRoute() === $this) {
-                $stop->setActiveRoute(null);
-            }
+        if ($this->stops->removeElement($stop) && $stop->getActiveRoute() === $this) {
+            $stop->setActiveRoute(null);
         }
 
         return $this;

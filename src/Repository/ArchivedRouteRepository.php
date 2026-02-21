@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\ArchivedRoute;
@@ -47,7 +49,7 @@ class ArchivedRouteRepository extends ServiceEntityRepository
         \DateTimeImmutable $start,
         \DateTimeImmutable $end
     ): array {
-        $qb = $this->createQueryBuilder('ar')
+        return $this->createQueryBuilder('ar')
             ->select([
                 'COUNT(ar.id) as totalRoutes',
                 'SUM(ar.totalStops) as totalStops',
@@ -70,8 +72,6 @@ class ArchivedRouteRepository extends ServiceEntityRepository
             ->setParameter('status', 'completed')
             ->getQuery()
             ->getSingleResult();
-
-        return $qb;
     }
 
     /**

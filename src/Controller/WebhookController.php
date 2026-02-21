@@ -30,10 +30,10 @@ use Symfony\Component\Routing\Attribute\Route;
 class WebhookController extends AbstractController
 {
     public function __construct(
-        private readonly WebhookValidator    $webhookValidator,
-        private readonly PaymentRepository   $paymentRepository,
+        private readonly WebhookValidator $webhookValidator,
+        private readonly PaymentRepository $paymentRepository,
         private readonly MessageBusInterface $messageBus,
-        private readonly LoggerInterface     $logger,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -44,39 +44,45 @@ class WebhookController extends AbstractController
 
         $this->logger->info('MP webhook received', [
             'request_id' => $requestId,
-            'ip'         => $request->getClientIp(),
+            'ip' => $request->getClientIp(),
         ]);
 
         // ── 1. Signature validation ───────────────────────────────────────────
-        if (!$this->webhookValidator->isValid($request)) {
+        if (! $this->webhookValidator->isValid($request)) {
             $this->logger->warning('MP webhook signature validation failed', [
                 'request_id' => $requestId,
-                'ip'         => $request->getClientIp(),
+                'ip' => $request->getClientIp(),
             ]);
 
-            return new JsonResponse(['error' => 'Invalid signature'], Response::HTTP_UNAUTHORIZED);
+            return new JsonResponse([
+                'error' => 'Invalid signature',
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
         try {
             // ── 2. Parse payload ──────────────────────────────────────────────
             $webhookData = json_decode($request->getContent(), true);
 
-            if (!$webhookData) {
+            if (! $webhookData) {
                 $this->logger->warning('MP webhook: empty or invalid JSON payload', [
                     'request_id' => $requestId,
                 ]);
 
-                return new JsonResponse(['error' => 'Invalid payload'], Response::HTTP_BAD_REQUEST);
+                return new JsonResponse([
+                    'error' => 'Invalid payload',
+                ], Response::HTTP_BAD_REQUEST);
             }
 
             // ── 3a. Event type filter ─────────────────────────────────────────
-            if (!$this->webhookValidator->isPaymentEvent($webhookData)) {
+            if (! $this->webhookValidator->isPaymentEvent($webhookData)) {
                 $this->logger->info('MP webhook: non-payment event, ignoring', [
                     'request_id' => $requestId,
-                    'type'       => $webhookData['type'] ?? 'unknown',
+                    'type' => $webhookData['type'] ?? 'unknown',
                 ]);
 
-                return new JsonResponse(['status' => 'ignored'], Response::HTTP_OK);
+                return new JsonResponse([
+                    'status' => 'ignored',
+                ], Response::HTTP_OK);
             }
 
             // ── 3b. Extract provider payment ID ──────────────────────────────
@@ -85,10 +91,12 @@ class WebhookController extends AbstractController
             if ($paymentProviderId === null) {
                 $this->logger->warning('MP webhook: could not extract payment ID', [
                     'request_id' => $requestId,
-                    'data'       => $webhookData,
+                    'data' => $webhookData,
                 ]);
 
-                return new JsonResponse(['error' => 'Missing payment ID'], Response::HTTP_BAD_REQUEST);
+                return new JsonResponse([
+                    'error' => 'Missing payment ID',
+                ], Response::HTTP_BAD_REQUEST);
             }
 
             // ── 3c. Resolve internal payment ──────────────────────────────────
@@ -96,7 +104,7 @@ class WebhookController extends AbstractController
             // then fall back to the external_reference we stamped on the preference.
             $payment = $this->paymentRepository->findByPaymentProviderId($paymentProviderId);
 
-            if ($payment === null && isset($webhookData['data']['external_reference'])) {
+            if (! $payment instanceof \App\Entity\Payment && isset($webhookData['data']['external_reference'])) {
                 $payment = $this->paymentRepository->find(
                     (int) $webhookData['data']['external_reference']
                 );
@@ -105,38 +113,44 @@ class WebhookController extends AbstractController
             if ($payment === null) {
                 // Return 200 so MP stops retrying for a payment we don't know about.
                 $this->logger->warning('MP webhook: payment not found, acknowledging without processing', [
-                    'request_id'         => $requestId,
+                    'request_id' => $requestId,
                     'payment_provider_id' => $paymentProviderId,
                     'external_reference' => $webhookData['data']['external_reference'] ?? null,
                 ]);
 
-                return new JsonResponse(['status' => 'payment_not_found'], Response::HTTP_OK);
+                return new JsonResponse([
+                    'status' => 'payment_not_found',
+                ], Response::HTTP_OK);
             }
 
             // ── 4. Enqueue async processing ───────────────────────────────────
             $this->messageBus->dispatch(new ProcessWebhookMessage(
-                paymentId:          $payment->getId(),
-                paymentProviderId:  $paymentProviderId,
-                webhookData:        $webhookData,
-                requestId:          $requestId,
+                paymentId: $payment->getId(),
+                paymentProviderId: $paymentProviderId,
+                webhookData: $webhookData,
+                requestId: $requestId,
             ));
 
             $this->logger->info('MP webhook enqueued for async processing', [
-                'request_id'  => $requestId,
-                'payment_id'  => $payment->getId(),
+                'request_id' => $requestId,
+                'payment_id' => $payment->getId(),
             ]);
 
-            return new JsonResponse(['status' => 'received'], Response::HTTP_OK);
-        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'received',
+            ], Response::HTTP_OK);
+        } catch (\Exception $exception) {
             $this->logger->error('MP webhook controller error', [
                 'request_id' => $requestId,
-                'error'      => $e->getMessage(),
-                'trace'      => $e->getTraceAsString(),
+                'error' => $exception->getMessage(),
+                'trace' => $exception->getTraceAsString(),
             ]);
 
             // Always return 200 — a 5xx would cause MP to retry, flooding the queue
             // with messages we may not be able to process during an outage.
-            return new JsonResponse(['status' => 'error'], Response::HTTP_OK);
+            return new JsonResponse([
+                'status' => 'error',
+            ], Response::HTTP_OK);
         }
     }
 }

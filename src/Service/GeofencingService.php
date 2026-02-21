@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use App\Entity\ActiveRoute;
@@ -26,7 +28,6 @@ class GeofencingService
      * @param array{lat: float, lng: float} $location
      * @param array{lat: float, lng: float} $geofenceCenter
      * @param int $radius in meters
-     * @return bool
      */
     public function isWithinGeofence(array $location, array $geofenceCenter, int $radius): bool
     {
@@ -69,31 +70,40 @@ class GeofencingService
     public function checkActiveRoute(ActiveRoute $activeRoute): array
     {
         if ($activeRoute->getStatus() !== 'in_progress') {
-            return ['approaching' => [], 'arrived' => []];
+            return [
+                'approaching' => [],
+                'arrived' => [],
+            ];
         }
 
-        $currentLat = (float)$activeRoute->getCurrentLatitude();
-        $currentLng = (float)$activeRoute->getCurrentLongitude();
+        $currentLat = (float) $activeRoute->getCurrentLatitude();
+        $currentLng = (float) $activeRoute->getCurrentLongitude();
 
         if ($currentLat === 0.0 || $currentLng === 0.0) {
-            return ['approaching' => [], 'arrived' => []];
+            return [
+                'approaching' => [],
+                'arrived' => [],
+            ];
         }
 
-        $currentLocation = ['lat' => $currentLat, 'lng' => $currentLng];
+        $currentLocation = [
+            'lat' => $currentLat,
+            'lng' => $currentLng,
+        ];
         $approaching = [];
         $arrived = [];
 
         $stops = $this->stopRepository->findByActiveRouteOrdered($activeRoute);
 
         foreach ($stops as $stop) {
-            if (!in_array($stop->getStatus(), ['pending', 'approaching'])) {
+            if (! in_array($stop->getStatus(), ['pending', 'approaching'], true)) {
                 continue;
             }
 
             $address = $stop->getAddress();
             $stopLocation = [
-                'lat' => (float)$address->getLatitude(),
-                'lng' => (float)$address->getLongitude(),
+                'lat' => (float) $address->getLatitude(),
+                'lng' => (float) $address->getLongitude(),
             ];
 
             $distance = $this->calculateDistance(
@@ -144,13 +154,13 @@ class GeofencingService
             }
         }
 
-        if (!empty($approaching) || !empty($arrived)) {
+        if ($approaching !== [] || $arrived !== []) {
             $this->entityManager->flush();
         }
 
         return [
-            'approaching' => array_map(fn($s) => $s->getId(), $approaching),
-            'arrived' => array_map(fn($s) => $s->getId(), $arrived),
+            'approaching' => array_map(fn (\App\Entity\ActiveRouteStop $s): ?int => $s->getId(), $approaching),
+            'arrived' => array_map(fn (\App\Entity\ActiveRouteStop $s): ?int => $s->getId(), $arrived),
         ];
     }
 
@@ -158,7 +168,6 @@ class GeofencingService
      * Process all active routes for geofencing
      *
      * @param ActiveRoute[] $activeRoutes
-     * @return array
      */
     public function processActiveRoutes(array $activeRoutes): array
     {
@@ -166,7 +175,7 @@ class GeofencingService
 
         foreach ($activeRoutes as $activeRoute) {
             $result = $this->checkActiveRoute($activeRoute);
-            if (!empty($result['approaching']) || !empty($result['arrived'])) {
+            if (! empty($result['approaching']) || ! empty($result['arrived'])) {
                 $results[$activeRoute->getId()] = $result;
             }
         }
@@ -187,19 +196,19 @@ class GeofencingService
 
         $nextStop = $this->stopRepository->findNextPendingStop($activeRoute);
 
-        if (!$nextStop) {
+        if (! $nextStop instanceof \App\Entity\ActiveRouteStop) {
             return null;
         }
 
         $currentLocation = [
-            'lat' => (float)$activeRoute->getCurrentLatitude(),
-            'lng' => (float)$activeRoute->getCurrentLongitude(),
+            'lat' => (float) $activeRoute->getCurrentLatitude(),
+            'lng' => (float) $activeRoute->getCurrentLongitude(),
         ];
 
         $address = $nextStop->getAddress();
         $stopLocation = [
-            'lat' => (float)$address->getLatitude(),
-            'lng' => (float)$address->getLongitude(),
+            'lat' => (float) $address->getLatitude(),
+            'lng' => (float) $address->getLongitude(),
         ];
 
         $distance = $this->calculateDistance(

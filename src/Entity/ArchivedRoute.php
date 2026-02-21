@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
@@ -12,14 +14,16 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ArchivedRouteRepository::class)]
 #[ORM\Table(name: 'archived_routes')]
-#[ORM\Index(columns: ['date'], name: 'idx_archived_date')]
-#[ORM\Index(columns: ['school_id', 'date'], name: 'idx_school_date')]
+#[ORM\Index(name: 'idx_archived_date', columns: ['date'])]
+#[ORM\Index(name: 'idx_school_date', columns: ['school_id', 'date'])]
 #[ApiResource(
     operations: [
         new Get(security: "is_granted('ROLE_SCHOOL_ADMIN')"),
         new GetCollection(security: "is_granted('ROLE_SCHOOL_ADMIN')"),
     ],
-    normalizationContext: ['groups' => ['archived_route:read']],
+    normalizationContext: [
+        'groups' => ['archived_route:read'],
+    ],
 )]
 class ArchivedRoute
 {
@@ -120,7 +124,7 @@ class ArchivedRoute
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['archived_route:read'])]
-    private ?\DateTimeImmutable $archivedAt = null;
+    private \DateTimeImmutable $archivedAt;
 
     public function __construct()
     {
@@ -341,22 +345,34 @@ class ArchivedRoute
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getStopData(): ?array
     {
         return $this->stopData;
     }
 
+    /**
+     * @param array<string, mixed>|null $stopData
+     */
     public function setStopData(?array $stopData): static
     {
         $this->stopData = $stopData;
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getPerformanceMetrics(): ?array
     {
         return $this->performanceMetrics;
     }
 
+    /**
+     * @param array<string, mixed>|null $performanceMetrics
+     */
     public function setPerformanceMetrics(?array $performanceMetrics): static
     {
         $this->performanceMetrics = $performanceMetrics;
@@ -374,7 +390,7 @@ class ArchivedRoute
         return $this;
     }
 
-    public function getArchivedAt(): ?\DateTimeImmutable
+    public function getArchivedAt(): \DateTimeImmutable
     {
         return $this->archivedAt;
     }

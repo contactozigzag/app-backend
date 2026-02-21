@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\EventSubscriber;
 
 use App\Event\BusArrivingEvent;
@@ -153,7 +155,7 @@ class RouteNotificationSubscriber implements EventSubscriberInterface
         $route = $event->getRoute();
 
         // Notify school admins
-        $school = $route->getRouteTemplate()->getSchool();
+        $route->getRouteTemplate()->getSchool();
 
         // In a real implementation, we'd query for school admins
         // For now, we'll just log this event

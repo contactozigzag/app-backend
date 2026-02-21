@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\AsController;
-use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[AsController]
@@ -29,14 +30,14 @@ class HealthController extends AbstractController
             $this->connection->executeQuery('SELECT 1');
             $checks['database'] = [
                 'status' => 'healthy',
-                'message' => 'Database connection successful'
+                'message' => 'Database connection successful',
             ];
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             $status = 'unhealthy';
             $httpStatus = 503;
             $checks['database'] = [
                 'status' => 'unhealthy',
-                'message' => 'Database connection failed: ' . $e->getMessage()
+                'message' => 'Database connection failed: ' . $exception->getMessage(),
             ];
         }
 
@@ -44,12 +45,12 @@ class HealthController extends AbstractController
         $diskFree = disk_free_space('/');
         $diskTotal = disk_total_space('/');
         $diskUsedPercent = (($diskTotal - $diskFree) / $diskTotal) * 100;
-        
+
         $checks['disk'] = [
             'status' => $diskUsedPercent < 90 ? 'healthy' : 'warning',
             'used_percent' => round($diskUsedPercent, 2),
             'free_bytes' => $diskFree,
-            'total_bytes' => $diskTotal
+            'total_bytes' => $diskTotal,
         ];
 
         if ($diskUsedPercent >= 90) {
@@ -59,12 +60,12 @@ class HealthController extends AbstractController
         // Check memory usage
         $memoryUsage = memory_get_usage(true);
         $memoryLimit = $this->getMemoryLimit();
-        
+
         $checks['memory'] = [
             'status' => 'healthy',
             'usage_bytes' => $memoryUsage,
             'usage_human' => $this->formatBytes($memoryUsage),
-            'limit' => $memoryLimit === -1 ? 'unlimited' : $this->formatBytes($memoryLimit)
+            'limit' => $memoryLimit === -1 ? 'unlimited' : $this->formatBytes($memoryLimit),
         ];
 
         // Application info
@@ -73,13 +74,13 @@ class HealthController extends AbstractController
             'environment' => $this->getParameter('kernel.environment'),
             'debug' => $this->getParameter('kernel.debug'),
             'php_version' => PHP_VERSION,
-            'symfony_version' => \Symfony\Component\HttpKernel\Kernel::VERSION
+            'symfony_version' => \Symfony\Component\HttpKernel\Kernel::VERSION,
         ];
 
         return $this->json([
             'status' => $status,
-            'timestamp' => (new \DateTimeImmutable())->format(\DateTimeInterface::RFC3339),
-            'checks' => $checks
+            'timestamp' => new \DateTimeImmutable()->format(\DateTimeInterface::RFC3339),
+            'checks' => $checks,
         ], $httpStatus);
     }
 
@@ -91,13 +92,13 @@ class HealthController extends AbstractController
             $this->connection->executeQuery('SELECT 1');
             return $this->json([
                 'status' => 'ready',
-                'timestamp' => (new \DateTimeImmutable())->format(\DateTimeInterface::RFC3339)
+                'timestamp' => new \DateTimeImmutable()->format(\DateTimeInterface::RFC3339),
             ]);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return $this->json([
                 'status' => 'not_ready',
                 'reason' => 'Database not available',
-                'timestamp' => (new \DateTimeImmutable())->format(\DateTimeInterface::RFC3339)
+                'timestamp' => new \DateTimeImmutable()->format(\DateTimeInterface::RFC3339),
             ], 503);
         }
     }
@@ -108,21 +109,21 @@ class HealthController extends AbstractController
         // Liveness check - is the app alive?
         return $this->json([
             'status' => 'alive',
-            'timestamp' => (new \DateTimeImmutable())->format(\DateTimeInterface::RFC3339)
+            'timestamp' => new \DateTimeImmutable()->format(\DateTimeInterface::RFC3339),
         ]);
     }
 
     private function getMemoryLimit(): int
     {
         $memoryLimit = ini_get('memory_limit');
-        
+
         if ($memoryLimit === '-1') {
             return -1;
         }
-        
+
         $unit = strtolower(substr($memoryLimit, -1));
         $value = (int) $memoryLimit;
-        
+
         return match ($unit) {
             'g' => $value * 1024 * 1024 * 1024,
             'm' => $value * 1024 * 1024,
@@ -138,7 +139,7 @@ class HealthController extends AbstractController
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
         $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
-        
+
         return round($bytes, 2) . ' ' . $units[$pow];
     }
 }

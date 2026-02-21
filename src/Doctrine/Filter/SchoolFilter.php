@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Doctrine\Filter;
 
 use App\Entity\School;
@@ -16,12 +18,12 @@ class SchoolFilter extends SQLFilter
     public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias): string
     {
         // Only apply filter to entities that have a school relationship
-        if (!$targetEntity->hasAssociation('school')) {
+        if (! $targetEntity->hasAssociation('school')) {
             return '';
         }
 
         // Don't filter if no school ID is set
-        if (!$this->hasParameter('school_id')) {
+        if (! $this->hasParameter('school_id')) {
             return '';
         }
 

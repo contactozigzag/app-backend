@@ -8,11 +8,11 @@ namespace App\Message;
  * Message to trigger subscription payment processing.
  * Scheduled to run every 5 minutes via Symfony Scheduler.
  */
-final class ProcessSubscriptionsMessage
+final readonly class ProcessSubscriptionsMessage
 {
     public function __construct(
-        private readonly int $limit = 100,
-        private readonly bool $processRetries = true
+        private int $limit = 100,
+        private bool $processRetries = true
     ) {
     }
 

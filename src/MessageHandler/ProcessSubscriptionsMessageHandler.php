@@ -51,7 +51,7 @@ class ProcessSubscriptionsMessageHandler
                         $subscription->getNextBillingDate()->format('Y-m-d')
                     );
 
-                    $studentIds = $subscription->getStudents()->map(fn($s) => $s->getId())->toArray();
+                    $studentIds = $subscription->getStudents()->map(fn ($s): ?int => $s->getId())->toArray();
 
                     $payment = $this->paymentProcessor->createPayment(
                         user: $subscription->getUser(),
@@ -125,7 +125,7 @@ class ProcessSubscriptionsMessageHandler
                             date('Y-m-d-H-i-s')
                         );
 
-                        $studentIds = $subscription->getStudents()->map(fn($s) => $s->getId())->toArray();
+                        $studentIds = $subscription->getStudents()->map(fn ($s): ?int => $s->getId())->toArray();
 
                         $payment = $this->paymentProcessor->createPayment(
                             user: $subscription->getUser(),
@@ -167,13 +167,13 @@ class ProcessSubscriptionsMessageHandler
                 'processed' => $processed,
                 'failed' => $failed,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             $this->logger->critical('Subscription processing failed with critical error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'error' => $exception->getMessage(),
+                'trace' => $exception->getTraceAsString(),
             ]);
 
-            throw $e;
+            throw $exception;
         }
     }
 }

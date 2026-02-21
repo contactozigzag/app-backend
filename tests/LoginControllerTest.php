@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests;
 
 use App\Entity\User;
@@ -7,14 +9,14 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class   LoginControllerTest extends WebTestCase
+final class LoginControllerTest extends WebTestCase
 {
     private KernelBrowser $client;
 
     protected function setUp(): void
     {
-        $this->client = static::createClient();
-        $container = static::getContainer();
+        $this->client = self::createClient();
+        $container = self::getContainer();
         $em = $container->get('doctrine.orm.entity_manager');
         $userRepository = $em->getRepository(User::class);
 
@@ -29,7 +31,7 @@ class   LoginControllerTest extends WebTestCase
         /** @var UserPasswordHasherInterface $passwordHasher */
         $passwordHasher = $container->get('security.user_password_hasher');
 
-        $user = (new User())->setEmail('email@example.com');
+        $user = new User()->setEmail('email@example.com');
         $user->setPassword($passwordHasher->hashPassword($user, 'password'));
         $user->setRoles(['ROLE_PARENT']);
         $user->setFirstName('John');
@@ -44,7 +46,7 @@ class   LoginControllerTest extends WebTestCase
     public function testLogin(): void
     {
         // Denied - Can't login with invalid email address.
-        $this->client->request('GET', '/login');
+        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/login');
         self::assertResponseIsSuccessful();
 
         $this->client->submitForm('Sign in', [
@@ -59,7 +61,7 @@ class   LoginControllerTest extends WebTestCase
         self::assertSelectorTextContains('.alert-danger', 'Invalid credentials.');
 
         // Denied - Can't login with invalid password.
-        $this->client->request('GET', '/login');
+        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/login');
         self::assertResponseIsSuccessful();
 
         $this->client->submitForm('Sign in', [

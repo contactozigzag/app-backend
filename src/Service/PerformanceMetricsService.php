@@ -1,16 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use App\Entity\School;
 use App\Repository\ArchivedRouteRepository;
-use App\Repository\AttendanceRepository;
 
 class PerformanceMetricsService
 {
     public function __construct(
         private readonly ArchivedRouteRepository $archivedRouteRepository,
-        private readonly AttendanceRepository $attendanceRepository,
     ) {
     }
 
@@ -101,6 +101,7 @@ class PerformanceMetricsService
                     $totalDistanceEfficiency += $metrics['distance_efficiency'];
                     $routesWithMetrics++;
                 }
+
                 if (isset($metrics['time_efficiency'])) {
                     $totalTimeEfficiency += $metrics['time_efficiency'];
                 }
@@ -138,25 +139,21 @@ class PerformanceMetricsService
         );
 
         // Sort by on-time percentage
-        usort($routes, function ($a, $b) {
-            return (float) $b->getOnTimePercentage() <=> (float) $a->getOnTimePercentage();
-        });
+        usort($routes, fn ($a, $b): int => (float) $b->getOnTimePercentage() <=> (float) $a->getOnTimePercentage());
 
         $topRoutes = array_slice($routes, 0, $limit);
 
-        return array_map(function ($route) {
-            return [
-                'id' => $route->getId(),
-                'route_name' => $route->getRouteName(),
-                'driver_name' => $route->getDriverName(),
-                'date' => $route->getDate()->format('Y-m-d'),
-                'on_time_percentage' => (float) $route->getOnTimePercentage(),
-                'completion_rate' => $route->getTotalStops() > 0
-                    ? round(($route->getCompletedStops() / $route->getTotalStops()) * 100, 2)
-                    : 0,
-                'no_shows' => $route->getNoShows(),
-            ];
-        }, $topRoutes);
+        return array_map(fn (\App\Entity\ArchivedRoute $route): array => [
+            'id' => $route->getId(),
+            'route_name' => $route->getRouteName(),
+            'driver_name' => $route->getDriverName(),
+            'date' => $route->getDate()->format('Y-m-d'),
+            'on_time_percentage' => (float) $route->getOnTimePercentage(),
+            'completion_rate' => $route->getTotalStops() > 0
+                ? round(($route->getCompletedStops() / $route->getTotalStops()) * 100, 2)
+                : 0,
+            'no_shows' => $route->getNoShows(),
+        ], $topRoutes);
     }
 
     /**
@@ -170,7 +167,7 @@ class PerformanceMetricsService
         // Calculate previous period of same length
         $periodLength = $currentEnd->diff($currentStart)->days;
         $previousEnd = $currentStart->modify('-1 day');
-        $previousStart = $previousEnd->modify("-{$periodLength} days");
+        $previousStart = $previousEnd->modify(sprintf('-%s days', $periodLength));
 
         $currentMetrics = $this->archivedRouteRepository->getPerformanceStats(
             $school,
@@ -224,21 +221,24 @@ class PerformanceMetricsService
     private function calculateEfficiencyRating(float $distanceEfficiency, float $timeEfficiency): string
     {
         $avgEfficiency = ($distanceEfficiency + $timeEfficiency) / 2;
-
         if ($avgEfficiency >= 90) {
             return 'Excellent';
-        } elseif ($avgEfficiency >= 80) {
-            return 'Good';
-        } elseif ($avgEfficiency >= 70) {
-            return 'Fair';
-        } else {
-            return 'Needs Improvement';
         }
+
+        if ($avgEfficiency >= 80) {
+            return 'Good';
+        }
+
+        if ($avgEfficiency >= 70) {
+            return 'Fair';
+        }
+
+        return 'Needs Improvement';
     }
 
     private function calculatePercentageChange(float $old, float $new): float
     {
-        if ($old == 0) {
+        if ($old === 0) {
             return $new > 0 ? 100 : 0;
         }
 

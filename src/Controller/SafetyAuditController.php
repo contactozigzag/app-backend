@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\User;
@@ -12,7 +14,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
-#[Route('/api/safety')]
 #[IsGranted('ROLE_SCHOOL_ADMIN')]
 class SafetyAuditController extends AbstractController
 {
@@ -21,15 +22,17 @@ class SafetyAuditController extends AbstractController
     ) {
     }
 
-    #[Route('/audit', name: 'safety_audit', methods: ['GET'])]
+    #[Route('/api/safety/audit', name: 'safety_audit', methods: ['GET'])]
     public function safetyAudit(Request $request): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
         $school = $user->getSchool();
 
-        if (!$school) {
-            return $this->json(['error' => 'No school associated with this admin'], 400);
+        if (! $school) {
+            return $this->json([
+                'error' => 'No school associated with this admin',
+            ], 400);
         }
 
         // Get date range from query parameters
@@ -37,17 +40,9 @@ class SafetyAuditController extends AbstractController
         $endDate = $request->query->get('end_date');
 
         // Default to last 30 days if not provided
-        if (!$startDate) {
-            $startDate = new \DateTimeImmutable('-30 days');
-        } else {
-            $startDate = new \DateTimeImmutable($startDate);
-        }
+        $startDate = $startDate ? new \DateTimeImmutable($startDate) : new \DateTimeImmutable('-30 days');
 
-        if (!$endDate) {
-            $endDate = new \DateTimeImmutable('today');
-        } else {
-            $endDate = new \DateTimeImmutable($endDate);
-        }
+        $endDate = $endDate ? new \DateTimeImmutable($endDate) : new \DateTimeImmutable('today');
 
         $audit = $this->safetyAuditService->performSafetyAudit($school, $startDate, $endDate);
 

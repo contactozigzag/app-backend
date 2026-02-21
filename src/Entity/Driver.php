@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter;
@@ -25,7 +27,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
                 'search[:property]' => new QueryParameter(
                     filter: new PartialSearchFilter(),
                     properties: ['nickname']
-                )
+                ),
             ]
         ),
         new Post(security: "is_granted('ROLE_USER')"),
@@ -52,19 +54,27 @@ class Driver
     #[Groups(['driver:read', 'driver:write', 'user:write'])]
     private ?string $nickname = null;
 
-    /** Encrypted MP access token (XSalsa20-Poly1305 via TokenEncryptor). */
+    /**
+     * Encrypted MP access token (XSalsa20-Poly1305 via TokenEncryptor).
+     */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $mpAccessToken = null;
 
-    /** Encrypted MP refresh token. */
+    /**
+     * Encrypted MP refresh token.
+     */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $mpRefreshToken = null;
 
-    /** MP seller account ID (user_id returned by OAuth). */
+    /**
+     * MP seller account ID (user_id returned by OAuth).
+     */
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $mpAccountId = null;
 
-    /** When the current access token expires (MP tokens last ~180 days). */
+    /**
+     * When the current access token expires (MP tokens last ~180 days).
+     */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $mpTokenExpiresAt = null;
 
@@ -157,7 +167,9 @@ class Driver
         return $this;
     }
 
-    /** Returns true once the driver has completed the OAuth flow. */
+    /**
+     * Returns true once the driver has completed the OAuth flow.
+     */
     public function hasMpAuthorized(): bool
     {
         return $this->mpAccessToken !== null && $this->mpAccountId !== null;

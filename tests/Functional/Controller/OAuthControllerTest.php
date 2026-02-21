@@ -23,7 +23,7 @@ final class OAuthControllerTest extends AbstractApiTestCase
     public function testConnectRequiresAuthentication(): void
     {
         $client = $this->createApiClient();
-        $client->request('GET', '/oauth/mercadopago/connect');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/oauth/mercadopago/connect');
 
         // main firewall redirects unauthenticated users to /login
         self::assertResponseRedirects('http://localhost/login');
@@ -32,10 +32,12 @@ final class OAuthControllerTest extends AbstractApiTestCase
     public function testConnectRequiresDriverRole(): void
     {
         $client = $this->createApiClient();
-        $user   = UserFactory::createOne(['roles' => ['ROLE_PARENT']]);
+        $user = UserFactory::createOne([
+            'roles' => ['ROLE_PARENT'],
+        ]);
         $client->loginUser($user);
 
-        $client->request('GET', '/oauth/mercadopago/connect');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/oauth/mercadopago/connect');
 
         self::assertResponseStatusCodeSame(403);
     }
@@ -47,13 +49,13 @@ final class OAuthControllerTest extends AbstractApiTestCase
 
         $oauthMock = $this->createMock(MercadoPagoOAuthService::class);
         $oauthMock
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('buildAuthorizationUrl')
             ->willReturn('https://auth.mercadopago.com/authorization?client_id=123&state=abc');
-        static::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
+        self::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
 
         $client->loginUser($driver->getUser());
-        $client->request('GET', '/oauth/mercadopago/connect');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/oauth/mercadopago/connect');
 
         self::assertResponseRedirects('https://auth.mercadopago.com/authorization?client_id=123&state=abc');
     }
@@ -75,17 +77,17 @@ final class OAuthControllerTest extends AbstractApiTestCase
 
         self::assertResponseStatusCodeSame(400);
         $body = json_decode($client->getResponse()->getContent(), true);
-        self::assertStringContainsString('access_denied', $body['error']);
+        $this->assertStringContainsString('access_denied', (string) $body['error']);
     }
 
     public function testCallbackInvalidStateReturns400(): void
     {
-        $client    = $this->createApiClient();
+        $client = $this->createApiClient();
         $oauthMock = $this->createStub(MercadoPagoOAuthService::class);
         $oauthMock
             ->method('handleCallback')
             ->willThrowException(new \RuntimeException('Invalid or expired OAuth state parameter.'));
-        static::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
+        self::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
 
         $this->getJson($client, '/oauth/mercadopago/callback?code=auth-code&state=invalid-state');
 
@@ -99,13 +101,13 @@ final class OAuthControllerTest extends AbstractApiTestCase
 
         $oauthMock = $this->createStub(MercadoPagoOAuthService::class);
         $oauthMock->method('handleCallback')->willReturn($driver);
-        static::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
+        self::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
 
         $body = $this->getJson($client, '/oauth/mercadopago/callback?code=valid-code&state=valid-state');
 
         self::assertResponseIsSuccessful();
-        self::assertArrayHasKey('driver_id', $body);
-        self::assertSame('123456789', $body['mp_account_id']);
+        $this->assertArrayHasKey('driver_id', $body);
+        $this->assertSame('123456789', $body['mp_account_id']);
     }
 
     // ── /status ───────────────────────────────────────────────────────────────
@@ -113,7 +115,7 @@ final class OAuthControllerTest extends AbstractApiTestCase
     public function testStatusRequiresAuthentication(): void
     {
         $client = $this->createApiClient();
-        $client->request('GET', '/oauth/mercadopago/status');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/oauth/mercadopago/status');
 
         self::assertResponseRedirects('http://localhost/login');
     }
@@ -121,10 +123,12 @@ final class OAuthControllerTest extends AbstractApiTestCase
     public function testStatusRequiresDriverRole(): void
     {
         $client = $this->createApiClient();
-        $user   = UserFactory::createOne(['roles' => ['ROLE_PARENT']]);
+        $user = UserFactory::createOne([
+            'roles' => ['ROLE_PARENT'],
+        ]);
         $client->loginUser($user);
 
-        $client->request('GET', '/oauth/mercadopago/status');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/oauth/mercadopago/status');
 
         self::assertResponseStatusCodeSame(403);
     }
@@ -136,14 +140,14 @@ final class OAuthControllerTest extends AbstractApiTestCase
 
         $oauthMock = $this->createStub(MercadoPagoOAuthService::class);
         $oauthMock->method('needsRefresh')->willReturn(false);
-        static::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
+        self::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
 
         $client->loginUser($driver->getUser());
         $body = $this->getJson($client, '/oauth/mercadopago/status');
 
         self::assertResponseIsSuccessful();
-        self::assertFalse($body['connected']);
-        self::assertNull($body['mp_account_id']);
+        $this->assertFalse($body['connected']);
+        $this->assertNull($body['mp_account_id']);
     }
 
     public function testStatusReturnsConnectedTrueForAuthorizedDriver(): void
@@ -153,13 +157,13 @@ final class OAuthControllerTest extends AbstractApiTestCase
 
         $oauthMock = $this->createStub(MercadoPagoOAuthService::class);
         $oauthMock->method('needsRefresh')->willReturn(false);
-        static::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
+        self::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
 
         $client->loginUser($driver->getUser());
         $body = $this->getJson($client, '/oauth/mercadopago/status');
 
         self::assertResponseIsSuccessful();
-        self::assertTrue($body['connected']);
-        self::assertSame('987654321', $body['mp_account_id']);
+        $this->assertTrue($body['connected']);
+        $this->assertSame('987654321', $body['mp_account_id']);
     }
 }

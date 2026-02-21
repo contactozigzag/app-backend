@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Notification\Provider;
 
 use App\Notification\AbstractNotificationProvider;
@@ -31,12 +33,12 @@ class EmailNotificationProvider extends AbstractNotificationProvider
 
     public function send(string $recipient, string $subject, string $message, array $data = []): bool
     {
-        if (!$this->isEnabled()) {
+        if (! $this->isEnabled()) {
             return false;
         }
 
         try {
-            $email = (new Email())
+            $email = new Email()
                 ->from(sprintf('%s <%s>', $this->fromName, $this->fromEmail))
                 ->to($recipient)
                 ->subject($subject)
@@ -46,8 +48,8 @@ class EmailNotificationProvider extends AbstractNotificationProvider
             $this->logNotification($recipient, $subject, true);
 
             return true;
-        } catch (TransportExceptionInterface $e) {
-            $this->logError($recipient, $e->getMessage());
+        } catch (TransportExceptionInterface $transportException) {
+            $this->logError($recipient, $transportException->getMessage());
             return false;
         }
     }
@@ -61,7 +63,7 @@ class EmailNotificationProvider extends AbstractNotificationProvider
         $html .= nl2br(htmlspecialchars($message));
         $html .= '</div>';
 
-        if (!empty($data)) {
+        if ($data !== []) {
             $html .= '<div style="margin-top: 20px; padding: 15px; background-color: #e9ecef; border-radius: 5px;">';
             $html .= '<h3 style="color: #495057; margin-top: 0;">Additional Information</h3>';
             $html .= '<table style="width: 100%;">';
@@ -72,6 +74,7 @@ class EmailNotificationProvider extends AbstractNotificationProvider
                     htmlspecialchars((string) $value)
                 );
             }
+
             $html .= '</table>';
             $html .= '</div>';
         }
@@ -80,8 +83,7 @@ class EmailNotificationProvider extends AbstractNotificationProvider
         $html .= '<p>This is an automated notification from ZigZag School Transportation System.</p>';
         $html .= '</div>';
         $html .= '</div>';
-        $html .= '</body></html>';
 
-        return $html;
+        return $html . '</body></html>';
     }
 }

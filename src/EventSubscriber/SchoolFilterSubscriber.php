@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\EventSubscriber;
 
 use App\Entity\User;
@@ -15,8 +17,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class SchoolFilterSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private Security $security,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly Security $security,
     ) {
     }
 
@@ -29,13 +31,13 @@ class SchoolFilterSubscriber implements EventSubscriberInterface
 
     public function onKernelRequest(RequestEvent $event): void
     {
-        if (!$event->isMainRequest()) {
+        if (! $event->isMainRequest()) {
             return;
         }
 
         $user = $this->security->getUser();
 
-        if (!$user instanceof User) {
+        if (! $user instanceof User) {
             return;
         }
 
@@ -45,7 +47,7 @@ class SchoolFilterSubscriber implements EventSubscriberInterface
         }
 
         $school = $user->getSchool();
-        if (!$school) {
+        if (! $school instanceof \App\Entity\School) {
             return;
         }
 

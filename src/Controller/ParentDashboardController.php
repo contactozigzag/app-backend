@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Dto\ChildStatusDto;
@@ -17,7 +19,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
-#[Route('/api/parent')]
 #[IsGranted('ROLE_PARENT')]
 class ParentDashboardController extends AbstractController
 {
@@ -30,7 +31,7 @@ class ParentDashboardController extends AbstractController
     ) {
     }
 
-    #[Route('/dashboard', name: 'parent_dashboard', methods: ['GET'])]
+    #[Route('/api/parent/dashboard', name: 'parent_dashboard', methods: ['GET'])]
     public function dashboard(): JsonResponse
     {
         /** @var User $user */
@@ -73,7 +74,7 @@ class ParentDashboardController extends AbstractController
 
                     // Get the latest location update timestamp
                     $latestLocation = $this->locationUpdateRepository->findLatestByActiveRoute($activeRoute);
-                    if ($latestLocation) {
+                    if ($latestLocation instanceof \App\Entity\LocationUpdate) {
                         $lastUpdate = $latestLocation->getTimestamp()->format('c');
                     }
                 }
@@ -147,7 +148,7 @@ class ParentDashboardController extends AbstractController
         }
 
         $dashboard = new ParentDashboardDto(
-            children: array_map(fn(ChildStatusDto $child) => [
+            children: array_map(fn (ChildStatusDto $child): array => [
                 'studentId' => $child->studentId,
                 'firstName' => $child->firstName,
                 'lastName' => $child->lastName,

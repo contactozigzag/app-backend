@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Repository\ActiveRouteRepository;
@@ -10,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/geofencing', name: 'api_geofencing_')]
+#[Route(name: 'api_geofencing_')]
 class GeofencingController extends AbstractController
 {
     public function __construct(
@@ -22,15 +24,15 @@ class GeofencingController extends AbstractController
     /**
      * Check geofencing for a specific active route
      */
-    #[Route('/check/{routeId}', name: 'check_route', methods: ['POST'])]
+    #[Route('/api/geofencing/check/{routeId}', name: 'api_geofencing_check_route', methods: ['POST'])]
     #[IsGranted('ROLE_DRIVER')]
     public function checkRoute(int $routeId): JsonResponse
     {
         $activeRoute = $this->activeRouteRepository->find($routeId);
 
-        if (!$activeRoute) {
+        if (! $activeRoute instanceof \App\Entity\ActiveRoute) {
             return $this->json([
-                'error' => 'Active route not found'
+                'error' => 'Active route not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -48,7 +50,7 @@ class GeofencingController extends AbstractController
     /**
      * Check all in-progress routes
      */
-    #[Route('/check-all', name: 'check_all', methods: ['POST'])]
+    #[Route('/api/geofencing/check-all', name: 'api_geofencing_check_all', methods: ['POST'])]
     #[IsGranted('ROLE_SCHOOL_ADMIN')]
     public function checkAllRoutes(): JsonResponse
     {
@@ -76,15 +78,15 @@ class GeofencingController extends AbstractController
     /**
      * Get distance to next stop for an active route
      */
-    #[Route('/distance-to-next/{routeId}', name: 'distance_to_next', methods: ['GET'])]
+    #[Route('/api/geofencing/distance-to-next/{routeId}', name: 'api_geofencing_distance_to_next', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function getDistanceToNext(int $routeId): JsonResponse
     {
         $activeRoute = $this->activeRouteRepository->find($routeId);
 
-        if (!$activeRoute) {
+        if (! $activeRoute instanceof \App\Entity\ActiveRoute) {
             return $this->json([
-                'error' => 'Active route not found'
+                'error' => 'Active route not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -92,7 +94,7 @@ class GeofencingController extends AbstractController
 
         if ($result === null) {
             return $this->json([
-                'message' => 'No next stop or no current location available'
+                'message' => 'No next stop or no current location available',
             ]);
         }
 

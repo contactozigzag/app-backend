@@ -24,23 +24,24 @@ final class UserFactory extends PersistentObjectFactory
         return User::class;
     }
 
-    protected function defaults(): array|callable
+    protected function defaults(): array
     {
         return [
-            'email'                => self::faker()->unique()->safeEmail(),
-            'firstName'            => self::faker()->firstName(),
-            'lastName'             => self::faker()->lastName(),
-            'phoneNumber'          => self::faker()->numerify('##########'),
+            'email' => self::faker()->unique()->safeEmail(),
+            'firstName' => self::faker()->firstName(),
+            'lastName' => self::faker()->lastName(),
+            'phoneNumber' => self::faker()->numerify('##########'),
             'identificationNumber' => self::faker()->unique()->numerify('##########'),
-            'roles'                => ['ROLE_PARENT'],
-            'password'             => 'password',
+            'roles' => ['ROLE_PARENT'],
+            'password' => 'password',
         ];
     }
 
+    #[\Override]
     protected function initialize(): static
     {
         return $this->afterInstantiate(function (User $user): void {
-            if ($user->getPassword() && !str_starts_with($user->getPassword(), '$argon')) {
+            if ($user->getPassword() && ! str_starts_with($user->getPassword(), '$argon')) {
                 $user->setPassword(
                     $this->passwordHasher->hashPassword($user, $user->getPassword())
                 );

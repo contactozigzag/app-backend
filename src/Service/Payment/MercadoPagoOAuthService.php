@@ -38,7 +38,7 @@ class MercadoPagoOAuthService
      */
     private const int REFRESH_BUFFER_SECONDS = 86400;
 
-    private OAuthClient $oauthClient;
+    private readonly OAuthClient $oauthClient;
 
     public function __construct(
         #[Autowire(env: 'MERCADOPAGO_APP_ID')]
@@ -73,6 +73,7 @@ class MercadoPagoOAuthService
         $item = $this->statePool->getItem($this->stateKey($state));
         $item->set($driver->getId());
         $item->expiresAfter(self::STATE_TTL);
+
         $this->statePool->save($item);
 
         $this->logger->info('MP OAuth: generated state for driver', [
@@ -98,33 +99,33 @@ class MercadoPagoOAuthService
 
         $driver = $this->driverRepository->find($driverId);
         if ($driver === null) {
-            throw new \RuntimeException("Driver {$driverId} not found after OAuth callback.");
+            throw new \RuntimeException(sprintf('Driver %d not found after OAuth callback.', $driverId));
         }
 
-        $request                = new OAuthCreateRequest();
-        $request->client_id     = $this->appId;
+        $request = new OAuthCreateRequest();
+        $request->client_id = $this->appId;
         $request->client_secret = $this->appSecret;
-        $request->code          = $code;
-        $request->redirect_uri  = $this->redirectUri;
+        $request->code = $code;
+        $request->redirect_uri = $this->redirectUri;
 
         try {
             $oauth = $this->oauthClient->create($request);
-        } catch (MPApiException $e) {
+        } catch (MPApiException $mpApiException) {
             $this->logger->error('MP OAuth token exchange failed', [
                 'driver_id' => $driverId,
-                'error'     => $e->getMessage(),
+                'error' => $mpApiException->getMessage(),
             ]);
             throw new \RuntimeException(
-                'Mercado Pago token exchange failed: ' . $e->getMessage(),
+                'Mercado Pago token exchange failed: ' . $mpApiException->getMessage(),
                 0,
-                $e
+                $mpApiException
             );
         }
 
         $this->persistTokens($driver, $oauth);
 
         $this->logger->info('MP OAuth completed — driver account connected', [
-            'driver_id'     => $driver->getId(),
+            'driver_id' => $driver->getId(),
             'mp_account_id' => $driver->getMpAccountId(),
         ]);
 
@@ -143,9 +144,9 @@ class MercadoPagoOAuthService
      */
     public function getAccessToken(Driver $driver): string
     {
-        if (!$driver->hasMpAuthorized()) {
+        if (! $driver->hasMpAuthorized()) {
             throw new \RuntimeException(
-                "Driver {$driver->getId()} has not connected their Mercado Pago account."
+                sprintf('Driver %s has not connected their Mercado Pago account.', $driver->getId())
             );
         }
 
@@ -162,39 +163,41 @@ class MercadoPagoOAuthService
      */
     public function refreshIfNeeded(Driver $driver): void
     {
-        if (!$this->needsRefresh($driver)) {
+        if (! $this->needsRefresh($driver)) {
             return;
         }
 
         $this->logger->info('MP OAuth: refreshing access token for driver', [
-            'driver_id'       => $driver->getId(),
+            'driver_id' => $driver->getId(),
             'token_expires_at' => $driver->getMpTokenExpiresAt()?->format('c'),
         ]);
 
         $refreshToken = $this->tokenEncryptor->decrypt($driver->getMpRefreshToken());
 
-        $request                = new OAuthRefreshRequest();
-        $request->client_id     = $this->appId;
+        $request = new OAuthRefreshRequest();
+        $request->client_id = $this->appId;
         $request->client_secret = $this->appSecret;
         $request->refresh_token = $refreshToken;
 
         try {
             $oauth = $this->oauthClient->refresh($request);
-        } catch (MPApiException $e) {
+        } catch (MPApiException $mpApiException) {
             $this->logger->error('MP OAuth token refresh failed', [
                 'driver_id' => $driver->getId(),
-                'error'     => $e->getMessage(),
+                'error' => $mpApiException->getMessage(),
             ]);
             throw new \RuntimeException(
-                'Mercado Pago token refresh failed: ' . $e->getMessage(),
+                'Mercado Pago token refresh failed: ' . $mpApiException->getMessage(),
                 0,
-                $e
+                $mpApiException
             );
         }
 
         $this->persistTokens($driver, $oauth);
 
-        $this->logger->info('MP OAuth token refreshed', ['driver_id' => $driver->getId()]);
+        $this->logger->info('MP OAuth token refreshed', [
+            'driver_id' => $driver->getId(),
+        ]);
     }
 
     public function needsRefresh(Driver $driver): bool
@@ -204,7 +207,7 @@ class MercadoPagoOAuthService
         }
 
         $expiresAt = $driver->getMpTokenExpiresAt();
-        if ($expiresAt === null) {
+        if (! $expiresAt instanceof \DateTimeImmutable) {
             return true; // no expiry on record — treat as expired
         }
 
@@ -224,7 +227,7 @@ class MercadoPagoOAuthService
     {
         $item = $this->statePool->getItem($this->stateKey($state));
 
-        if (!$item->isHit()) {
+        if (! $item->isHit()) {
             $this->logger->warning('MP OAuth callback: invalid or expired state', [
                 'state' => $state,
             ]);
