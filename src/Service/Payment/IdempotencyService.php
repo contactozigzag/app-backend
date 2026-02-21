@@ -9,6 +9,7 @@ use App\Repository\IdempotencyRecordRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -19,6 +20,7 @@ class IdempotencyService
     private const float LOCK_TTL = 60.0; // 1-minute lock timeout
 
     public function __construct(
+        #[Autowire(service: 'cache.app')]
         private readonly CacheInterface $cache,
         private readonly EntityManagerInterface $entityManager,
         private readonly IdempotencyRecordRepository $repository,

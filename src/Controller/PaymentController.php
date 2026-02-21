@@ -8,6 +8,7 @@ use App\Entity\Payment;
 use App\Entity\User;
 use App\Enum\PaymentStatus;
 use App\Event\Payment\PaymentCreatedEvent;
+use App\Repository\DriverRepository;
 use App\Repository\PaymentRepository;
 use App\Service\Payment\PaymentProcessor;
 use Psr\Log\LoggerInterface;
@@ -16,6 +17,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -28,10 +30,12 @@ class PaymentController extends AbstractController
     public function __construct(
         private readonly PaymentProcessor            $paymentProcessor,
         private readonly PaymentRepository           $paymentRepository,
+        private readonly DriverRepository            $driverRepository,
         private readonly EventDispatcherInterface    $eventDispatcher,
+        #[Autowire(service: 'limiter.payment_api')]
         private readonly RateLimiterFactoryInterface $paymentApiLimiter,
         private readonly LoggerInterface             $logger,
-        private readonly UrlGeneratorInterface       $urlGenerator
+        private readonly UrlGeneratorInterface       $urlGenerator,
     ) {
     }
 
@@ -53,7 +57,7 @@ class PaymentController extends AbstractController
             $data = json_decode($request->getContent(), true);
 
             // Validate required fields
-            $requiredFields = ['student_ids', 'amount', 'description', 'idempotency_key'];
+            $requiredFields = ['driver_id', 'student_ids', 'amount', 'description', 'idempotency_key'];
             foreach ($requiredFields as $field) {
                 if (!isset($data[$field])) {
                     return new JsonResponse([
@@ -69,6 +73,22 @@ class PaymentController extends AbstractController
                 ], Response::HTTP_BAD_REQUEST);
             }
 
+            // Resolve and validate the target driver
+            $driver = $this->driverRepository->find((int) $data['driver_id']);
+            if ($driver === null) {
+                return new JsonResponse(
+                    ['error' => "Driver {$data['driver_id']} not found."],
+                    Response::HTTP_NOT_FOUND
+                );
+            }
+
+            if (!$driver->hasMpAuthorized()) {
+                return new JsonResponse(
+                    ['error' => 'This driver has not connected their Mercado Pago account yet.'],
+                    Response::HTTP_UNPROCESSABLE_ENTITY
+                );
+            }
+
             // Create payment
             $payment = $this->paymentProcessor->createPayment(
                 user: $user,
@@ -76,7 +96,8 @@ class PaymentController extends AbstractController
                 amount: (string) $data['amount'],
                 description: $data['description'],
                 idempotencyKey: $data['idempotency_key'],
-                currency: $data['currency'] ?? 'USD'
+                currency: $data['currency'] ?? 'ARS',
+                driver: $driver,
             );
 
             // Create Mercado Pago preference
@@ -175,17 +196,24 @@ class PaymentController extends AbstractController
             }
         }
 
+        $driver = $payment->getDriver();
+
         return new JsonResponse([
-            'payment_id' => $payment->getId(),
-            'status' => $payment->getStatus()->value,
+            'payment_id'     => $payment->getId(),
+            'status'         => $payment->getStatus()->value,
             'payment_method' => $payment->getPaymentMethod()?->value,
-            'amount' => $payment->getAmount(),
-            'currency' => $payment->getCurrency(),
-            'paid_at' => $payment->getPaidAt()?->format('c'),
-            'created_at' => $payment->getCreatedAt()->format('c'),
+            'amount'         => $payment->getAmount(),
+            'currency'       => $payment->getCurrency(),
+            'paid_at'        => $payment->getPaidAt()?->format('c'),
+            'created_at'     => $payment->getCreatedAt()->format('c'),
             'mercado_pago_id' => $payment->getPaymentProviderId(),
+            'driver'         => $driver ? [
+                'id'           => $driver->getId(),
+                'nickname'     => $driver->getNickname(),
+                'mp_account_id' => $driver->getMpAccountId(),
+            ] : null,
             'students' => array_map(fn($student) => [
-                'id' => $student->getId(),
+                'id'   => $student->getId(),
                 'name' => $student->getFirstName() . ' ' . $student->getLastName(),
             ], $payment->getStudents()->toArray()),
         ]);
@@ -257,27 +285,34 @@ class PaymentController extends AbstractController
             ], Response::HTTP_FORBIDDEN);
         }
 
+        $driver = $payment->getDriver();
+
         return new JsonResponse([
-            'id' => $payment->getId(),
-            'status' => $payment->getStatus()->value,
-            'amount' => $payment->getAmount(),
-            'currency' => $payment->getCurrency(),
-            'description' => $payment->getDescription(),
-            'payment_method' => $payment->getPaymentMethod()?->value,
+            'id'                  => $payment->getId(),
+            'status'              => $payment->getStatus()->value,
+            'amount'              => $payment->getAmount(),
+            'currency'            => $payment->getCurrency(),
+            'description'         => $payment->getDescription(),
+            'payment_method'      => $payment->getPaymentMethod()?->value,
             'payment_provider_id' => $payment->getPaymentProviderId(),
-            'preference_id' => $payment->getPreferenceId(),
-            'created_at' => $payment->getCreatedAt()->format('c'),
-            'paid_at' => $payment->getPaidAt()?->format('c'),
-            'expires_at' => $payment->getExpiresAt()?->format('c'),
-            'refunded_amount' => $payment->getRefundedAmount(),
-            'students' => array_map(fn($student) => [
-                'id' => $student->getId(),
+            'preference_id'       => $payment->getPreferenceId(),
+            'created_at'          => $payment->getCreatedAt()->format('c'),
+            'paid_at'             => $payment->getPaidAt()?->format('c'),
+            'expires_at'          => $payment->getExpiresAt()?->format('c'),
+            'refunded_amount'     => $payment->getRefundedAmount(),
+            'driver'              => $driver ? [
+                'id'            => $driver->getId(),
+                'nickname'      => $driver->getNickname(),
+                'mp_account_id' => $driver->getMpAccountId(),
+            ] : null,
+            'students'     => array_map(fn($student) => [
+                'id'         => $student->getId(),
                 'first_name' => $student->getFirstName(),
-                'last_name' => $student->getLastName(),
+                'last_name'  => $student->getLastName(),
             ], $payment->getStudents()->toArray()),
             'transactions' => array_map(fn($transaction) => [
                 'event_type' => $transaction->getEventType()->value,
-                'status' => $transaction->getStatus()->value,
+                'status'     => $transaction->getStatus()->value,
                 'created_at' => $transaction->getCreatedAt()->format('c'),
             ], $payment->getTransactions()->toArray()),
         ]);

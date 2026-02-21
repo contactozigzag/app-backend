@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Payment;
 
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 
 class WebhookValidator
@@ -12,8 +13,9 @@ class WebhookValidator
     private const int TIMESTAMP_TOLERANCE = 300; // 5 minutes
 
     public function __construct(
+        #[Autowire(env: 'MERCADOPAGO_WEBHOOK_SECRET')]
         private readonly string $webhookSecret,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
     ) {
     }
 

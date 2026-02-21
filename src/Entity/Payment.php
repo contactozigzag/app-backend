@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
 use App\Enum\PaymentMethod;
 use App\Enum\PaymentStatus;
 use App\Repository\PaymentRepository;
@@ -23,14 +20,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_payments_provider_id', columns: ['payment_provider_id'])]
 #[ORM\Index(name: 'idx_payments_idempotency', columns: ['idempotency_key'])]
 #[ORM\Index(name: 'idx_payments_created_at', columns: ['created_at'])]
-#[ApiResource(
-    operations: [
-        new Get(normalizationContext: ['groups' => ['payment:read', 'payment:detail']]),
-        new GetCollection(normalizationContext: ['groups' => ['payment:read', 'payment:list']]),
-    ],
-    security: 'is_granted("ROLE_USER")',
-    paginationItemsPerPage: 30
-)]
 class Payment
 {
     #[ORM\Id]
@@ -43,6 +32,15 @@ class Payment
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['payment:read'])]
     private ?User $user = null;
+
+    /**
+     * The driver who receives the funds.
+     * Nullable at the DB level for migration safety; new payments always require a driver.
+     */
+    #[ORM\ManyToOne(targetEntity: Driver::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['payment:read', 'payment:detail'])]
+    private ?Driver $driver = null;
 
     /**
      * @var Collection<int, Student>
@@ -346,6 +344,18 @@ class Payment
                 $transaction->setPayment(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDriver(): ?Driver
+    {
+        return $this->driver;
+    }
+
+    public function setDriver(?Driver $driver): static
+    {
+        $this->driver = $driver;
 
         return $this;
     }

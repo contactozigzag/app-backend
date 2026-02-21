@@ -4,15 +4,21 @@ namespace App\Notification\Provider;
 
 use App\Notification\AbstractNotificationProvider;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
+#[AutoconfigureTag('app.notification_provider')]
 class SmsNotificationProvider extends AbstractNotificationProvider
 {
     public function __construct(
         LoggerInterface $logger,
         private readonly HttpClientInterface $httpClient,
+        #[Autowire(env: 'default::SMS_API_KEY')]
         private readonly ?string $apiKey = null,
+        #[Autowire(env: 'default::SMS_API_URL')]
         private readonly ?string $apiUrl = null,
+        #[Autowire(env: 'default::SMS_FROM_NUMBER')]
         private readonly ?string $fromNumber = null,
     ) {
         parent::__construct($logger);

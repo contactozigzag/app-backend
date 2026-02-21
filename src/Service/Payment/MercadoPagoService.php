@@ -7,6 +7,7 @@ namespace App\Service\Payment;
 use App\Entity\Payment;
 use App\Entity\User;
 use Exception;
+use MercadoPago\Client\Common\RequestOptions;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\Exceptions\InvalidArgumentException;
@@ -15,12 +16,12 @@ use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Resources\Payment as MPPayment;
 use MercadoPago\Resources\Preference;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 class MercadoPagoService
 {
-    private const int PREFERENCE_CACHE_TTL = 1800; // 30 minutes
     private const int STATUS_CACHE_TTL = 60; // 1 minute
 
     private PreferenceClient $preferenceClient;
@@ -30,9 +31,13 @@ class MercadoPagoService
      * @throws InvalidArgumentException
      */
     public function __construct(
+        #[Autowire(env: 'MERCADOPAGO_ACCESS_TOKEN')]
         private readonly string $accessToken,
+        #[Autowire(service: 'cache.app')]
         private readonly CacheInterface $cache,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        #[Autowire(env: 'float:MERCADOPAGO_MARKETPLACE_FEE_PERCENT')]
+        private readonly float $marketplaceFeePercent = 0.0,
     ) {
         MercadoPagoConfig::setAccessToken($this->accessToken);
         MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
@@ -42,87 +47,96 @@ class MercadoPagoService
     }
 
     /**
-     * Create a payment preference for checkout
+     * Create a Marketplace payment preference.
+     *
+     * The preference is created using the driver's access token via RequestOptions
+     * so that funds land in the driver's MP account. The platform fee (if any) is
+     * deducted at the time of payment via marketplace_fee.
      *
      * @param Payment $payment
-     * @param User $user
+     * @param User $user The parent/payer
      * @param string $backUrl
      * @param string $notificationUrl
-     * @return array{preference_id: string, init_point: string}
-     * @throws Exception|\Psr\Cache\InvalidArgumentException
+     * @param string $driverAccessToken Plaintext MP access token of the receiving driver
+     * @return array{preference_id: string, init_point: string, sandbox_init_point: string|null}
+     * @throws Exception
      */
     public function createPreference(
         Payment $payment,
         User $user,
         string $backUrl,
-        string $notificationUrl
+        string $notificationUrl,
+        string $driverAccessToken,
     ): array {
         try {
             $items = [];
             foreach ($payment->getStudents() as $student) {
                 $items[] = [
-                    'id' => (string) $student->getId(),
-                    'title' => "Transportation service for {$student->getFirstName()} {$student->getLastName()}",
-                    'description' => $payment->getDescription() ?? 'Monthly transportation service',
-                    'quantity' => 1,
+                    'id'          => (string) $student->getId(),
+                    'title'       => "Transportation for {$student->getFirstName()} {$student->getLastName()}",
+                    'description' => $payment->getDescription() ?? 'School transportation service',
+                    'quantity'    => 1,
                     'currency_id' => $payment->getCurrency(),
-                    'unit_price' => (float) $payment->getAmount() / $payment->getStudents()->count(),
+                    'unit_price'  => round((float) $payment->getAmount() / $payment->getStudents()->count(), 2),
                 ];
             }
 
+            $marketplaceFee = $this->calculateMarketplaceFee((float) $payment->getAmount());
+
             $preferenceData = [
-                'items' => $items,
-                'payer' => [
-                    'name' => $user->getFirstName(),
+                'items'      => $items,
+                'payer'      => [
+                    'name'    => $user->getFirstName(),
                     'surname' => $user->getLastName(),
-                    'email' => $user->getEmail(),
-                    'phone' => [
-                        'number' => $user->getPhoneNumber(),
-                    ],
+                    'email'   => $user->getEmail(),
+                    'phone'   => ['number' => $user->getPhoneNumber()],
                 ],
-                'back_urls' => [
+                'back_urls'  => [
                     'success' => $backUrl . '?status=success',
                     'failure' => $backUrl . '?status=failure',
                     'pending' => $backUrl . '?status=pending',
                 ],
-                'auto_return' => 'approved',
-                'notification_url' => $notificationUrl,
-                'external_reference' => (string) $payment->getId(),
+                'auto_return'          => 'approved',
+                'notification_url'     => $notificationUrl,
+                'external_reference'   => (string) $payment->getId(),
                 'statement_descriptor' => 'SCHOOL_TRANSPORT',
-                'expires' => true,
+                'marketplace'          => 'MP',
+                'marketplace_fee'      => $marketplaceFee,
+                'expires'              => true,
                 'expiration_date_from' => (new \DateTime())->format('c'),
-                'expiration_date_to' => $payment->getExpiresAt()?->format('c') ?? (new \DateTime('+24 hours'))->format('c'),
+                'expiration_date_to'   => $payment->getExpiresAt()?->format('c')
+                    ?? (new \DateTime('+24 hours'))->format('c'),
             ];
 
-            $this->logger->info('Creating Mercado Pago preference', [
-                'payment_id' => $payment->getId(),
-                'user_id' => $user->getId(),
-                'amount' => $payment->getAmount(),
+            // RequestOptions carries the driver's access token for this single call.
+            // It overrides the global platform token without mutating MercadoPagoConfig,
+            // so concurrent requests for different drivers remain isolated.
+            $requestOptions = new RequestOptions($driverAccessToken);
+
+            $this->logger->info('Creating Mercado Pago marketplace preference', [
+                'payment_id'       => $payment->getId(),
+                'user_id'          => $user->getId(),
+                'driver_id'        => $payment->getDriver()?->getId(),
+                'amount'           => $payment->getAmount(),
+                'marketplace_fee'  => $marketplaceFee,
             ]);
 
-            $preference = $this->preferenceClient->create($preferenceData);
+            $preference = $this->preferenceClient->create($preferenceData, $requestOptions);
 
             $this->logger->info('Mercado Pago preference created', [
-                'payment_id' => $payment->getId(),
+                'payment_id'    => $payment->getId(),
                 'preference_id' => $preference->id,
             ]);
 
-            // Cache preference
-            $cacheKey = "mp_preference:{$payment->getId()}";
-            $this->cache->get($cacheKey, function (ItemInterface $item) use ($preference) {
-                $item->expiresAfter(self::PREFERENCE_CACHE_TTL);
-                return $preference;
-            });
-
             return [
-                'preference_id' => $preference->id,
-                'init_point' => $preference->init_point,
-                'sandbox_init_point' => $preference->sandbox_init_point ?? null,
+                'preference_id'       => $preference->id,
+                'init_point'          => $preference->init_point,
+                'sandbox_init_point'  => $preference->sandbox_init_point ?? null,
             ];
         } catch (MPApiException $e) {
             $this->logger->error('Mercado Pago API error creating preference', [
-                'payment_id' => $payment->getId(),
-                'error' => $e->getMessage(),
+                'payment_id'   => $payment->getId(),
+                'error'        => $e->getMessage(),
                 'api_response' => $e->getApiResponse(),
             ]);
 
@@ -130,11 +144,20 @@ class MercadoPagoService
         } catch (Exception $e) {
             $this->logger->error('Error creating Mercado Pago preference', [
                 'payment_id' => $payment->getId(),
-                'error' => $e->getMessage(),
+                'error'      => $e->getMessage(),
             ]);
 
             throw new \RuntimeException('Failed to create payment preference', 0, $e);
         }
+    }
+
+    private function calculateMarketplaceFee(float $amount): float
+    {
+        if ($this->marketplaceFeePercent <= 0.0) {
+            return 0.0;
+        }
+
+        return round($amount * $this->marketplaceFeePercent / 100, 2);
     }
 
     /**

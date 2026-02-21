@@ -3,7 +3,10 @@ framework:
         failure_transport: failed
 
         transports:
-            # https://symfony.com/doc/current/messenger.html#transport-configuration
+            # Doctrine transport — used for email, SMS, chat, and scheduled subscriptions.
+            # Doctrine NOTIFY (use_notify: true) gives push-based consumption on PostgreSQL.
+            # Kept on Doctrine deliberately: these messages tolerate higher latency and
+            # benefit from transactional guarantees (e.g. subscription billing).
             async:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 options:
@@ -12,8 +15,23 @@ framework:
                 retry_strategy:
                     max_retries: 3
                     multiplier: 2
+
+            # RabbitMQ transport — used exclusively for payment webhook processing.
+            # Webhooks require fast turnaround (MP retries on slow responses) and
+            # higher throughput than the Doctrine transport can provide.
+            # Exchange and queue are both named "webhooks"; RabbitMQ creates them
+            # automatically on first connect (auto_setup defaults to true).
+            async_webhooks:
+                dsn: '%env(RABBITMQ_DSN)%'
+                retry_strategy:
+                    max_retries: 3
+                    delay: 1000       # 1 s initial delay
+                    multiplier: 2     # 1 s → 2 s → 4 s
+                    max_delay: 10000  # cap at 10 s
+
+            # Dead-letter store for messages that exceed max_retries on any transport.
+            # Stored in the DB so ops can inspect and replay them manually.
             failed: 'doctrine://default?queue_name=failed'
-            # sync: 'sync://'
 
         default_bus: messenger.bus.default
 
@@ -21,18 +39,20 @@ framework:
             messenger.bus.default: []
 
         routing:
+            # Notifications
             Symfony\Component\Mailer\Messenger\SendEmailMessage: async
             Symfony\Component\Notifier\Message\ChatMessage: async
             Symfony\Component\Notifier\Message\SmsMessage: async
 
-            # Route your messages to the transports
-            # 'App\Message\YourMessage': async
+            # Scheduled billing
             App\Message\ProcessSubscriptionsMessage: async
 
-# when@test:
-#    framework:
-#        messenger:
-#            transports:
-#                # replace with your transport name here (e.g., my_transport: 'in-memory://')
-#                # For more Messenger testing tools, see https://github.com/zenstruck/messenger-test
-#                async: 'in-memory://'
+            # Payment webhooks — goes to RabbitMQ for fast, isolated processing
+            App\Message\ProcessWebhookMessage: async_webhooks
+
+when@test:
+    framework:
+        messenger:
+            transports:
+                async: 'test://'
+                async_webhooks: 'test://'

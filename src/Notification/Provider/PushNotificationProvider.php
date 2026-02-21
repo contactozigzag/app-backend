@@ -4,13 +4,17 @@ namespace App\Notification\Provider;
 
 use App\Notification\AbstractNotificationProvider;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
+#[AutoconfigureTag('app.notification_provider')]
 class PushNotificationProvider extends AbstractNotificationProvider
 {
     public function __construct(
         LoggerInterface $logger,
         private readonly HttpClientInterface $httpClient,
+        #[Autowire(env: 'default::FCM_SERVER_KEY')]
         private readonly ?string $fcmServerKey = null,
         private readonly ?string $fcmUrl = 'https://fcm.googleapis.com/fcm/send',
     ) {

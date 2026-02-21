@@ -4,16 +4,21 @@ namespace App\Notification\Provider;
 
 use App\Notification\AbstractNotificationProvider;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
+#[AutoconfigureTag('app.notification_provider')]
 class EmailNotificationProvider extends AbstractNotificationProvider
 {
     public function __construct(
         LoggerInterface $logger,
         private readonly MailerInterface $mailer,
+        #[Autowire(env: 'MAIL_FROM_EMAIL')]
         private readonly string $fromEmail = 'noreply@zigzag.com',
+        #[Autowire(env: 'MAIL_FROM_NAME')]
         private readonly string $fromName = 'ZigZag School Transportation',
     ) {
         parent::__construct($logger);

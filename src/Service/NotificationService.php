@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Notification\NotificationInterface;
 use App\Repository\NotificationPreferenceRepository;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 class NotificationService
 {
@@ -15,7 +16,12 @@ class NotificationService
     public function __construct(
         private readonly LoggerInterface $logger,
         private readonly NotificationPreferenceRepository $preferenceRepository,
+        #[AutowireIterator('app.notification_provider')]
+        iterable $providers = [],
     ) {
+        foreach ($providers as $provider) {
+            $this->addProvider($provider);
+        }
     }
 
     public function addProvider(NotificationInterface $provider): void
