@@ -54,7 +54,7 @@ abstract class AbstractApiTestCase extends WebTestCase
     }
 
     /**
-     * POST JSON body and return decoded response array.
+     * POST JSON body and return a decoded response array.
      */
     protected function postJson(KernelBrowser $client, string $uri, array $data): array
     {
@@ -67,7 +67,7 @@ abstract class AbstractApiTestCase extends WebTestCase
     }
 
     /**
-     * GET and return decoded response array.
+     * GET and return a decoded response array.
      */
     protected function getJson(KernelBrowser $client, string $uri): array
     {
