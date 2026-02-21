@@ -18,23 +18,17 @@ class IdempotencyRecord
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255, unique: true)]
-    private string $idempotencyKey;
-
-    #[ORM\Column(type: Types::TEXT)]
-    private string $result;
-
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $expiresAt;
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
-    public function __construct(string $idempotencyKey, string $result, \DateTimeImmutable $expiresAt)
-    {
-        $this->idempotencyKey = $idempotencyKey;
-        $this->result = $result;
-        $this->expiresAt = $expiresAt;
+    public function __construct(
+        #[ORM\Column(length: 255, unique: true)]
+        private string $idempotencyKey,
+        #[ORM\Column(type: Types::TEXT)]
+        private string $result,
+        #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+        private \DateTimeImmutable $expiresAt
+    ) {
         $this->createdAt = new \DateTimeImmutable();
     }
 

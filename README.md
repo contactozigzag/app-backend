@@ -889,27 +889,47 @@ export const setupNotificationListeners = () => {
 
 ### Overview
 
-The system integrates with Mercado Pago for secure payment processing, supporting monthly subscriptions and per-trip payments. The integration emphasizes **idempotency**, **resilience**, and **scalability**.
+The system integrates with Mercado Pago using the **Marketplace + OAuth model**: each driver
+authorises the app once via OAuth and every payment a parent makes goes directly to that
+driver's Mercado Pago account. The platform can optionally retain a configurable marketplace
+fee. The integration emphasises **idempotency**, **resilience**, **scalability**, and
+**real-time feedback**.
 
 ### Architecture Features
 
+- **Marketplace + OAuth**: Per-driver payments via MP OAuth — each driver's account receives payment directly, no intermediary holding funds
 - **Idempotency**: Prevents duplicate charges using Redis-backed idempotency keys (24-hour TTL)
-- **Async Processing**: RabbitMQ handles webhook processing and payment notifications
-- **Real-time Updates**: Mercure pushes payment status changes to mobile apps
-- **Rate Limiting**: 10 requests/minute per user to prevent abuse
-- **Retry Logic**: Exponential backoff for failed operations (3 retries)
-- **Caching**: Redis caches payment preferences (30 min) and status (1 min)
+- **Async Webhook Processing**: RabbitMQ decouples webhook receipt from processing — HTTP 200 returned to MP in < 500 ms
+- **Real-time Updates**: Mercure pushes private payment status events to the subscribing parent app
+- **Two-token Mercure auth**: API JWT (RSA, for Symfony) and Mercure subscriber JWT (HMAC-SHA256, for the hub) are separate — clients exchange one for the other via `GET /api/mercure/token`
+- **Rate Limiting**: 10 requests/minute per IP on payment endpoints
+- **Retry Logic**: Exponential backoff — 1 s → 2 s → 4 s, max 3 retries, dead-letter on failure
+- **Token Encryption**: Driver OAuth tokens stored encrypted with libsodium secretbox
 
 ### Payment Flow
 
 ```
-Mobile App → Create Preference → Mercado Pago Checkout → Webhook → Update Status → Notify User
-     ↓                                    ↓                  ↓
-Idempotency Check                  User Completes       RabbitMQ Queue
-     ↓                                    ↓                  ↓
-Redis Cache                         Payment Success     Async Processing
-                                         ↓                  ↓
-                                   Mercure Update     Send Notifications
+Driver (once)
+  └── GET /oauth/mercadopago/connect → MP OAuth → encrypted tokens in DB
+
+Parent (each payment)
+  └── POST /api/payments/create-preference  (with driver_id)
+        ├── Decrypt driver MP token → RequestOptions(driverToken)
+        ├── Create MP preference → returns init_point URL
+        └── Parent opens MP checkout in browser
+
+MP calls POST /api/webhooks/mercadopago
+  └── Validate signature → dispatch ProcessWebhookMessage → RabbitMQ → HTTP 200
+
+RabbitMQ Worker (ProcessWebhookMessageHandler)
+  ├── Fetch authoritative status from MP API
+  ├── Persist PaymentTransaction
+  └── PaymentApprovedEvent → PaymentEventSubscriber → Mercure hub
+
+Parent app
+  └── GET /api/mercure/token?payment_id={id}  (exchange API JWT → Mercure JWT)
+        └── EventSource(hub_url, Authorization: Bearer {mercure-jwt})
+              └── Receives real-time status update
 ```
 
 ### API Endpoints
@@ -917,113 +937,157 @@ Redis Cache                         Payment Success     Async Processing
 #### Create Payment Preference
 ```http
 POST /api/payments/create-preference
-Authorization: Bearer {token}
+Authorization: Bearer {api-jwt}
 Content-Type: application/json
 
 {
-  "student_ids": [1, 2],
-  "amount": 150.00,
-  "description": "Monthly transportation - February 2026",
-  "payment_type": "monthly_subscription",
+  "driver_id":       42,
+  "student_ids":     [1, 2],
+  "amount":          3500.00,
+  "description":     "Transporte escolar — febrero 2026",
+  "currency":        "ARS",
   "idempotency_key": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
-**Response:**
+**Response `201`:**
 ```json
 {
-  "payment_id": 42,
-  "preference_id": "123456-abc-def-ghi",
-  "init_point": "https://www.mercadopago.com/checkout/v1/redirect?pref_id=123456-abc-def-ghi",
-  "status": "pending",
-  "amount": 150.00,
-  "currency": "USD",
-  "expires_at": "2026-02-15T10:30:00+00:00"
+  "payment_id":         123,
+  "preference_id":      "123456-abc-def",
+  "init_point":         "https://www.mercadopago.com/checkout/v1/redirect?pref_id=...",
+  "sandbox_init_point": "https://sandbox.mercadopago.com/...",
+  "status":             "pending",
+  "amount":             "3500.00",
+  "currency":           "ARS",
+  "expires_at":         "2026-02-21T12:00:00+00:00"
 }
 ```
+
+**Error codes:** `400` invalid fields, `404` driver not found, `422` driver not connected to MP, `429` rate limit.
 
 #### Check Payment Status
 ```http
 GET /api/payments/{id}/status
-Authorization: Bearer {token}
+Authorization: Bearer {api-jwt}
 ```
 
 **Response:**
 ```json
 {
-  "payment_id": 42,
-  "status": "approved",
-  "payment_method": "credit_card",
-  "amount": 150.00,
-  "paid_at": "2026-02-14T08:45:00+00:00",
+  "payment_id":      123,
+  "status":          "approved",
+  "payment_method":  "credit_card",
+  "amount":          "3500.00",
+  "currency":        "ARS",
+  "paid_at":         "2026-02-20T14:30:00+00:00",
   "mercado_pago_id": "1234567890",
+  "driver": {
+    "id":            42,
+    "nickname":      "Carlos G.",
+    "mp_account_id": "987654321"
+  },
   "students": [
-    {"id": 1, "name": "John Doe"},
-    {"id": 2, "name": "Jane Doe"}
+    {"id": 1, "name": "Ana García"},
+    {"id": 2, "name": "Luis García"}
   ]
 }
 ```
 
 #### List Payments
 ```http
-GET /api/payments?status=approved&from=2026-02-01&to=2026-02-28
-Authorization: Bearer {token}
+GET /api/payments?status=approved&limit=30&offset=0
+Authorization: Bearer {api-jwt}
 ```
+
+#### Mercure Subscriber Token
+```http
+GET /api/mercure/token?payment_id={id}
+Authorization: Bearer {api-jwt}
+```
+
+**Response:**
+```json
+{
+  "token":   "<mercure-subscriber-jwt>",
+  "hub_url": "https://your-domain.com/.well-known/mercure",
+  "topics":  ["/payments/123"]
+}
+```
+
+> **Note:** `token` here is a **Mercure JWT** (signed with `MERCURE_JWT_SECRET`). It is
+> entirely separate from the API JWT used in the `Authorization` header above. Use this
+> token only when opening the Mercure EventSource connection — never for API calls.
+
+#### Driver: Connect Mercado Pago (OAuth)
+```http
+GET /oauth/mercadopago/connect
+Authorization: Bearer {api-jwt}   (ROLE_DRIVER required)
+```
+Returns `{ "redirect_url": "..." }` — open in browser to start OAuth flow.
+
+#### Driver: OAuth Status
+```http
+GET /oauth/mercadopago/status
+Authorization: Bearer {api-jwt}   (ROLE_DRIVER required)
+```
+Returns `{ "connected": true, "mp_account_id": "...", "expires_at": "..." }`.
 
 #### Create Subscription
 ```http
 POST /api/subscriptions
-Authorization: Bearer {token}
+Authorization: Bearer {api-jwt}
 Content-Type: application/json
 
 {
   "student_ids": [1, 2],
   "plan_type": "monthly",
   "billing_cycle": "monthly",
-  "amount": 150.00
+  "amount": 3500.00
 }
 ```
 
 #### Cancel Subscription
 ```http
 PATCH /api/subscriptions/{id}/cancel
-Authorization: Bearer {token}
+Authorization: Bearer {api-jwt}
 ```
 
 ### React Native Integration
 
+Install dependencies:
+
+```bash
+npm install uuid react-native-sse
+```
+
+#### `api/payment.js` (Parent app)
+
 ```javascript
-// api/payment.js
 import apiClient from './client';
 import { v4 as uuidv4 } from 'uuid';
 import { Linking } from 'react-native';
 
-export const createPayment = async (studentIds, amount, description) => {
-  const idempotencyKey = uuidv4();
-
-  try {
-    const response = await apiClient.post('/payments/create-preference', {
-      student_ids: studentIds,
-      amount: amount,
-      description: description,
-      payment_type: 'monthly_subscription',
-      idempotency_key: idempotencyKey
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error('Payment creation failed:', error);
-    throw error;
-  }
+/**
+ * Create a Mercado Pago payment preference.
+ * The payment goes directly to the driver's MP account (Marketplace model).
+ */
+export const createPayment = async (driverId, studentIds, amount, description) => {
+  const response = await apiClient.post('/payments/create-preference', {
+    driver_id:       driverId,
+    student_ids:     studentIds,
+    amount,
+    description,
+    currency:        'ARS',
+    idempotency_key: uuidv4(),
+  });
+  return response.data;
 };
 
-export const initiatePayment = async (studentIds, amount) => {
-  const payment = await createPayment(studentIds, amount, 'Monthly transportation');
-
-  // Open Mercado Pago checkout in browser
+/** Open MP checkout and return payment_id for tracking. */
+export const initiatePayment = async (driverId, studentIds, amount, description) => {
+  const payment = await createPayment(driverId, studentIds, amount, description);
   await Linking.openURL(payment.init_point);
-
-  // Return payment ID for status tracking
   return payment.payment_id;
 };
 
@@ -1032,35 +1096,28 @@ export const checkPaymentStatus = async (paymentId) => {
   return response.data;
 };
 
-export const pollPaymentStatus = async (paymentId, maxAttempts = 30) => {
-  return new Promise((resolve, reject) => {
-    let attempts = 0;
-
-    const interval = setInterval(async () => {
-      attempts++;
-
-      try {
-        const status = await checkPaymentStatus(paymentId);
-
-        if (status.status === 'approved') {
-          clearInterval(interval);
-          resolve(status);
-        } else if (status.status === 'rejected' || status.status === 'cancelled') {
-          clearInterval(interval);
-          reject(new Error(`Payment ${status.status}`));
-        } else if (attempts >= maxAttempts) {
-          clearInterval(interval);
-          reject(new Error('Payment timeout'));
-        }
-      } catch (error) {
-        console.error('Status check failed:', error);
-        if (attempts >= maxAttempts) {
-          clearInterval(interval);
-          reject(error);
-        }
-      }
-    }, 2000); // Poll every 2 seconds
+/**
+ * Fetch a short-lived Mercure subscriber JWT for a single payment topic.
+ *
+ * ── Two completely different JWTs ────────────────────────────────────────────
+ *
+ *   API JWT (in AsyncStorage 'jwt_token'):
+ *     • From POST /api/login_check. Signed with RSA key.
+ *     • Identifies the user to Symfony. Sent on every /api/* call.
+ *     • NEVER send this to the Mercure hub.
+ *
+ *   Mercure JWT (returned by this function):
+ *     • From GET /api/mercure/token. Signed with HMAC-SHA256 (MERCURE_JWT_SECRET).
+ *     • Contains the subscribe topic list. Sent ONLY to the Mercure hub.
+ *     • Has nothing to do with user identity in Symfony.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+export const getMercureToken = async (paymentId) => {
+  const response = await apiClient.get('/mercure/token', {
+    params: { payment_id: paymentId },
   });
+  return response.data; // { token, hub_url, topics }
 };
 
 export const getPaymentHistory = async (filters = {}) => {
@@ -1071,10 +1128,10 @@ export const getPaymentHistory = async (filters = {}) => {
 
 export const createSubscription = async (studentIds, planType, amount) => {
   const response = await apiClient.post('/subscriptions', {
-    student_ids: studentIds,
-    plan_type: planType,
+    student_ids:   studentIds,
+    plan_type:     planType,
     billing_cycle: 'monthly',
-    amount: amount
+    amount,
   });
   return response.data;
 };
@@ -1085,61 +1142,117 @@ export const cancelSubscription = async (subscriptionId) => {
 };
 ```
 
-### Real-time Payment Updates with Mercure
+#### `hooks/usePaymentStatus.js` (Parent app — real-time SSE)
 
 ```javascript
-// hooks/usePaymentStatus.js
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { EventSource } from 'react-native-sse';
+import { getMercureToken } from '../api/payment';
 
-export const usePaymentStatus = (paymentId, jwtToken) => {
-  const [status, setStatus] = useState(null);
+/**
+ * Subscribes to real-time payment status updates via Mercure SSE.
+ *
+ * Authentication is a two-step exchange:
+ *
+ *   Step 1 — GET /api/mercure/token?payment_id={id}
+ *     Uses the API JWT (added automatically by apiClient interceptor).
+ *     Returns a Mercure subscriber JWT valid for 1 hour.
+ *
+ *   Step 2 — EventSource to Mercure hub
+ *     Uses the MERCURE JWT from step 1 — NOT the API JWT.
+ *     These are completely different tokens; mixing them up will result
+ *     in the hub rejecting the connection.
+ *
+ * @param {number|null} paymentId
+ */
+export const usePaymentStatus = (paymentId) => {
+  const [status, setStatus]   = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
+  const esRef                 = useRef(null);
+
+  const connect = useCallback(async () => {
+    if (!paymentId) return;
+
+    try {
+      // Step 1: exchange API JWT → Mercure subscriber JWT
+      const {
+        token:   mercureToken,  // Mercure JWT — NOT the API JWT
+        hub_url: hubUrl,
+        topics,
+      } = await getMercureToken(paymentId);
+
+      // Step 2: open SSE connection using the Mercure JWT
+      const url = new URL(hubUrl);
+      topics.forEach((t) => url.searchParams.append('topic', t));
+
+      const es = new EventSource(url.toString(), {
+        headers: {
+          // This Authorization header goes to the Mercure hub, not to our API.
+          Authorization: `Bearer ${mercureToken}`,
+        },
+      });
+
+      es.addEventListener('message', (event) => {
+        setStatus(JSON.parse(event.data));
+        setLoading(false);
+      });
+
+      es.addEventListener('error', (err) => {
+        console.error('Mercure SSE error:', err);
+        setError('Real-time connection lost. Refresh to retry.');
+        es.close();
+      });
+
+      esRef.current = es;
+    } catch (err) {
+      console.error('Failed to obtain Mercure token:', err);
+      setError('Could not establish real-time connection.');
+      setLoading(false);
+    }
+  }, [paymentId]);
 
   useEffect(() => {
-    const mercureUrl = 'https://your-api-domain.com/.well-known/mercure';
-    const topic = `/payments/${paymentId}`;
+    connect();
+    return () => esRef.current?.close();
+  }, [connect]);
 
-    const url = new URL(mercureUrl);
-    url.searchParams.append('topic', topic);
-
-    const es = new EventSource(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-      },
-    });
-
-    es.addEventListener('message', (event) => {
-      const data = JSON.parse(event.data);
-      setStatus(data);
-      setLoading(false);
-    });
-
-    es.addEventListener('error', (error) => {
-      console.error('Mercure connection error:', error);
-      es.close();
-    });
-
-    return () => {
-      es.close();
-    };
-  }, [paymentId, jwtToken]);
-
-  return { status, loading };
+  return { status, loading, error };
 };
 
-// Usage in component
-const PaymentScreen = ({ paymentId }) => {
-  const { status, loading } = usePaymentStatus(paymentId, jwtToken);
+// Usage — no jwtToken prop; the hook fetches its own Mercure token internally
+const PaymentScreen = ({ route }) => {
+  const { paymentId } = route.params;
+  const { status, loading, error } = usePaymentStatus(paymentId);
 
   if (loading) return <ActivityIndicator />;
+  if (error)   return <Text style={{ color: 'red' }}>{error}</Text>;
 
   return (
     <View>
-      <Text>Payment Status: {status.status}</Text>
-      <Text>Amount: ${status.amount}</Text>
+      <Text>Payment Status: {status?.status}</Text>
+      <Text>Amount: ARS {status?.amount}</Text>
     </View>
   );
+};
+```
+
+#### `api/oauth.js` (Driver app — one-time Mercado Pago authorisation)
+
+```javascript
+import apiClient from './client';
+import { Linking } from 'react-native';
+
+/** Initiate MP OAuth flow — opens the authorisation page in the browser. */
+export const connectMercadoPago = async () => {
+  const response = await apiClient.get('/oauth/mercadopago/connect');
+  await Linking.openURL(response.data.redirect_url);
+};
+
+/** Check whether the current driver has connected their MP account. */
+export const getMpConnectionStatus = async () => {
+  const response = await apiClient.get('/oauth/mercadopago/status');
+  return response.data; // { connected, mp_account_id, expires_at }
 };
 ```
 
@@ -1148,13 +1261,33 @@ const PaymentScreen = ({ paymentId }) => {
 Add the following to your `.env` file:
 
 ```bash
-# Mercado Pago Configuration
-MERCADOPAGO_ACCESS_TOKEN=your-access-token
-MERCADOPAGO_PUBLIC_KEY=your-public-key
+###> mercadopago/payment ###
+
+# Platform credentials (from MP developer panel → Credentials)
+MERCADOPAGO_ACCESS_TOKEN=TEST-your-platform-access-token
 MERCADOPAGO_WEBHOOK_SECRET=your-webhook-secret
 
-# Use TEST credentials for development
-# MERCADOPAGO_ACCESS_TOKEN=TEST-1234567890-020914-abcdef1234567890abcdef1234567890-123456789
+# Marketplace OAuth (required for per-driver payments)
+MERCADOPAGO_APP_ID=
+MERCADOPAGO_APP_SECRET=
+MERCADOPAGO_OAUTH_REDIRECT_URI=https://your-domain.com/oauth/mercadopago/callback
+
+# Platform fee % (0 = all money goes to driver)
+MERCADOPAGO_MARKETPLACE_FEE_PERCENT=0
+
+###< mercadopago/payment ###
+
+# 32-byte key for encrypting driver OAuth tokens.
+# Generate: php -r "echo base64_encode(random_bytes(32));"
+TOKEN_ENCRYPTION_KEY=
+
+# RabbitMQ (async_webhooks Messenger transport)
+RABBITMQ_DSN=phpamqplib://guest:guest@rabbitmq:5672/%2f/webhooks
+
+# Mercure hub (MERCURE_JWT_SECRET is separate from JWT_SECRET_KEY)
+MERCURE_URL=https://your-domain.com/.well-known/mercure
+MERCURE_PUBLIC_URL=https://your-domain.com/.well-known/mercure
+MERCURE_JWT_SECRET="change-this-to-a-strong-secret"
 ```
 
 ### Webhook Setup
@@ -1215,13 +1348,15 @@ Authorization: Bearer {admin-token}
 
 ### Security Best Practices
 
-1. **Never store credit card data** - All card data handled by Mercado Pago
-2. **Validate webhook signatures** - Prevents forged webhook requests
-3. **Use HTTPS only** - TLS 1.2+ for all communications
-4. **Rate limiting** - 10 requests/minute per user
-5. **Idempotency keys** - Client-generated UUID v4 for each request
-6. **Audit logging** - All payment operations logged with user, timestamp, IP
-7. **Encrypted metadata** - Sensitive data encrypted using Sodium
+1. **Never store credit card data** — all card handling by Mercado Pago
+2. **Validate webhook signatures** — HMAC-SHA256 with replay-attack prevention
+3. **Use HTTPS only** — TLS via Caddy
+4. **Rate limiting** — 10 requests/minute per IP
+5. **Idempotency keys** — client-generated UUID v4 per request
+6. **Audit logging** — every operation logged in `payment_transaction` with IP and timestamp
+7. **Token encryption** — driver OAuth tokens encrypted at rest with libsodium secretbox
+8. **CSRF protection** — single-use state tokens for OAuth callback (10-min TTL in Redis)
+9. **Private Mercure updates** — `private: true` on all hub events; subscribers need a valid JWT
 
 ### Performance Optimizations
 
@@ -1262,17 +1397,37 @@ Authorization: Bearer {admin-token}
 - Mercado Pago API errors
 - Webhook validation failures
 
-### Subscription Processing
+### Background Workers
 
-Subscriptions are automatically processed using **Symfony Scheduler** (runs every 5 minutes):
+Three Messenger workers must run in production:
 
 ```bash
-# Start the scheduler worker (recommended for production with supervisord)
-docker compose exec php php bin/console messenger:consume scheduler_default -vv
+# 1. Doctrine transport — email, SMS, subscription billing
+docker compose exec php php bin/console messenger:consume async --time-limit=3600 -vv
+
+# 2. RabbitMQ transport — payment webhook processing (fast, isolated)
+docker compose exec php php bin/console messenger:consume async_webhooks --time-limit=3600 -vv
+
+# 3. Symfony Scheduler — triggers subscription billing every 5 minutes
+docker compose exec php php bin/console messenger:consume scheduler_default --time-limit=3600 -vv
 ```
 
-**Supervisord Configuration:**
+**Supervisord Configuration (production):**
 ```ini
+[program:messenger_async]
+command=php bin/console messenger:consume async --time-limit=3600
+directory=/var/www/html
+autostart=true
+autorestart=true
+numprocs=2
+
+[program:messenger_webhooks]
+command=php bin/console messenger:consume async_webhooks --time-limit=3600
+directory=/var/www/html
+autostart=true
+autorestart=true
+numprocs=2
+
 [program:scheduler_worker]
 command=php bin/console messenger:consume scheduler_default --time-limit=3600
 directory=/var/www/html

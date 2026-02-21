@@ -22,7 +22,7 @@ SYMFONY  = $(PHP) bin/console
 
 # Misc
 .DEFAULT_GOAL = help
-.PHONY        : help build up start down logs sh composer vendor sf cc test dev prod check-env debug ps bash
+.PHONY        : help build up start down logs sh composer vendor sf cc test dev prod check-env debug ps bash phpstan rector-dry rector ecs-dry ecs lint-twig lint-yaml lint-xliff lint-container lint-doctrine lint quality fix
 
 ## —— 🎵 🐳 The Symfony Docker Makefile 🐳 🎵 ——————————————————————————————————
 help: ## Outputs this help screen
@@ -94,3 +94,42 @@ dev:
 
 prod:
 	@:
+
+## —— Quality 🔍 ———————————————————————————————————————————————————————————————
+phpstan: ## Run PHPStan static analysis at level 9
+	@$(PHP_CONT) php -d memory_limit=512M vendor/bin/phpstan analyse --configuration=phpstan.dist.neon --no-progress
+
+rector-dry: ## Run Rector in dry-run mode (CI — fails if changes are detected)
+	@$(PHP_CONT) vendor/bin/rector process --dry-run --no-progress-bar
+
+rector: ## Run Rector and apply all automated fixes
+	@$(PHP_CONT) vendor/bin/rector process --no-progress-bar
+
+ecs-dry: ## Run ECS in check mode (CI — fails if violations are found)
+	@$(PHP_CONT) vendor/bin/ecs check --no-progress-bar
+
+ecs: ## Run ECS and apply all coding standard fixes
+	@$(PHP_CONT) vendor/bin/ecs check --fix --no-progress-bar
+
+## —— Linters 🧹 ———————————————————————————————————————————————————————————————
+lint-twig: ## Lint all Twig templates
+	@$(SYMFONY) lint:twig templates/
+
+lint-yaml: ## Lint all YAML configuration files
+	@$(SYMFONY) lint:yaml config/
+
+lint-xliff: ## Lint all XLIFF translation files
+	@$(SYMFONY) lint:xliff translations/
+
+lint-container: ## Validate the Symfony DI container
+	@$(SYMFONY) lint:container
+
+lint-doctrine: ## Validate Doctrine entity mappings (skip DB sync check)
+	@$(SYMFONY) doctrine:schema:validate --skip-sync
+
+lint: lint-twig lint-yaml lint-xliff lint-container lint-doctrine ## Run all Symfony linters in sequence
+
+## —— Combined 🚀 ——————————————————————————————————————————————————————————————
+quality: ecs-dry phpstan rector-dry lint ## Run all quality checks (CI mode — no fixes applied)
+
+fix: ecs rector ## Apply all automated fixes (ECS then Rector)

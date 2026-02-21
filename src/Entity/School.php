@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -21,8 +22,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(
-            security: "is_granted('ROLE_USER')",
-            normalizationContext: ['groups' => ['school:read', 'school:address:read']]
+            normalizationContext: [
+                'groups' => ['school:read', 'school:address:read'],
+            ],
+            security: "is_granted('ROLE_USER')"
         ),
         new GetCollection(
             security: "is_granted('ROLE_USER')",
@@ -30,15 +33,19 @@ use Symfony\Component\Serializer\Attribute\Groups;
                 'search[:property]' => new QueryParameter(
                     filter: new PartialSearchFilter(),
                     properties: ['name']
-                )
+                ),
             ]
         ),
         new Post(security: "is_granted('ROLE_SCHOOL_ADMIN')"),
         new Patch(security: "is_granted('ROLE_SCHOOL_ADMIN')"),
         new Delete(security: "is_granted('ROLE_SCHOOL_ADMIN')"),
     ],
-    normalizationContext: ['groups' => ['school:read']],
-    denormalizationContext: ['groups' => ['school:write']]
+    normalizationContext: [
+        'groups' => ['school:read'],
+    ],
+    denormalizationContext: [
+        'groups' => ['school:write'],
+    ]
 )]
 class School
 {
@@ -114,7 +121,7 @@ class School
 
     public function addUser(User $user): static
     {
-        if (!$this->users->contains($user)) {
+        if (! $this->users->contains($user)) {
             $this->users->add($user);
             $user->setSchool($this);
         }
@@ -124,11 +131,9 @@ class School
 
     public function removeUser(User $user): static
     {
-        if ($this->users->removeElement($user)) {
-            // set the owning side to null (unless already changed)
-            if ($user->getSchool() === $this) {
-                $user->setSchool(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->users->removeElement($user) && $user->getSchool() === $this) {
+            $user->setSchool(null);
         }
 
         return $this;
@@ -144,7 +149,7 @@ class School
 
     public function addStudent(Student $student): static
     {
-        if (!$this->students->contains($student)) {
+        if (! $this->students->contains($student)) {
             $this->students->add($student);
             $student->setSchool($this);
         }
@@ -154,11 +159,9 @@ class School
 
     public function removeStudent(Student $student): static
     {
-        if ($this->students->removeElement($student)) {
-            // set the owning side to null (unless already changed)
-            if ($student->getSchool() === $this) {
-                $student->setSchool(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->students->removeElement($student) && $student->getSchool() === $this) {
+            $student->setSchool(null);
         }
 
         return $this;

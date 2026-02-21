@@ -9,6 +9,7 @@ use App\Repository\IdempotencyRecordRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -16,9 +17,11 @@ use Symfony\Contracts\Cache\ItemInterface;
 class IdempotencyService
 {
     private const int TTL = 86400; // 24 hours
+
     private const float LOCK_TTL = 60.0; // 1-minute lock timeout
 
     public function __construct(
+        #[Autowire(service: 'cache.app')]
         private readonly CacheInterface $cache,
         private readonly EntityManagerInterface $entityManager,
         private readonly IdempotencyRecordRepository $repository,
@@ -48,10 +51,12 @@ class IdempotencyService
 
                 // Acquire distributed lock using Symfony Lock component
                 // This works across multiple PHP processes and servers
-                $lock = $this->lockFactory->createLock("idempotency_{$key}", self::LOCK_TTL);
+                $lock = $this->lockFactory->createLock('idempotency_' . $key, self::LOCK_TTL);
 
-                if (!$lock->acquire()) {
-                    $this->logger->warning('Failed to acquire idempotency lock', ['key' => $key]);
+                if (! $lock->acquire()) {
+                    $this->logger->warning('Failed to acquire idempotency lock', [
+                        'key' => $key,
+                    ]);
 
                     // Wait briefly and try to get a cached result
                     sleep(1);
@@ -64,7 +69,9 @@ class IdempotencyService
                 }
 
                 try {
-                    $this->logger->info('Idempotency cache miss, executing operation', ['key' => $key]);
+                    $this->logger->info('Idempotency cache miss, executing operation', [
+                        'key' => $key,
+                    ]);
 
                     // Execute the operation
                     $result = $operation();
@@ -78,10 +85,10 @@ class IdempotencyService
                     $lock->release();
                 }
             });
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             $this->logger->error('Redis cache error, falling back to database', [
                 'key' => $key,
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
             ]);
 
             // Fallback to a database with locking
@@ -98,20 +105,25 @@ class IdempotencyService
 
         try {
             if ($this->cache->hasItem($cacheKey)) {
-                $this->logger->info('Idempotency key found in cache', ['key' => $key]);
+                $this->logger->info('Idempotency key found in cache', [
+                    'key' => $key,
+                ]);
                 return true;
             }
-        } catch (\Exception $e) {
-            $this->logger->warning('Cache check failed', ['key' => $key, 'error' => $e->getMessage()]);
+        } catch (\Exception $exception) {
+            $this->logger->warning('Cache check failed', [
+                'key' => $key,
+                'error' => $exception->getMessage(),
+            ]);
         }
 
         // Check database fallback
         try {
-            return $this->repository->findActiveByKey($key) !== null;
-        } catch (\Exception $e) {
+            return $this->repository->findActiveByKey($key) instanceof \App\Entity\IdempotencyRecord;
+        } catch (\Exception $exception) {
             $this->logger->error('Database idempotency check failed', [
                 'key' => $key,
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
             ]);
 
             return false;
@@ -128,14 +140,14 @@ class IdempotencyService
             $this->cache->delete($cacheKey);
 
             $record = $this->repository->findByKey($key);
-            if ($record !== null) {
+            if ($record instanceof \App\Entity\IdempotencyRecord) {
                 $this->entityManager->remove($record);
                 $this->entityManager->flush();
             }
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             $this->logger->error('Failed to delete idempotency key', [
                 'key' => $key,
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
             ]);
         }
     }
@@ -143,9 +155,9 @@ class IdempotencyService
     private function processWithDatabaseFallback(string $key, callable $operation, int $ttl): mixed
     {
         // Acquire lock for database operations
-        $lock = $this->lockFactory->createLock("idempotency_db_{$key}", self::LOCK_TTL);
+        $lock = $this->lockFactory->createLock('idempotency_db_' . $key, self::LOCK_TTL);
 
-        if (!$lock->acquire(true)) { // blocking=true, wait for lock
+        if (! $lock->acquire(true)) { // blocking=true, wait for lock
             throw new \RuntimeException('Failed to acquire database lock for idempotency');
         }
 
@@ -153,7 +165,9 @@ class IdempotencyService
             // Check if already exists in a database
             $cached = $this->getFromDatabase($key);
             if ($cached !== null) {
-                $this->logger->info('Idempotency key found in database', ['key' => $key]);
+                $this->logger->info('Idempotency key found in database', [
+                    'key' => $key,
+                ]);
                 return $cached;
             }
 
@@ -170,11 +184,11 @@ class IdempotencyService
     private function storeInDatabase(string $key, mixed $result, int $ttl): void
     {
         try {
-            $expiresAt = new \DateTimeImmutable("+{$ttl} seconds");
+            $expiresAt = new \DateTimeImmutable(sprintf('+%d seconds', $ttl));
             $serializedResult = serialize($result);
 
             $record = $this->repository->findByKey($key);
-            if ($record !== null) {
+            if ($record instanceof \App\Entity\IdempotencyRecord) {
                 $record->setResult($serializedResult);
                 $record->setExpiresAt($expiresAt);
             } else {
@@ -183,10 +197,10 @@ class IdempotencyService
             }
 
             $this->entityManager->flush();
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             $this->logger->error('Failed to store idempotency record in database', [
                 'key' => $key,
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
             ]);
         }
     }
@@ -195,13 +209,13 @@ class IdempotencyService
     {
         try {
             $record = $this->repository->findActiveByKey($key);
-            if ($record !== null) {
+            if ($record instanceof \App\Entity\IdempotencyRecord) {
                 return unserialize($record->getResult());
             }
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             $this->logger->error('Failed to get idempotency record from database', [
                 'key' => $key,
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
             ]);
         }
 
@@ -212,16 +226,14 @@ class IdempotencyService
     {
         try {
             $cacheKey = $this->getCacheKey($key);
-            return $this->cache->get($cacheKey, function () {
-                return null;
-            });
-        } catch (\Exception $e) {
+            return $this->cache->get($cacheKey, fn (): null => null);
+        } catch (\Exception) {
             return null;
         }
     }
 
     private function getCacheKey(string $key): string
     {
-        return "idempotency:{$key}";
+        return 'idempotency:' . $key;
     }
 }

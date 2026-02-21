@@ -1,18 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use App\Entity\School;
-use App\Repository\ActiveRouteRepository;
 use App\Repository\AttendanceRepository;
-use App\Repository\StudentRepository;
 
 class SafetyAuditService
 {
     public function __construct(
         private readonly AttendanceRepository $attendanceRepository,
-        private readonly ActiveRouteRepository $activeRouteRepository,
-        private readonly StudentRepository $studentRepository,
     ) {
     }
 
@@ -70,20 +68,18 @@ class SafetyAuditService
             $issues = [];
 
             // Check if pickup happened before dropoff
-            if ($record->getPickedUpAt() && $record->getDroppedOffAt()) {
-                if ($record->getPickedUpAt() > $record->getDroppedOffAt()) {
-                    $isValid = false;
-                    $issues[] = 'Pickup time is after dropoff time';
-                }
+            if ($record->getPickedUpAt() && $record->getDroppedOffAt() && $record->getPickedUpAt() > $record->getDroppedOffAt()) {
+                $isValid = false;
+                $issues[] = 'Pickup time is after dropoff time';
             }
 
             // Check if status matches the timestamps
-            if ($record->getStatus() === 'picked_up' && !$record->getPickedUpAt()) {
+            if ($record->getStatus() === 'picked_up' && ! $record->getPickedUpAt()) {
                 $isValid = false;
                 $issues[] = 'Status is picked_up but no pickup timestamp';
             }
 
-            if ($record->getStatus() === 'dropped_off' && !$record->getDroppedOffAt()) {
+            if ($record->getStatus() === 'dropped_off' && ! $record->getDroppedOffAt()) {
                 $isValid = false;
                 $issues[] = 'Status is dropped_off but no dropoff timestamp';
             }
@@ -135,16 +131,14 @@ class SafetyAuditService
 
         return [
             'count' => count($orphanedRecords),
-            'records' => array_slice(array_map(function ($record) {
-                return [
-                    'id' => $record->getId(),
-                    'student_id' => $record->getStudent()->getId(),
-                    'student_name' => $record->getStudent()->getFirstName() . ' ' .
-                                     $record->getStudent()->getLastName(),
-                    'date' => $record->getDate()->format('Y-m-d'),
-                    'status' => $record->getStatus(),
-                ];
-            }, $orphanedRecords), 0, 50),
+            'records' => array_slice(array_map(fn ($record): array => [
+                'id' => $record->getId(),
+                'student_id' => $record->getStudent()->getId(),
+                'student_name' => $record->getStudent()->getFirstName() . ' ' .
+                                 $record->getStudent()->getLastName(),
+                'date' => $record->getDate()->format('Y-m-d'),
+                'status' => $record->getStatus(),
+            ], $orphanedRecords), 0, 50),
         ];
     }
 
@@ -173,17 +167,15 @@ class SafetyAuditService
 
         return [
             'count' => count($missingCheckOuts),
-            'records' => array_map(function ($record) {
-                return [
-                    'id' => $record->getId(),
-                    'student_id' => $record->getStudent()->getId(),
-                    'student_name' => $record->getStudent()->getFirstName() . ' ' .
-                                     $record->getStudent()->getLastName(),
-                    'date' => $record->getDate()->format('Y-m-d'),
-                    'picked_up_at' => $record->getPickedUpAt()?->format('Y-m-d H:i:s'),
-                    'status' => $record->getStatus(),
-                ];
-            }, $missingCheckOuts),
+            'records' => array_map(fn ($record): array => [
+                'id' => $record->getId(),
+                'student_id' => $record->getStudent()->getId(),
+                'student_name' => $record->getStudent()->getFirstName() . ' ' .
+                                 $record->getStudent()->getLastName(),
+                'date' => $record->getDate()->format('Y-m-d'),
+                'picked_up_at' => $record->getPickedUpAt()?->format('Y-m-d H:i:s'),
+                'status' => $record->getStatus(),
+            ], $missingCheckOuts),
         ];
     }
 
@@ -313,12 +305,16 @@ class SafetyAuditService
     {
         if ($score >= 95) {
             return 'Excellent';
-        } elseif ($score >= 85) {
-            return 'Good';
-        } elseif ($score >= 70) {
-            return 'Fair';
-        } else {
-            return 'Needs Attention';
         }
+
+        if ($score >= 85) {
+            return 'Good';
+        }
+
+        if ($score >= 70) {
+            return 'Fair';
+        }
+
+        return 'Needs Attention';
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\Absence;
@@ -74,6 +76,7 @@ class AbsenceRepository extends ServiceEntityRepository
             if ($absence->getType() === 'full_day') {
                 return true;
             }
+
             if ($absence->getType() === $routeType) {
                 return true;
             }

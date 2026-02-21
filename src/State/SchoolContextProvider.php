@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
@@ -26,13 +28,13 @@ final readonly class SchoolContextProvider implements ProviderInterface
     {
         $user = $this->security->getUser();
 
-        if (!$user instanceof User) {
+        if (! $user instanceof User) {
             return $operation->canRead() ? $this->getProvider($operation)->provide($operation, $uriVariables, $context) : null;
         }
 
         // Add school filter to context for entities that have a school relationship
-        if ($user->getSchool() && !$this->security->isGranted('ROLE_SUPER_ADMIN')) {
-            $context['filters'] = array_merge($context['filters'] ?? [], [
+        if ($user->getSchool() && ! $this->security->isGranted('ROLE_SUPER_ADMIN')) {
+            $context['filters'] = array_merge((array) ($context['filters'] ?? []), [
                 'school' => $user->getSchool()->getId(),
             ]);
         }

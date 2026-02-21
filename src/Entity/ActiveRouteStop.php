@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
@@ -11,11 +13,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ActiveRouteStopRepository::class)]
 #[ORM\Table(name: 'active_route_stops')]
-#[ApiResource(
-    security: "is_granted('ROLE_USER')",
-    normalizationContext: ['groups' => ['active_route_stop:read']],
-    denormalizationContext: ['groups' => ['active_route_stop:write']]
-)]
+#[ApiResource(normalizationContext: [
+    'groups' => ['active_route_stop:read'],
+], denormalizationContext: [
+    'groups' => ['active_route_stop:write'],
+], security: "is_granted('ROLE_USER')")]
 class ActiveRouteStop
 {
     #[ORM\Id]
@@ -79,11 +81,11 @@ class ActiveRouteStop
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['active_route_stop:read'])]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['active_route_stop:read'])]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     public function __construct()
     {
@@ -223,12 +225,12 @@ class ActiveRouteStop
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }

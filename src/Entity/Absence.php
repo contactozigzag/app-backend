@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
@@ -14,15 +16,19 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AbsenceRepository::class)]
 #[ORM\Table(name: 'absences')]
-#[ORM\Index(columns: ['student_id', 'date'], name: 'idx_student_date')]
+#[ORM\Index(name: 'idx_student_date', columns: ['student_id', 'date'])]
 #[ApiResource(
     operations: [
         new Get(security: "is_granted('ROLE_USER')"),
         new GetCollection(security: "is_granted('ROLE_USER')"),
         new Post(security: "is_granted('ROLE_PARENT') or is_granted('ROLE_SCHOOL_ADMIN')"),
     ],
-    normalizationContext: ['groups' => ['absence:read']],
-    denormalizationContext: ['groups' => ['absence:write']]
+    normalizationContext: [
+        'groups' => ['absence:read'],
+    ],
+    denormalizationContext: [
+        'groups' => ['absence:write'],
+    ]
 )]
 class Absence
 {
@@ -68,7 +74,7 @@ class Absence
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['absence:read'])]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     public function __construct()
     {
@@ -157,7 +163,7 @@ class Absence
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }

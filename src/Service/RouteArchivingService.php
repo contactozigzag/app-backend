@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use App\Entity\ActiveRoute;
@@ -95,7 +97,7 @@ class RouteArchivingService
      */
     public function archiveCompletedRoutes(int $olderThanDays = 7): int
     {
-        $cutoffDate = new \DateTimeImmutable("-{$olderThanDays} days");
+        $cutoffDate = new \DateTimeImmutable(sprintf('-%d days', $olderThanDays));
 
         $completedRoutes = $this->activeRouteRepository->createQueryBuilder('ar')
             ->andWhere('ar.status = :status')
@@ -141,7 +143,7 @@ class RouteArchivingService
 
         foreach ($route->getStops() as $stop) {
             $total++;
-            if (in_array($stop->getStatus(), ['picked_up', 'dropped_off'])) {
+            if (in_array($stop->getStatus(), ['picked_up', 'dropped_off'], true)) {
                 $completed++;
             } elseif ($stop->getStatus() === 'skipped') {
                 $skipped++;
@@ -195,7 +197,11 @@ class RouteArchivingService
         $totalStops = 0;
 
         foreach ($route->getStops() as $stop) {
-            if (!$stop->getEstimatedArrivalTime() || !$stop->getArrivedAt()) {
+            if (! $stop->getEstimatedArrivalTime()) {
+                continue;
+            }
+
+            if (! $stop->getArrivedAt()) {
                 continue;
             }
 

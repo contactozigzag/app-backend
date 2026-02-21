@@ -31,6 +31,8 @@ class IdempotencyRecordRepository extends ServiceEntityRepository
 
     public function findByKey(string $idempotencyKey): ?IdempotencyRecord
     {
-        return $this->findOneBy(['idempotencyKey' => $idempotencyKey]);
+        return $this->findOneBy([
+            'idempotencyKey' => $idempotencyKey,
+        ]);
     }
 }

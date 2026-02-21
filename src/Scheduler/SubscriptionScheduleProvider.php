@@ -15,7 +15,7 @@ class SubscriptionScheduleProvider implements ScheduleProviderInterface
 {
     public function getSchedule(): Schedule
     {
-        return (new Schedule())
+        return new Schedule()
             ->add(
                 // Process subscriptions every 5 minutes
                 RecurringMessage::every(

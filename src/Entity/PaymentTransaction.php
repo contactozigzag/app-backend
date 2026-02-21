@@ -38,7 +38,7 @@ class PaymentTransaction
     private ?string $idempotencyKey = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $notes = null;
@@ -95,11 +95,17 @@ class PaymentTransaction
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getProviderResponse(): ?array
     {
         return $this->providerResponse;
     }
 
+    /**
+     * @param array<string, mixed>|null $providerResponse
+     */
     public function setProviderResponse(?array $providerResponse): static
     {
         $this->providerResponse = $providerResponse;
@@ -119,7 +125,7 @@ class PaymentTransaction
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\Absence;
@@ -14,7 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/absences', name: 'api_absences_')]
+#[Route(name: 'api_absences_')]
 class AbsenceController extends AbstractController
 {
     public function __construct(
@@ -28,30 +30,30 @@ class AbsenceController extends AbstractController
     /**
      * Report a student absence
      */
-    #[Route('', name: 'create', methods: ['POST'])]
+    #[Route('/api/absences', name: 'api_absences_create', methods: ['POST'])]
     #[IsGranted('ROLE_PARENT')]
     public function reportAbsence(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['student_id']) || !isset($data['date']) || !isset($data['type'])) {
+        if (! isset($data['student_id']) || ! isset($data['date']) || ! isset($data['type'])) {
             return $this->json([
-                'error' => 'student_id, date, and type are required'
+                'error' => 'student_id, date, and type are required',
             ], Response::HTTP_BAD_REQUEST);
         }
 
         $student = $this->studentRepository->find($data['student_id']);
-        if (!$student) {
+        if (! $student instanceof \App\Entity\Student) {
             return $this->json([
-                'error' => 'Student not found'
+                'error' => 'Student not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
         try {
             $date = new \DateTimeImmutable($data['date']);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return $this->json([
-                'error' => 'Invalid date format'
+                'error' => 'Invalid date format',
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -60,7 +62,7 @@ class AbsenceController extends AbstractController
         foreach ($existingAbsences as $existing) {
             if ($existing->getType() === $data['type'] || $existing->getType() === 'full_day' || $data['type'] === 'full_day') {
                 return $this->json([
-                    'error' => 'Absence already reported for this date and type'
+                    'error' => 'Absence already reported for this date and type',
                 ], Response::HTTP_CONFLICT);
             }
         }
@@ -92,14 +94,14 @@ class AbsenceController extends AbstractController
     /**
      * Get absences for a student
      */
-    #[Route('/student/{studentId}', name: 'by_student', methods: ['GET'])]
+    #[Route('/api/absences/student/{studentId}', name: 'api_absences_by_student', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function getStudentAbsences(int $studentId, Request $request): JsonResponse
     {
         $student = $this->studentRepository->find($studentId);
-        if (!$student) {
+        if (! $student instanceof \App\Entity\Student) {
             return $this->json([
-                'error' => 'Student not found'
+                'error' => 'Student not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -110,9 +112,9 @@ class AbsenceController extends AbstractController
             try {
                 $startDate = new \DateTimeImmutable($start);
                 $endDate = new \DateTimeImmutable($end);
-            } catch (\Exception $e) {
+            } catch (\Exception) {
                 return $this->json([
-                    'error' => 'Invalid date format'
+                    'error' => 'Invalid date format',
                 ], Response::HTTP_BAD_REQUEST);
             }
 
@@ -136,17 +138,15 @@ class AbsenceController extends AbstractController
                 ->getResult();
         }
 
-        $result = array_map(function (Absence $absence) {
-            return [
-                'id' => $absence->getId(),
-                'date' => $absence->getDate()->format('Y-m-d'),
-                'type' => $absence->getType(),
-                'reason' => $absence->getReason(),
-                'notes' => $absence->getNotes(),
-                'route_recalculated' => $absence->isRouteRecalculated(),
-                'created_at' => $absence->getCreatedAt()->format('c'),
-            ];
-        }, $absences);
+        $result = array_map(fn (Absence $absence): array => [
+            'id' => $absence->getId(),
+            'date' => $absence->getDate()->format('Y-m-d'),
+            'type' => $absence->getType(),
+            'reason' => $absence->getReason(),
+            'notes' => $absence->getNotes(),
+            'route_recalculated' => $absence->isRouteRecalculated(),
+            'created_at' => $absence->getCreatedAt()->format('c'),
+        ], $absences);
 
         return $this->json([
             'student_id' => $studentId,
@@ -158,31 +158,29 @@ class AbsenceController extends AbstractController
     /**
      * Get absences for a specific date
      */
-    #[Route('/date/{date}', name: 'by_date', methods: ['GET'])]
+    #[Route('/api/absences/date/{date}', name: 'api_absences_by_date', methods: ['GET'])]
     #[IsGranted('ROLE_SCHOOL_ADMIN')]
     public function getAbsencesByDate(string $date): JsonResponse
     {
         try {
             $dateObj = new \DateTimeImmutable($date);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return $this->json([
-                'error' => 'Invalid date format'
+                'error' => 'Invalid date format',
             ], Response::HTTP_BAD_REQUEST);
         }
 
         $absences = $this->absenceRepository->findByDate($dateObj);
 
-        $result = array_map(function (Absence $absence) {
-            return [
-                'id' => $absence->getId(),
-                'student_id' => $absence->getStudent()->getId(),
-                'student_name' => $absence->getStudent()->getFirstName() . ' ' . $absence->getStudent()->getLastName(),
-                'type' => $absence->getType(),
-                'reason' => $absence->getReason(),
-                'notes' => $absence->getNotes(),
-                'route_recalculated' => $absence->isRouteRecalculated(),
-            ];
-        }, $absences);
+        $result = array_map(fn (Absence $absence): array => [
+            'id' => $absence->getId(),
+            'student_id' => $absence->getStudent()->getId(),
+            'student_name' => $absence->getStudent()->getFirstName() . ' ' . $absence->getStudent()->getLastName(),
+            'type' => $absence->getType(),
+            'reason' => $absence->getReason(),
+            'notes' => $absence->getNotes(),
+            'route_recalculated' => $absence->isRouteRecalculated(),
+        ], $absences);
 
         return $this->json([
             'date' => $dateObj->format('Y-m-d'),
@@ -194,7 +192,7 @@ class AbsenceController extends AbstractController
     /**
      * Trigger manual recalculation for pending absences
      */
-    #[Route('/recalculate-pending', name: 'recalculate_pending', methods: ['POST'])]
+    #[Route('/api/absences/recalculate-pending', name: 'api_absences_recalculate_pending', methods: ['POST'])]
     #[IsGranted('ROLE_SCHOOL_ADMIN')]
     public function recalculatePending(): JsonResponse
     {
@@ -210,22 +208,22 @@ class AbsenceController extends AbstractController
     /**
      * Cancel an absence
      */
-    #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
+    #[Route('/api/absences/{id}', name: 'api_absences_delete', methods: ['DELETE'])]
     #[IsGranted('ROLE_PARENT')]
     public function cancelAbsence(int $id): JsonResponse
     {
         $absence = $this->absenceRepository->find($id);
 
-        if (!$absence) {
+        if (! $absence instanceof \App\Entity\Absence) {
             return $this->json([
-                'error' => 'Absence not found'
+                'error' => 'Absence not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
         // Check if absence is in the future
         if ($absence->getDate() < new \DateTimeImmutable('today')) {
             return $this->json([
-                'error' => 'Cannot cancel past absences'
+                'error' => 'Cannot cancel past absences',
             ], Response::HTTP_BAD_REQUEST);
         }
 

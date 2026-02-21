@@ -35,6 +35,6 @@ class PaymentRefundedEvent extends Event
 
     public function isPartialRefund(): bool
     {
-        return bccomp($this->refundAmount, $this->payment->getAmount(), 2) < 0;
+        return bccomp($this->refundAmount, (string) $this->payment->getAmount(), 2) < 0;
     }
 }

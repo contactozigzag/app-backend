@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
@@ -228,7 +230,7 @@ class Student
     #[Assert\Callback]
     public function validateEducationalLevelAndGrade(ExecutionContextInterface $context): void
     {
-        if ($this->educationalLevel === null || $this->grade === null) {
+        if (! $this->educationalLevel instanceof \App\Enum\EducationalLevel || ! $this->grade instanceof \App\Enum\Grade) {
             return;
         }
 
@@ -238,7 +240,7 @@ class Student
             EducationalLevel::HighSchool => [Grade::One, Grade::Two, Grade::Three, Grade::Four, Grade::Five],
         };
 
-        if (!in_array($this->grade, $allowedGrades, true)) {
+        if (! in_array($this->grade, $allowedGrades, true)) {
             $context->buildViolation('Grade does not match the selected educational level.')
                 ->atPath('grade')
                 ->addViolation();
@@ -255,7 +257,7 @@ class Student
 
     public function addParent(User $parent): static
     {
-        if (!$this->parents->contains($parent)) {
+        if (! $this->parents->contains($parent)) {
             $this->parents->add($parent);
         }
 

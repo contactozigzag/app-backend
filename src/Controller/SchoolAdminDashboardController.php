@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Dto\SchoolAdminDashboardDto;
@@ -17,7 +19,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
-#[Route('/api/school-admin')]
 #[IsGranted('ROLE_SCHOOL_ADMIN')]
 class SchoolAdminDashboardController extends AbstractController
 {
@@ -31,15 +32,17 @@ class SchoolAdminDashboardController extends AbstractController
     ) {
     }
 
-    #[Route('/dashboard', name: 'school_admin_dashboard', methods: ['GET'])]
+    #[Route('/api/school-admin/dashboard', name: 'school_admin_dashboard', methods: ['GET'])]
     public function dashboard(): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
         $school = $user->getSchool();
 
-        if (!$school) {
-            return $this->json(['error' => 'No school associated with this admin'], 400);
+        if (! $school) {
+            return $this->json([
+                'error' => 'No school associated with this admin',
+            ], 400);
         }
 
         $today = new \DateTimeImmutable('today');
@@ -56,7 +59,7 @@ class SchoolAdminDashboardController extends AbstractController
             $totalStops = count($route->getStops());
 
             foreach ($route->getStops() as $stop) {
-                if (in_array($stop->getStatus(), ['picked_up', 'dropped_off'])) {
+                if (in_array($stop->getStatus(), ['picked_up', 'dropped_off'], true)) {
                     $completedStops++;
                 }
             }
@@ -90,10 +93,10 @@ class SchoolAdminDashboardController extends AbstractController
                 'name' => $driver->getUser()->getFirstName() . ' ' . $driver->getUser()->getLastName(),
                 'email' => $driver->getUser()->getEmail(),
                 'phoneNumber' => $driver->getUser()->getPhoneNumber(),
-                'status' => $activeRoute ? $activeRoute->getStatus() : 'idle',
+                'status' => $activeRoute instanceof \App\Entity\ActiveRoute ? $activeRoute->getStatus() : 'idle',
                 'activeRouteId' => $activeRoute?->getId(),
                 'lastLocationUpdate' => $latestLocation?->getTimestamp()->format('c'),
-                'currentLocation' => $latestLocation ? [
+                'currentLocation' => $latestLocation instanceof \App\Entity\LocationUpdate ? [
                     'latitude' => (float) $latestLocation->getLatitude(),
                     'longitude' => (float) $latestLocation->getLongitude(),
                 ] : null,
@@ -118,16 +121,18 @@ class SchoolAdminDashboardController extends AbstractController
         return $this->json($dashboard);
     }
 
-    private function getStatistics($school, \DateTimeImmutable $today): array
+    private function getStatistics(\App\Entity\School $school, \DateTimeImmutable $today): array
     {
-        $totalStudents = $this->studentRepository->count(['school' => $school]);
+        $totalStudents = $this->studentRepository->count([
+            'school' => $school,
+        ]);
 
         $allRoutes = $this->activeRouteRepository->findBySchoolAndDate($school, $today);
-        $activeRoutes = array_filter($allRoutes, fn($r) => in_array($r->getStatus(), ['scheduled', 'in_progress']));
-        $completedRoutes = array_filter($allRoutes, fn($r) => $r->getStatus() === 'completed');
+        $activeRoutes = array_filter($allRoutes, fn (\App\Entity\ActiveRoute $r): bool => in_array($r->getStatus(), ['scheduled', 'in_progress'], true));
+        $completedRoutes = array_filter($allRoutes, fn (\App\Entity\ActiveRoute $r): bool => $r->getStatus() === 'completed');
 
         $totalDrivers = $this->driverRepository->countBySchool($school);
-        $activeDrivers = count(array_unique(array_map(fn($r) => $r->getDriver()->getId(), $activeRoutes)));
+        $activeDrivers = count(array_unique(array_map(fn (\App\Entity\ActiveRoute $r): ?int => $r->getDriver()->getId(), $activeRoutes)));
 
         $attendanceStats = $this->attendanceRepository->getStatsByDateRange($today, $today);
 
@@ -171,7 +176,7 @@ class SchoolAdminDashboardController extends AbstractController
             // Check for no location updates (driver might have issues)
             if ($route->getStatus() === 'in_progress') {
                 $latestLocation = $this->locationUpdateRepository->findLatestByActiveRoute($route);
-                if ($latestLocation) {
+                if ($latestLocation instanceof \App\Entity\LocationUpdate) {
                     $timeSinceUpdate = $now->getTimestamp() - $latestLocation->getTimestamp()->getTimestamp();
                     if ($timeSinceUpdate > 300) { // 5 minutes
                         $alerts[] = [
@@ -193,7 +198,7 @@ class SchoolAdminDashboardController extends AbstractController
         return $alerts;
     }
 
-    private function getTodayMetrics($school, \DateTimeImmutable $today): array
+    private function getTodayMetrics(\App\Entity\School $school, \DateTimeImmutable $today): array
     {
         $routes = $this->activeRouteRepository->findBySchoolAndDate($school, $today);
 
@@ -205,7 +210,7 @@ class SchoolAdminDashboardController extends AbstractController
         foreach ($routes as $route) {
             foreach ($route->getStops() as $stop) {
                 $totalStops++;
-                if (in_array($stop->getStatus(), ['picked_up', 'dropped_off'])) {
+                if (in_array($stop->getStatus(), ['picked_up', 'dropped_off'], true)) {
                     $completedStops++;
                 }
             }
@@ -213,6 +218,7 @@ class SchoolAdminDashboardController extends AbstractController
             if ($route->getTotalDistance()) {
                 $totalDistance += $route->getTotalDistance();
             }
+
             if ($route->getTotalDuration()) {
                 $totalDuration += $route->getTotalDuration();
             }
@@ -225,7 +231,7 @@ class SchoolAdminDashboardController extends AbstractController
             'completedStops' => $completedStops,
             'completionRate' => $totalStops > 0 ? round(($completedStops / $totalStops) * 100, 1) : 0,
             'totalDistanceKm' => round($totalDistance / 1000, 1),
-            'averageDurationMinutes' => count($routes) > 0 ? round($totalDuration / count($routes) / 60) : 0,
+            'averageDurationMinutes' => $routes !== [] ? round($totalDuration / count($routes) / 60) : 0,
             'studentsPickedUp' => $attendanceStats['picked_up'] ?? 0,
             'studentsDroppedOff' => $attendanceStats['dropped_off'] ?? 0,
             'noShows' => $attendanceStats['no_show'] ?? 0,

@@ -7,6 +7,7 @@ namespace App\Service\Payment;
 use App\Entity\Payment;
 use App\Entity\User;
 use Exception;
+use MercadoPago\Client\Common\RequestOptions;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\Exceptions\InvalidArgumentException;
@@ -15,24 +16,29 @@ use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Resources\Payment as MPPayment;
 use MercadoPago\Resources\Preference;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 class MercadoPagoService
 {
-    private const int PREFERENCE_CACHE_TTL = 1800; // 30 minutes
     private const int STATUS_CACHE_TTL = 60; // 1 minute
 
-    private PreferenceClient $preferenceClient;
-    private PaymentClient $paymentClient;
+    private readonly PreferenceClient $preferenceClient;
+
+    private readonly PaymentClient $paymentClient;
 
     /**
      * @throws InvalidArgumentException
      */
     public function __construct(
+        #[Autowire(env: 'MERCADOPAGO_ACCESS_TOKEN')]
         private readonly string $accessToken,
+        #[Autowire(service: 'cache.app')]
         private readonly CacheInterface $cache,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        #[Autowire(env: 'float:MERCADOPAGO_MARKETPLACE_FEE_PERCENT')]
+        private readonly float $marketplaceFeePercent = 0.0,
     ) {
         MercadoPagoConfig::setAccessToken($this->accessToken);
         MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
@@ -42,33 +48,38 @@ class MercadoPagoService
     }
 
     /**
-     * Create a payment preference for checkout
+     * Create a Marketplace payment preference.
      *
-     * @param Payment $payment
-     * @param User $user
-     * @param string $backUrl
-     * @param string $notificationUrl
-     * @return array{preference_id: string, init_point: string}
-     * @throws Exception|\Psr\Cache\InvalidArgumentException
+     * The preference is created using the driver's access token via RequestOptions
+     * so that funds land in the driver's MP account. The platform fee (if any) is
+     * deducted at the time of payment via marketplace_fee.
+     *
+     * @param User $user The parent/payer
+     * @param string $driverAccessToken Plaintext MP access token of the receiving driver
+     * @return array{preference_id: string, init_point: string, sandbox_init_point: string|null}
+     * @throws Exception
      */
     public function createPreference(
         Payment $payment,
         User $user,
         string $backUrl,
-        string $notificationUrl
+        string $notificationUrl,
+        string $driverAccessToken,
     ): array {
         try {
             $items = [];
             foreach ($payment->getStudents() as $student) {
                 $items[] = [
                     'id' => (string) $student->getId(),
-                    'title' => "Transportation service for {$student->getFirstName()} {$student->getLastName()}",
-                    'description' => $payment->getDescription() ?? 'Monthly transportation service',
+                    'title' => sprintf('Transportation for %s %s', $student->getFirstName(), $student->getLastName()),
+                    'description' => $payment->getDescription() ?? 'School transportation service',
                     'quantity' => 1,
                     'currency_id' => $payment->getCurrency(),
-                    'unit_price' => (float) $payment->getAmount() / $payment->getStudents()->count(),
+                    'unit_price' => round((float) $payment->getAmount() / $payment->getStudents()->count(), 2),
                 ];
             }
+
+            $marketplaceFee = $this->calculateMarketplaceFee((float) $payment->getAmount());
 
             $preferenceData = [
                 'items' => $items,
@@ -89,30 +100,33 @@ class MercadoPagoService
                 'notification_url' => $notificationUrl,
                 'external_reference' => (string) $payment->getId(),
                 'statement_descriptor' => 'SCHOOL_TRANSPORT',
+                'marketplace' => 'MP',
+                'marketplace_fee' => $marketplaceFee,
                 'expires' => true,
-                'expiration_date_from' => (new \DateTime())->format('c'),
-                'expiration_date_to' => $payment->getExpiresAt()?->format('c') ?? (new \DateTime('+24 hours'))->format('c'),
+                'expiration_date_from' => new \DateTime()->format('c'),
+                'expiration_date_to' => $payment->getExpiresAt()?->format('c')
+                    ?? new \DateTime('+24 hours')->format('c'),
             ];
 
-            $this->logger->info('Creating Mercado Pago preference', [
+            // RequestOptions carries the driver's access token for this single call.
+            // It overrides the global platform token without mutating MercadoPagoConfig,
+            // so concurrent requests for different drivers remain isolated.
+            $requestOptions = new RequestOptions($driverAccessToken);
+
+            $this->logger->info('Creating Mercado Pago marketplace preference', [
                 'payment_id' => $payment->getId(),
                 'user_id' => $user->getId(),
+                'driver_id' => $payment->getDriver()?->getId(),
                 'amount' => $payment->getAmount(),
+                'marketplace_fee' => $marketplaceFee,
             ]);
 
-            $preference = $this->preferenceClient->create($preferenceData);
+            $preference = $this->preferenceClient->create($preferenceData, $requestOptions);
 
             $this->logger->info('Mercado Pago preference created', [
                 'payment_id' => $payment->getId(),
                 'preference_id' => $preference->id,
             ]);
-
-            // Cache preference
-            $cacheKey = "mp_preference:{$payment->getId()}";
-            $this->cache->get($cacheKey, function (ItemInterface $item) use ($preference) {
-                $item->expiresAfter(self::PREFERENCE_CACHE_TTL);
-                return $preference;
-            });
 
             return [
                 'preference_id' => $preference->id,
@@ -137,6 +151,15 @@ class MercadoPagoService
         }
     }
 
+    private function calculateMarketplaceFee(float $amount): float
+    {
+        if ($this->marketplaceFeePercent <= 0.0) {
+            return 0.0;
+        }
+
+        return round($amount * $this->marketplaceFeePercent / 100, 2);
+    }
+
     /**
      * Get payment status from Mercado Pago
      *
@@ -146,10 +169,10 @@ class MercadoPagoService
      */
     public function getPaymentStatus(string $paymentProviderId): array
     {
-        $cacheKey = "mp_payment_status:{$paymentProviderId}";
+        $cacheKey = 'mp_payment_status:' . $paymentProviderId;
 
         try {
-            return $this->cache->get($cacheKey, function (ItemInterface $item) use ($paymentProviderId) {
+            return $this->cache->get($cacheKey, function (ItemInterface $item) use ($paymentProviderId): array {
                 $item->expiresAfter(self::STATUS_CACHE_TTL);
 
                 $this->logger->info('Fetching payment status from Mercado Pago', [
@@ -160,13 +183,13 @@ class MercadoPagoService
 
                 return $this->mapPaymentToArray($payment);
             });
-        } catch (MPApiException $e) {
+        } catch (MPApiException $mpApiException) {
             $this->logger->error('Mercado Pago API error fetching payment status', [
                 'payment_provider_id' => $paymentProviderId,
-                'error' => $e->getMessage(),
+                'error' => $mpApiException->getMessage(),
             ]);
 
-            throw new \RuntimeException('Failed to fetch payment status: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to fetch payment status: ' . $mpApiException->getMessage(), 0, $mpApiException);
         }
     }
 
@@ -177,20 +200,19 @@ class MercadoPagoService
     {
         try {
             return $this->paymentClient->get((int) $paymentProviderId);
-        } catch (MPApiException $e) {
+        } catch (MPApiException $mpApiException) {
             $this->logger->error('Mercado Pago API error fetching payment details', [
                 'payment_provider_id' => $paymentProviderId,
-                'error' => $e->getMessage(),
+                'error' => $mpApiException->getMessage(),
             ]);
 
-            throw new \RuntimeException('Failed to fetch payment details', 0, $e);
+            throw new \RuntimeException('Failed to fetch payment details', 0, $mpApiException);
         }
     }
 
     /**
      * Refund payment (full or partial)
      *
-     * @param string $paymentProviderId
      * @param float|null $amount Null for full refund
      * @return array Refund details
      * @throws Exception|\Psr\Cache\InvalidArgumentException
@@ -217,29 +239,25 @@ class MercadoPagoService
             ]);
 
             // Invalidate cached payment status
-            $this->cache->delete("mp_payment_status:{$paymentProviderId}");
+            $this->cache->delete('mp_payment_status:' . $paymentProviderId);
 
             return [
                 'refund_id' => $refund->id,
                 'status' => $refund->status,
                 'amount' => $refund->amount,
             ];
-        } catch (MPApiException $e) {
+        } catch (MPApiException $mpApiException) {
             $this->logger->error('Mercado Pago API error processing refund', [
                 'payment_provider_id' => $paymentProviderId,
-                'error' => $e->getMessage(),
+                'error' => $mpApiException->getMessage(),
             ]);
 
-            throw new \RuntimeException('Failed to process refund: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to process refund: ' . $mpApiException->getMessage(), 0, $mpApiException);
         }
     }
 
     /**
      * Get payments by date range for reconciliation
-     *
-     * @param \DateTimeInterface $from
-     * @param \DateTimeInterface $to
-     * @return array
      */
     public function getPaymentsByDateRange(\DateTimeInterface $from, \DateTimeInterface $to): array
     {
@@ -254,12 +272,12 @@ class MercadoPagoService
             // This is a placeholder implementation
 
             return [];
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             $this->logger->error('Error fetching payments for reconciliation', [
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
             ]);
 
-            throw new \RuntimeException('Failed to fetch payments for reconciliation', 0, $e);
+            throw new \RuntimeException('Failed to fetch payments for reconciliation', 0, $exception);
         }
     }
 
@@ -292,6 +310,6 @@ class MercadoPagoService
      */
     public function clearPaymentCache(string $paymentProviderId): void
     {
-        $this->cache->delete("mp_payment_status:{$paymentProviderId}");
+        $this->cache->delete('mp_payment_status:' . $paymentProviderId);
     }
 }

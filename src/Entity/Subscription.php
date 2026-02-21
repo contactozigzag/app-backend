@@ -7,8 +7,8 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Enum\BillingCycle;
 use App\Enum\SubscriptionStatus;
 use App\Repository\SubscriptionRepository;
@@ -16,23 +16,27 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SubscriptionRepository::class)]
 #[ORM\Table(name: 'subscription')]
 #[ORM\Index(name: 'idx_subscriptions_user_status', columns: ['user_id', 'status'])]
 #[ORM\Index(name: 'idx_subscriptions_next_billing', columns: ['next_billing_date'])]
-#[ApiResource(
-    operations: [
-        new Get(normalizationContext: ['groups' => ['subscription:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['subscription:read', 'subscription:list']]),
-        new Post(denormalizationContext: ['groups' => ['subscription:write']]),
-        new Patch(denormalizationContext: ['groups' => ['subscription:update']]),
-    ],
-    security: 'is_granted("ROLE_USER")',
-    paginationItemsPerPage: 30
-)]
+#[ApiResource(operations: [
+    new Get(normalizationContext: [
+        'groups' => ['subscription:read'],
+    ]),
+    new GetCollection(normalizationContext: [
+        'groups' => ['subscription:read', 'subscription:list'],
+    ]),
+    new Post(denormalizationContext: [
+        'groups' => ['subscription:write'],
+    ]),
+    new Patch(denormalizationContext: [
+        'groups' => ['subscription:update'],
+    ]),
+], paginationItemsPerPage: 30, security: 'is_granted("ROLE_USER")')]
 class Subscription
 {
     #[ORM\Id]
@@ -89,10 +93,10 @@ class Subscription
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['subscription:read', 'subscription:list'])]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['subscription:read'])]
@@ -102,7 +106,9 @@ class Subscription
     #[Groups(['subscription:read', 'subscription:write'])]
     private ?string $notes = null;
 
-    #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
+    #[ORM\Column(type: Types::INTEGER, options: [
+        'default' => 0,
+    ])]
     #[Groups(['subscription:read'])]
     private int $failedPaymentCount = 0;
 
@@ -143,7 +149,7 @@ class Subscription
 
     public function addStudent(Student $student): static
     {
-        if (!$this->students->contains($student)) {
+        if (! $this->students->contains($student)) {
             $this->students->add($student);
         }
 
@@ -179,7 +185,7 @@ class Subscription
         $this->status = $status;
         $this->updatedAt = new \DateTimeImmutable();
 
-        if ($status === SubscriptionStatus::CANCELLED && $this->cancelledAt === null) {
+        if ($status === SubscriptionStatus::CANCELLED && ! $this->cancelledAt instanceof \DateTimeImmutable) {
             $this->cancelledAt = new \DateTimeImmutable();
         }
 
@@ -246,12 +252,12 @@ class Subscription
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -308,19 +314,19 @@ class Subscription
 
     public function calculateNextBillingDate(): \DateTimeImmutable
     {
-        if ($this->nextBillingDate === null) {
+        if (! $this->nextBillingDate instanceof \DateTimeImmutable) {
             $this->nextBillingDate = new \DateTimeImmutable();
         }
 
-        $days = $this->billingCycle->getDays();
+        $days = $this->billingCycle?->getDays() ?? 30;
 
-        return $this->nextBillingDate->modify("+{$days} days");
+        return $this->nextBillingDate->modify(sprintf('+%d days', $days));
     }
 
     public function isDueForBilling(): bool
     {
         return $this->status === SubscriptionStatus::ACTIVE
-            && $this->nextBillingDate !== null
+            && $this->nextBillingDate instanceof \DateTimeImmutable
             && $this->nextBillingDate <= new \DateTimeImmutable();
     }
 
@@ -328,7 +334,7 @@ class Subscription
     {
         return $this->status === SubscriptionStatus::PAYMENT_FAILED
             && $this->failedPaymentCount < 3
-            && $this->lastPaymentAttemptAt !== null
+            && $this->lastPaymentAttemptAt instanceof \DateTimeImmutable
             && $this->lastPaymentAttemptAt < new \DateTimeImmutable('-24 hours');
     }
 }

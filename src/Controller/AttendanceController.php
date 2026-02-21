@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\Attendance;
@@ -15,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/attendance', name: 'api_attendance_')]
+#[Route(name: 'api_attendance_')]
 class AttendanceController extends AbstractController
 {
     public function __construct(
@@ -30,22 +32,22 @@ class AttendanceController extends AbstractController
     /**
      * Record student pickup
      */
-    #[Route('/pickup', name: 'pickup', methods: ['POST'])]
+    #[Route('/api/attendance/pickup', name: 'api_attendance_pickup', methods: ['POST'])]
     #[IsGranted('ROLE_DRIVER')]
     public function recordPickup(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['stop_id'])) {
+        if (! isset($data['stop_id'])) {
             return $this->json([
-                'error' => 'stop_id is required'
+                'error' => 'stop_id is required',
             ], Response::HTTP_BAD_REQUEST);
         }
 
         $stop = $this->stopRepository->find($data['stop_id']);
-        if (!$stop) {
+        if (! $stop instanceof \App\Entity\ActiveRouteStop) {
             return $this->json([
-                'error' => 'Stop not found'
+                'error' => 'Stop not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -57,14 +59,14 @@ class AttendanceController extends AbstractController
 
         if ($existingAttendance && $existingAttendance->getStatus() === 'picked_up') {
             return $this->json([
-                'error' => 'Student already picked up'
+                'error' => 'Student already picked up',
             ], Response::HTTP_CONFLICT);
         }
 
         $now = new \DateTimeImmutable();
 
         // Create or update attendance record
-        if ($existingAttendance) {
+        if ($existingAttendance !== []) {
             $attendance = $existingAttendance;
         } else {
             $attendance = new Attendance();
@@ -77,13 +79,13 @@ class AttendanceController extends AbstractController
         $attendance->setPickedUpAt($now);
 
         if (isset($data['latitude']) && isset($data['longitude'])) {
-            $attendance->setPickupLatitude((string)$data['latitude']);
-            $attendance->setPickupLongitude((string)$data['longitude']);
+            $attendance->setPickupLatitude((string) $data['latitude']);
+            $attendance->setPickupLongitude((string) $data['longitude']);
         }
 
         if (isset($data['driver_id'])) {
             $driver = $this->driverRepository->find($data['driver_id']);
-            if ($driver) {
+            if ($driver instanceof \App\Entity\Driver) {
                 $attendance->setRecordedBy($driver);
             }
         }
@@ -96,7 +98,7 @@ class AttendanceController extends AbstractController
         $stop->setStatus('picked_up');
         $stop->setPickedUpAt($now);
 
-        if (!$existingAttendance) {
+        if ($existingAttendance === []) {
             $this->entityManager->persist($attendance);
         }
 
@@ -113,22 +115,22 @@ class AttendanceController extends AbstractController
     /**
      * Record student drop-off
      */
-    #[Route('/dropoff', name: 'dropoff', methods: ['POST'])]
+    #[Route('/api/attendance/dropoff', name: 'api_attendance_dropoff', methods: ['POST'])]
     #[IsGranted('ROLE_DRIVER')]
     public function recordDropoff(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['stop_id'])) {
+        if (! isset($data['stop_id'])) {
             return $this->json([
-                'error' => 'stop_id is required'
+                'error' => 'stop_id is required',
             ], Response::HTTP_BAD_REQUEST);
         }
 
         $stop = $this->stopRepository->find($data['stop_id']);
-        if (!$stop) {
+        if (! $stop instanceof \App\Entity\ActiveRouteStop) {
             return $this->json([
-                'error' => 'Stop not found'
+                'error' => 'Stop not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -138,15 +140,15 @@ class AttendanceController extends AbstractController
             $stop->getActiveRoute()->getDate()
         );
 
-        if (!$attendance) {
+        if ($attendance === []) {
             return $this->json([
-                'error' => 'Student was not picked up'
+                'error' => 'Student was not picked up',
             ], Response::HTTP_BAD_REQUEST);
         }
 
         if ($attendance->getStatus() === 'dropped_off') {
             return $this->json([
-                'error' => 'Student already dropped off'
+                'error' => 'Student already dropped off',
             ], Response::HTTP_CONFLICT);
         }
 
@@ -156,8 +158,8 @@ class AttendanceController extends AbstractController
         $attendance->setDroppedOffAt($now);
 
         if (isset($data['latitude']) && isset($data['longitude'])) {
-            $attendance->setDropoffLatitude((string)$data['latitude']);
-            $attendance->setDropoffLongitude((string)$data['longitude']);
+            $attendance->setDropoffLatitude((string) $data['latitude']);
+            $attendance->setDropoffLongitude((string) $data['longitude']);
         }
 
         if (isset($data['notes'])) {
@@ -181,22 +183,22 @@ class AttendanceController extends AbstractController
     /**
      * Mark student as no-show
      */
-    #[Route('/no-show', name: 'no_show', methods: ['POST'])]
+    #[Route('/api/attendance/no-show', name: 'api_attendance_no_show', methods: ['POST'])]
     #[IsGranted('ROLE_DRIVER')]
     public function recordNoShow(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['stop_id'])) {
+        if (! isset($data['stop_id'])) {
             return $this->json([
-                'error' => 'stop_id is required'
+                'error' => 'stop_id is required',
             ], Response::HTTP_BAD_REQUEST);
         }
 
         $stop = $this->stopRepository->find($data['stop_id']);
-        if (!$stop) {
+        if (! $stop instanceof \App\Entity\ActiveRouteStop) {
             return $this->json([
-                'error' => 'Stop not found'
+                'error' => 'Stop not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -208,7 +210,7 @@ class AttendanceController extends AbstractController
 
         if (isset($data['driver_id'])) {
             $driver = $this->driverRepository->find($data['driver_id']);
-            if ($driver) {
+            if ($driver instanceof \App\Entity\Driver) {
                 $attendance->setRecordedBy($driver);
             }
         }
@@ -233,7 +235,7 @@ class AttendanceController extends AbstractController
     /**
      * Get manifest for an active route
      */
-    #[Route('/manifest/{routeId}', name: 'manifest', methods: ['GET'])]
+    #[Route('/api/attendance/manifest/{routeId}', name: 'api_attendance_manifest', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function getManifest(int $routeId): JsonResponse
     {
@@ -246,7 +248,7 @@ class AttendanceController extends AbstractController
 
         if (empty($stops)) {
             return $this->json([
-                'error' => 'Route not found or has no stops'
+                'error' => 'Route not found or has no stops',
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -279,21 +281,21 @@ class AttendanceController extends AbstractController
     /**
      * Get attendance history for a student
      */
-    #[Route('/student/{studentId}', name: 'student_history', methods: ['GET'])]
+    #[Route('/api/attendance/student/{studentId}', name: 'api_attendance_student_history', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function getStudentHistory(int $studentId, Request $request): JsonResponse
     {
         $student = $this->studentRepository->find($studentId);
-        if (!$student) {
+        if (! $student instanceof \App\Entity\Student) {
             return $this->json([
-                'error' => 'Student not found'
+                'error' => 'Student not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
         $start = $request->query->get('start');
         $end = $request->query->get('end');
 
-        if (!$start || !$end) {
+        if (! $start || ! $end) {
             // Default to last 30 days
             $end = new \DateTimeImmutable('today');
             $start = $end->modify('-30 days');
@@ -301,25 +303,23 @@ class AttendanceController extends AbstractController
             try {
                 $start = new \DateTimeImmutable($start);
                 $end = new \DateTimeImmutable($end);
-            } catch (\Exception $e) {
+            } catch (\Exception) {
                 return $this->json([
-                    'error' => 'Invalid date format'
+                    'error' => 'Invalid date format',
                 ], Response::HTTP_BAD_REQUEST);
             }
         }
 
         $attendanceRecords = $this->attendanceRepository->findByStudentAndDateRange($student, $start, $end);
 
-        $history = array_map(function ($attendance) {
-            return [
-                'id' => $attendance->getId(),
-                'date' => $attendance->getDate()->format('Y-m-d'),
-                'status' => $attendance->getStatus(),
-                'picked_up_at' => $attendance->getPickedUpAt()?->format('c'),
-                'dropped_off_at' => $attendance->getDroppedOffAt()?->format('c'),
-                'notes' => $attendance->getNotes(),
-            ];
-        }, $attendanceRecords);
+        $history = array_map(fn (\App\Entity\Attendance $attendance): array => [
+            'id' => $attendance->getId(),
+            'date' => $attendance->getDate()->format('Y-m-d'),
+            'status' => $attendance->getStatus(),
+            'picked_up_at' => $attendance->getPickedUpAt()?->format('c'),
+            'dropped_off_at' => $attendance->getDroppedOffAt()?->format('c'),
+            'notes' => $attendance->getNotes(),
+        ], $attendanceRecords);
 
         return $this->json([
             'student_id' => $studentId,
@@ -332,25 +332,25 @@ class AttendanceController extends AbstractController
     /**
      * Get attendance statistics
      */
-    #[Route('/stats', name: 'stats', methods: ['GET'])]
+    #[Route('/api/attendance/stats', name: 'api_attendance_stats', methods: ['GET'])]
     #[IsGranted('ROLE_SCHOOL_ADMIN')]
     public function getStats(Request $request): JsonResponse
     {
         $start = $request->query->get('start');
         $end = $request->query->get('end');
 
-        if (!$start || !$end) {
+        if (! $start || ! $end) {
             return $this->json([
-                'error' => 'Start and end dates are required'
+                'error' => 'Start and end dates are required',
             ], Response::HTTP_BAD_REQUEST);
         }
 
         try {
             $startDate = new \DateTimeImmutable($start);
             $endDate = new \DateTimeImmutable($end);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return $this->json([
-                'error' => 'Invalid date format'
+                'error' => 'Invalid date format',
             ], Response::HTTP_BAD_REQUEST);
         }
 

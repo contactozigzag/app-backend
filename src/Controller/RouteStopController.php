@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use ApiPlatform\Metadata\IriConverterInterface;
@@ -21,7 +23,7 @@ use Symfony\Component\Routing\Exception\MissingMandatoryParametersException;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[RouteAttribute('/api/route-stops', name: 'api_route_stops_')]
+#[RouteAttribute(name: 'api_route_stops_')]
 class RouteStopController extends AbstractController
 {
     public function __construct(
@@ -35,7 +37,7 @@ class RouteStopController extends AbstractController
     /**
      * Parents can create a route stop for their student
      */
-    #[RouteAttribute('', name: 'create', methods: ['POST'])]
+    #[RouteAttribute('/api/route-stops', name: 'api_route_stops_create', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function createRouteStop(Request $request): JsonResponse
     {
@@ -44,47 +46,47 @@ class RouteStopController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['route'], $data['student'], $data['address'])) {
+        if (! isset($data['route'], $data['student'], $data['address'])) {
             return $this->json([
-                'error' => 'Missing required fields: route, student, address'
+                'error' => 'Missing required fields: route, student, address',
             ], Response::HTTP_BAD_REQUEST);
         }
 
         /** @var Route $route */
         $route = $this->getEntityByIri($data['route']);
-        if (!$route) {
+        if (! $route) {
             return $this->json([
-                'error' => 'Route not found'
+                'error' => 'Route not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
         /** @var Student $student */
         $student = $this->getEntityByIri($data['student']);
-        if (!$student) {
+        if (! $student) {
             return $this->json([
-                'error' => 'Student not found'
+                'error' => 'Student not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
         // Verify a student belongs to the parent
-        if (!$user->getStudents()->contains($student)) {
+        if (! $user->getStudents()->contains($student)) {
             return $this->json([
-                'error' => 'Student does not belong to you'
+                'error' => 'Student does not belong to you',
             ], Response::HTTP_FORBIDDEN);
         }
 
         // Verify a student belongs to the same school as the route
         if ($student->getSchool() !== $route->getSchool()) {
             return $this->json([
-                'error' => 'Student does not belong to the route\'s school'
+                'error' => "Student does not belong to the route's school",
             ], Response::HTTP_FORBIDDEN);
         }
 
         /** @var Address $address */
         $address = $this->getEntityByIri($data['address']);
-        if (!$address) {
+        if (! $address) {
             return $this->json([
-                'error' => 'Address not found'
+                'error' => 'Address not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -105,27 +107,29 @@ class RouteStopController extends AbstractController
         return $this->json([
             'success' => true,
             'route_stop_id' => $routeStop->getId(),
-            'message' => 'Route stop created successfully. Waiting for driver confirmation.'
+            'message' => 'Route stop created successfully. Waiting for driver confirmation.',
         ], Response::HTTP_CREATED);
     }
 
     /**
      * Drivers can list unconfirmed route stops for their routes
      */
-    #[RouteAttribute('/unconfirmed', name: 'unconfirmed', methods: ['GET'])]
+    #[RouteAttribute('/api/route-stops/unconfirmed', name: 'api_route_stops_unconfirmed', methods: ['GET'])]
     #[IsGranted('ROLE_DRIVER')]
     public function listUnconfirmedRouteStops(): JsonResponse
     {
         $driver = $this->getDriver();
 
-        if (!$driver) {
+        if (! $driver instanceof \App\Entity\Driver) {
             return $this->json([
-                'error' => 'Driver profile not found'
+                'error' => 'Driver profile not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
         /** @var Route[] $driverRoutes */
-        $driverRoutes = $this->routeRepository->findBy(['driver' => $driver]);
+        $driverRoutes = $this->routeRepository->findBy([
+            'driver' => $driver,
+        ]);
 
         $unconfirmedStops = [];
         foreach ($driverRoutes as $route) {
@@ -171,7 +175,7 @@ class RouteStopController extends AbstractController
     /**
      * Drivers can confirm a route stop
      */
-    #[RouteAttribute('/{id}/confirm', name: 'confirm', methods: ['PATCH'])]
+    #[RouteAttribute('/api/route-stops/{id}/confirm', name: 'api_route_stops_confirm', methods: ['PATCH'])]
     #[IsGranted('ROLE_DRIVER')]
     public function confirmRouteStop(int $id): JsonResponse
     {
@@ -181,20 +185,20 @@ class RouteStopController extends AbstractController
     /**
      * Drivers can reject (deactivate) a route stop
      */
-    #[RouteAttribute('/{id}/reject', name: 'reject', methods: ['PATCH'])]
+    #[RouteAttribute('/api/route-stops/{id}/reject', name: 'api_route_stops_reject', methods: ['PATCH'])]
     #[IsGranted('ROLE_DRIVER')]
     public function rejectRouteStop(int $id): JsonResponse
     {
         return $this->updateConfirmationOnRouteStop(false, $id, 'Route stop rejected successfully');
     }
 
-    private function getEntityByIri(string $iri): ?object
+    private function getEntityByIri(string $iri): object
     {
         try {
             return $this->iriConverter->getResourceFromIri($iri);
         } catch (RouteNotFoundException | MissingMandatoryParametersException) {
             return $this->json([
-                'error' => 'Not found or invalid resource IRI provided: ' . $iri . '.'
+                'error' => 'Not found or invalid resource IRI provided: ' . $iri . '.',
             ], Response::HTTP_BAD_REQUEST);
         }
     }
@@ -204,7 +208,7 @@ class RouteStopController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        if (!$user instanceof User) {
+        if (! $user instanceof User) {
             return null;
         }
 
@@ -215,28 +219,29 @@ class RouteStopController extends AbstractController
     {
         $driver = $this->getDriver();
 
-        if (!$driver) {
+        if (! $driver instanceof \App\Entity\Driver) {
             return $this->json([
-                'error' => 'Driver profile not found'
+                'error' => 'Driver profile not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
         $routeStop = $this->routeStopRepository->find($routeStopId);
 
-        if (!$routeStop) {
+        if (! $routeStop instanceof \App\Entity\RouteStop) {
             return $this->json([
-                'error' => 'Route stop not found'
+                'error' => 'Route stop not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
         if ($routeStop->getRoute()->getDriver() !== $driver) {
             return $this->json([
-                'error' => 'This route stop does not belong to your routes'
+                'error' => 'This route stop does not belong to your routes',
             ], Response::HTTP_FORBIDDEN);
         }
 
         $routeStop->setIsActive($confirmed);
         $routeStop->setIsConfirmed($confirmed);
+
         $this->entityManager->flush();
 
         return $this->json([

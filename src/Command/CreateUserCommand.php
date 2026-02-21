@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\Entity\User;
@@ -56,25 +58,29 @@ class CreateUserCommand extends Command
         $isSuperAdmin = $input->getOption('super-admin');
 
         // Validate identification number format
-        if (!preg_match('/^\d{8,10}$/', $identificationNumber)) {
+        if (! preg_match('/^\d{8,10}$/', (string) $identificationNumber)) {
             $io->error('Identification number must be 8 to 10 digits.');
             return Command::FAILURE;
         }
 
         // Check if user already exists
         $existingUser = $this->entityManager->getRepository(User::class)
-            ->findOneBy(['email' => $email]);
+            ->findOneBy([
+                'email' => $email,
+            ]);
 
-        if ($existingUser) {
+        if ($existingUser instanceof \App\Entity\User) {
             $io->error(sprintf('User with email "%s" already exists.', $email));
             return Command::FAILURE;
         }
 
         // Check if identification number already exists
         $existingUserByIdNumber = $this->entityManager->getRepository(User::class)
-            ->findOneBy(['identificationNumber' => $identificationNumber]);
+            ->findOneBy([
+                'identificationNumber' => $identificationNumber,
+            ]);
 
-        if ($existingUserByIdNumber) {
+        if ($existingUserByIdNumber instanceof \App\Entity\User) {
             $io->error(sprintf('User with identification number "%s" already exists.', $identificationNumber));
             return Command::FAILURE;
         }
@@ -122,8 +128,8 @@ class CreateUserCommand extends Command
             );
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
-            $io->error(sprintf('Failed to create user: %s', $e->getMessage()));
+        } catch (\Exception $exception) {
+            $io->error(sprintf('Failed to create user: %s', $exception->getMessage()));
             return Command::FAILURE;
         }
     }

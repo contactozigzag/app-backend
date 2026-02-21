@@ -4,45 +4,42 @@ declare(strict_types=1);
 
 namespace App\Service\Payment;
 
+use App\Entity\Driver;
 use App\Entity\Payment;
 use App\Entity\PaymentTransaction;
 use App\Entity\Student;
 use App\Entity\User;
+use App\Enum\PaymentMethod;
 use App\Enum\PaymentStatus;
 use App\Enum\TransactionEvent;
-use App\Repository\PaymentRepository;
 use App\Repository\StudentRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class PaymentProcessor
 {
-    private const MAX_RETRIES = 3;
-    private const RETRY_DELAY_MS = [1000, 2000, 4000]; // Exponential backoff
+    private const int MAX_RETRIES = 3;
+
+    private const array RETRY_DELAY_MS = [1000, 2000, 4000]; // Exponential backoff
 
     public function __construct(
-        private readonly PaymentRepository $paymentRepository,
         private readonly StudentRepository $studentRepository,
         private readonly MercadoPagoService $mercadoPagoService,
+        private readonly MercadoPagoOAuthService $oauthService,
         private readonly IdempotencyService $idempotencyService,
         private readonly EntityManagerInterface $entityManager,
-        private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
     ) {
     }
 
     /**
-     * Create a new payment with idempotency protection
+     * Create a new payment with idempotency protection.
      *
-     * @param User $user
+     * @param User $user The parent making the payment
      * @param array<int> $studentIds
-     * @param string $amount
-     * @param string $description
-     * @param string $idempotencyKey
-     * @param string $currency
-     * @return Payment
-     * @throws \Exception
+     * @param Driver|null $driver The driver who will receive the funds
+     * @throws InvalidArgumentException
      */
     public function createPayment(
         User $user,
@@ -50,24 +47,34 @@ class PaymentProcessor
         string $amount,
         string $description,
         string $idempotencyKey,
-        string $currency = 'USD'
+        string $currency = 'USD',
+        ?Driver $driver = null,
     ): Payment {
+        if ($driver instanceof \App\Entity\Driver && ! $driver->hasMpAuthorized()) {
+            throw new \InvalidArgumentException(
+                sprintf('Driver %s has not connected their Mercado Pago account.', $driver->getId())
+            );
+        }
+
         return $this->idempotencyService->processWithIdempotency(
             $idempotencyKey,
-            function () use ($user, $studentIds, $amount, $description, $idempotencyKey, $currency) {
+            function () use ($user, $driver, $studentIds, $amount, $description, $idempotencyKey, $currency): \App\Entity\Payment {
                 $this->logger->info('Creating payment', [
                     'user_id' => $user->getId(),
+                    'driver_id' => $driver?->getId(),
                     'student_ids' => $studentIds,
                     'amount' => $amount,
                     'idempotency_key' => $idempotencyKey,
                 ]);
 
-                // Validate students belong to user
                 $students = $this->validateAndGetStudents($user, $studentIds);
 
-                // Create payment entity
                 $payment = new Payment();
                 $payment->setUser($user);
+                if ($driver instanceof \App\Entity\Driver) {
+                    $payment->setDriver($driver);
+                }
+
                 $payment->setAmount($amount);
                 $payment->setCurrency($currency);
                 $payment->setDescription($description);
@@ -79,21 +86,21 @@ class PaymentProcessor
                     $payment->addStudent($student);
                 }
 
-                // Create initial transaction record
                 $transaction = new PaymentTransaction();
                 $transaction->setPayment($payment);
                 $transaction->setEventType(TransactionEvent::CREATED);
                 $transaction->setStatus(PaymentStatus::PENDING);
                 $transaction->setIdempotencyKey($idempotencyKey);
+
                 $payment->addTransaction($transaction);
 
-                // Persist payment
                 $this->entityManager->persist($payment);
                 $this->entityManager->flush();
 
                 $this->logger->info('Payment created successfully', [
                     'payment_id' => $payment->getId(),
                     'user_id' => $user->getId(),
+                    'driver_id' => $driver?->getId(),
                 ]);
 
                 return $payment;
@@ -102,19 +109,28 @@ class PaymentProcessor
     }
 
     /**
-     * Create Mercado Pago preference for payment
+     * Create Mercado Pago Marketplace preference for payment.
      *
-     * @param Payment $payment
-     * @param string $backUrl
-     * @param string $notificationUrl
+     * Fetches (and auto-refreshes) the driver's access token then delegates
+     * to MercadoPagoService, which passes it as a per-request RequestOptions.
+     *
+     * @param Payment $payment Must have a driver with a valid MP account
      * @return array{preference_id: string, init_point: string}
      * @throws \Exception
      */
     public function createPaymentPreference(
         Payment $payment,
         string $backUrl,
-        string $notificationUrl
+        string $notificationUrl,
     ): array {
+        $driver = $payment->getDriver();
+        if (! $driver instanceof \App\Entity\Driver) {
+            throw new \InvalidArgumentException('Payment has no driver — cannot create a marketplace preference.');
+        }
+
+        // Decrypt and (if needed) refresh the driver's access token before use
+        $driverAccessToken = $this->oauthService->getAccessToken($driver);
+
         $retryCount = 0;
 
         while ($retryCount < self::MAX_RETRIES) {
@@ -123,7 +139,8 @@ class PaymentProcessor
                     $payment,
                     $payment->getUser(),
                     $backUrl,
-                    $notificationUrl
+                    $notificationUrl,
+                    $driverAccessToken,
                 );
 
                 // Update payment with preference ID
@@ -157,12 +174,7 @@ class PaymentProcessor
     }
 
     /**
-     * Update payment status from webhook
-     *
-     * @param Payment $payment
-     * @param string $paymentProviderId
-     * @param array $webhookData
-     * @return Payment
+     * Update payment status from the webhook
      */
     public function updatePaymentFromWebhook(
         Payment $payment,
@@ -187,7 +199,7 @@ class PaymentProcessor
             $payment->setMetadata($paymentDetails);
 
             // Set paid_at if approved
-            if ($newStatus === PaymentStatus::APPROVED && $payment->getPaidAt() === null) {
+            if ($newStatus === PaymentStatus::APPROVED && ! $payment->getPaidAt() instanceof \DateTimeImmutable) {
                 $payment->setPaidAt(new \DateTimeImmutable());
             }
 
@@ -197,7 +209,7 @@ class PaymentProcessor
                 $payment->setPaymentMethod($paymentMethod);
             }
 
-            // Create transaction record
+            // Create a transaction record
             $transaction = new PaymentTransaction();
             $transaction->setPayment($payment);
             $transaction->setEventType(TransactionEvent::WEBHOOK_RECEIVED);
@@ -222,9 +234,6 @@ class PaymentProcessor
 
     /**
      * Synchronize payment status with Mercado Pago
-     *
-     * @param Payment $payment
-     * @return Payment
      */
     public function syncPaymentStatus(Payment $payment): Payment
     {
@@ -245,7 +254,7 @@ class PaymentProcessor
                 $payment->setStatus($newStatus);
                 $payment->setMetadata($paymentDetails);
 
-                if ($newStatus === PaymentStatus::APPROVED && $payment->getPaidAt() === null) {
+                if ($newStatus === PaymentStatus::APPROVED && ! $payment->getPaidAt() instanceof \DateTimeImmutable) {
                     $payment->setPaidAt(new \DateTimeImmutable());
                 }
 
@@ -256,10 +265,10 @@ class PaymentProcessor
                     'status' => $newStatus->value,
                 ]);
             }
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             $this->logger->error('Failed to synchronize payment status', [
                 'payment_id' => $payment->getId(),
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
             ]);
         }
 
@@ -269,14 +278,13 @@ class PaymentProcessor
     /**
      * Validate and retrieve students
      *
-     * @param User $user
      * @param array<int> $studentIds
      * @return array<Student>
      * @throws \InvalidArgumentException
      */
     private function validateAndGetStudents(User $user, array $studentIds): array
     {
-        if (empty($studentIds)) {
+        if ($studentIds === []) {
             throw new \InvalidArgumentException('At least one student must be specified');
         }
 
@@ -284,13 +292,13 @@ class PaymentProcessor
         foreach ($studentIds as $studentId) {
             $student = $this->studentRepository->find($studentId);
 
-            if (!$student) {
-                throw new \InvalidArgumentException("Student with ID {$studentId} not found");
+            if (! $student instanceof \App\Entity\Student) {
+                throw new \InvalidArgumentException(sprintf('Student with ID %d not found', $studentId));
             }
 
-            // Verify student belongs to user (parent relationship)
-            if (!$student->getParents()->contains($user)) {
-                throw new \InvalidArgumentException("Student with ID {$studentId} does not belong to user");
+            // Verify a student belongs to user (parent relationship)
+            if (! $student->getParents()->contains($user)) {
+                throw new \InvalidArgumentException(sprintf('Student with ID %d does not belong to user', $studentId));
             }
 
             $students[] = $student;
@@ -307,10 +315,8 @@ class PaymentProcessor
         return match ($mpStatus) {
             'approved' => PaymentStatus::APPROVED,
             'rejected', 'cancelled' => PaymentStatus::REJECTED,
-            'refunded' => PaymentStatus::REFUNDED,
-            'charged_back' => PaymentStatus::REFUNDED,
+            'refunded', 'charged_back' => PaymentStatus::REFUNDED,
             'in_process', 'in_mediation' => PaymentStatus::PROCESSING,
-            'pending' => PaymentStatus::PENDING,
             default => PaymentStatus::PENDING,
         };
     }
@@ -318,14 +324,14 @@ class PaymentProcessor
     /**
      * Map Mercado Pago payment method to internal enum
      */
-    private function mapPaymentMethod(string $mpMethod): ?\App\Enum\PaymentMethod
+    private function mapPaymentMethod(string $mpMethod): \App\Enum\PaymentMethod
     {
         return match (true) {
-            str_contains($mpMethod, 'credit') => \App\Enum\PaymentMethod::CREDIT_CARD,
-            str_contains($mpMethod, 'debit') => \App\Enum\PaymentMethod::DEBIT_CARD,
-            str_contains($mpMethod, 'ticket') => \App\Enum\PaymentMethod::CASH,
-            str_contains($mpMethod, 'bank') => \App\Enum\PaymentMethod::BANK_TRANSFER,
-            default => \App\Enum\PaymentMethod::MERCADO_PAGO,
+            str_contains($mpMethod, 'credit') => PaymentMethod::CREDIT_CARD,
+            str_contains($mpMethod, 'debit') => PaymentMethod::DEBIT_CARD,
+            str_contains($mpMethod, 'ticket') => PaymentMethod::CASH,
+            str_contains($mpMethod, 'bank') => PaymentMethod::BANK_TRANSFER,
+            default => PaymentMethod::MERCADO_PAGO,
         };
     }
 }

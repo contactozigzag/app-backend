@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
 use App\Enum\PaymentMethod;
 use App\Enum\PaymentStatus;
 use App\Repository\PaymentRepository;
@@ -14,7 +11,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PaymentRepository::class)]
@@ -23,14 +20,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_payments_provider_id', columns: ['payment_provider_id'])]
 #[ORM\Index(name: 'idx_payments_idempotency', columns: ['idempotency_key'])]
 #[ORM\Index(name: 'idx_payments_created_at', columns: ['created_at'])]
-#[ApiResource(
-    operations: [
-        new Get(normalizationContext: ['groups' => ['payment:read', 'payment:detail']]),
-        new GetCollection(normalizationContext: ['groups' => ['payment:read', 'payment:list']]),
-    ],
-    security: 'is_granted("ROLE_USER")',
-    paginationItemsPerPage: 30
-)]
 class Payment
 {
     #[ORM\Id]
@@ -43,6 +32,15 @@ class Payment
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['payment:read'])]
     private ?User $user = null;
+
+    /**
+     * The driver who receives the funds.
+     * Nullable at the DB level for migration safety; new payments always require a driver.
+     */
+    #[ORM\ManyToOne(targetEntity: Driver::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['payment:read', 'payment:detail'])]
+    private ?Driver $driver = null;
 
     /**
      * @var Collection<int, Student>
@@ -64,7 +62,7 @@ class Payment
     #[Groups(['payment:read', 'payment:list'])]
     private string $currency = 'USD';
 
-    #[ORM\Column(type: Types::STRING, length: 50, enumType: PaymentMethod::class, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 50, nullable: true, enumType: PaymentMethod::class)]
     #[Groups(['payment:read', 'payment:list'])]
     private ?PaymentMethod $paymentMethod = null;
 
@@ -94,10 +92,10 @@ class Payment
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['payment:read', 'payment:list'])]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['payment:read', 'payment:detail'])]
@@ -107,14 +105,16 @@ class Payment
     #[Groups(['payment:read', 'payment:detail'])]
     private ?\DateTimeImmutable $expiresAt = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, options: ['default' => '0.00'])]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, options: [
+        'default' => '0.00',
+    ])]
     #[Groups(['payment:read', 'payment:detail'])]
     private string $refundedAmount = '0.00';
 
     /**
      * @var Collection<int, PaymentTransaction>
      */
-    #[ORM\OneToMany(mappedBy: 'payment', targetEntity: PaymentTransaction::class, cascade: ['persist'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: PaymentTransaction::class, mappedBy: 'payment', cascade: ['persist'], orphanRemoval: true)]
     private Collection $transactions;
 
     public function __construct()
@@ -152,7 +152,7 @@ class Payment
 
     public function addStudent(Student $student): static
     {
-        if (!$this->students->contains($student)) {
+        if (! $this->students->contains($student)) {
             $this->students->add($student);
         }
 
@@ -239,11 +239,17 @@ class Payment
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getMetadata(): ?array
     {
         return $this->metadata;
     }
 
+    /**
+     * @param array<string, mixed>|null $metadata
+     */
     public function setMetadata(?array $metadata): static
     {
         $this->metadata = $metadata;
@@ -275,12 +281,12 @@ class Payment
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -331,7 +337,7 @@ class Payment
 
     public function addTransaction(PaymentTransaction $transaction): static
     {
-        if (!$this->transactions->contains($transaction)) {
+        if (! $this->transactions->contains($transaction)) {
             $this->transactions->add($transaction);
             $transaction->setPayment($this);
         }
@@ -341,18 +347,28 @@ class Payment
 
     public function removeTransaction(PaymentTransaction $transaction): static
     {
-        if ($this->transactions->removeElement($transaction)) {
-            if ($transaction->getPayment() === $this) {
-                $transaction->setPayment(null);
-            }
+        if ($this->transactions->removeElement($transaction) && $transaction->getPayment() === $this) {
+            $transaction->setPayment(null);
         }
+
+        return $this;
+    }
+
+    public function getDriver(): ?Driver
+    {
+        return $this->driver;
+    }
+
+    public function setDriver(?Driver $driver): static
+    {
+        $this->driver = $driver;
 
         return $this;
     }
 
     public function isExpired(): bool
     {
-        return $this->expiresAt !== null && $this->expiresAt < new \DateTimeImmutable();
+        return $this->expiresAt instanceof \DateTimeImmutable && $this->expiresAt < new \DateTimeImmutable();
     }
 
     public function isRefundable(): bool
@@ -363,6 +379,6 @@ class Payment
     public function isPartiallyRefunded(): bool
     {
         return $this->status === PaymentStatus::PARTIALLY_REFUNDED
-            || ($this->refundedAmount !== '0.00' && bccomp($this->refundedAmount, $this->amount, 2) < 0);
+            || ($this->refundedAmount !== '0.00' && bccomp($this->refundedAmount, (string) $this->amount, 2) < 0);
     }
 }

@@ -50,7 +50,7 @@ class PaymentRepository extends ServiceEntityRepository
             ->setMaxResults($limit)
             ->setFirstResult($offset);
 
-        if ($status !== null) {
+        if ($status instanceof \App\Enum\PaymentStatus) {
             $qb->andWhere('p.status = :status')
                 ->setParameter('status', $status);
         }
@@ -60,12 +60,16 @@ class PaymentRepository extends ServiceEntityRepository
 
     public function findByIdempotencyKey(string $idempotencyKey): ?Payment
     {
-        return $this->findOneBy(['idempotencyKey' => $idempotencyKey]);
+        return $this->findOneBy([
+            'idempotencyKey' => $idempotencyKey,
+        ]);
     }
 
     public function findByPaymentProviderId(string $paymentProviderId): ?Payment
     {
-        return $this->findOneBy(['paymentProviderId' => $paymentProviderId]);
+        return $this->findOneBy([
+            'paymentProviderId' => $paymentProviderId,
+        ]);
     }
 
     /**

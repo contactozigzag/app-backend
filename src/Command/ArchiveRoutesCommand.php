@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\Service\RouteArchivingService;
@@ -48,8 +50,8 @@ class ArchiveRoutesCommand extends Command
             $io->success(sprintf('Successfully archived %d routes', $archivedCount));
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
-            $io->error(sprintf('Failed to archive routes: %s', $e->getMessage()));
+        } catch (\Exception $exception) {
+            $io->error(sprintf('Failed to archive routes: %s', $exception->getMessage()));
 
             return Command::FAILURE;
         }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
@@ -12,8 +14,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: RouteStopRepository::class)]
 #[ORM\Table(name: 'route_stops')]
 #[ApiResource(
-    normalizationContext: ['groups' => ['route_stop:read']],
-    denormalizationContext: ['groups' => ['route_stop:write']],
+    normalizationContext: [
+        'groups' => ['route_stop:read'],
+    ],
+    denormalizationContext: [
+        'groups' => ['route_stop:write'],
+    ],
     security: "is_granted('ROLE_USER')"
 )]
 class RouteStop
@@ -70,7 +76,7 @@ class RouteStop
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['route_stop:read'])]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     public function __construct()
     {
@@ -181,7 +187,7 @@ class RouteStop
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Doctrine\Orm\Filter\ExactFilter;
@@ -31,7 +33,7 @@ use Symfony\Component\Validator\Constraints as Assert;
                 'search[:property]' => new QueryParameter(
                     filter: new ExactFilter(),
                     properties: ['driver', 'school']
-                )
+                ),
             ]
         ),
         new Post(security: "is_granted('ROLE_DRIVER')"),
@@ -39,8 +41,12 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Patch(security: "is_granted('ROLE_DRIVER')"),
         new Delete(security: "is_granted('ROLE_DRIVER')"),
     ],
-    normalizationContext: ['groups' => ['route:read']],
-    denormalizationContext: ['groups' => ['route:write']]
+    normalizationContext: [
+        'groups' => ['route:read'],
+    ],
+    denormalizationContext: [
+        'groups' => ['route:write'],
+    ]
 )]
 class Route
 {
@@ -113,17 +119,19 @@ class Route
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['route:read'])]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['route:read'])]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     /**
      * @var Collection<int, RouteStop>
      */
     #[ORM\OneToMany(targetEntity: RouteStop::class, mappedBy: 'route', cascade: ['persist', 'remove'], orphanRemoval: true)]
-    #[ORM\OrderBy(['stopOrder' => 'ASC'])]
+    #[ORM\OrderBy([
+        'stopOrder' => 'ASC',
+    ])]
     #[Groups(['route:read', 'route:write'])]
     private Collection $stops;
 
@@ -288,12 +296,12 @@ class Route
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -308,7 +316,7 @@ class Route
 
     public function addStop(RouteStop $stop): static
     {
-        if (!$this->stops->contains($stop)) {
+        if (! $this->stops->contains($stop)) {
             $this->stops->add($stop);
             $stop->setRoute($this);
         }
@@ -318,10 +326,8 @@ class Route
 
     public function removeStop(RouteStop $stop): static
     {
-        if ($this->stops->removeElement($stop)) {
-            if ($stop->getRoute() === $this) {
-                $stop->setRoute(null);
-            }
+        if ($this->stops->removeElement($stop) && $stop->getRoute() === $this) {
+            $stop->setRoute(null);
         }
 
         return $this;

@@ -66,6 +66,9 @@ security:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/users$, roles: PUBLIC_ACCESS, methods: [POST] }
         - { path: ^/api/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/oauth/mercadopago/callback, roles: PUBLIC_ACCESS }
+        # Webhook endpoint: authenticated by HMAC signature, not JWT
+        - { path: ^/api/webhooks, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/admin, roles: ROLE_SUPER_ADMIN }
         - { path: ^/, roles: PUBLIC_ACCESS }

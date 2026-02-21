@@ -16,7 +16,7 @@ use Symfony\Component\Mercure\Update;
 readonly class PaymentEventSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private HubInterface    $hub,
+        private HubInterface $hub,
         private LoggerInterface $logger
     ) {
     }
@@ -37,10 +37,10 @@ readonly class PaymentEventSubscriber implements EventSubscriberInterface
 
         $this->logger->info('Payment created event received', [
             'payment_id' => $payment->getId(),
-            'user_id' => $payment->getUser()->getId(),
+            'user_id' => $payment->getUser()?->getId(),
         ]);
 
-        $this->publishUpdate($payment->getId(), [
+        $this->publishUpdate((int) $payment->getId(), [
             'event' => 'payment.created',
             'payment_id' => $payment->getId(),
             'status' => $payment->getStatus()->value,
@@ -56,10 +56,10 @@ readonly class PaymentEventSubscriber implements EventSubscriberInterface
 
         $this->logger->info('Payment approved event received', [
             'payment_id' => $payment->getId(),
-            'user_id' => $payment->getUser()->getId(),
+            'user_id' => $payment->getUser()?->getId(),
         ]);
 
-        $this->publishUpdate($payment->getId(), [
+        $this->publishUpdate((int) $payment->getId(), [
             'event' => 'payment.approved',
             'payment_id' => $payment->getId(),
             'status' => $payment->getStatus()->value,
@@ -77,11 +77,11 @@ readonly class PaymentEventSubscriber implements EventSubscriberInterface
 
         $this->logger->info('Payment failed event received', [
             'payment_id' => $payment->getId(),
-            'user_id' => $payment->getUser()->getId(),
+            'user_id' => $payment->getUser()?->getId(),
             'reason' => $event->getReason(),
         ]);
 
-        $this->publishUpdate($payment->getId(), [
+        $this->publishUpdate((int) $payment->getId(), [
             'event' => 'payment.failed',
             'payment_id' => $payment->getId(),
             'status' => $payment->getStatus()->value,
@@ -96,12 +96,12 @@ readonly class PaymentEventSubscriber implements EventSubscriberInterface
 
         $this->logger->info('Payment refunded event received', [
             'payment_id' => $payment->getId(),
-            'user_id' => $payment->getUser()->getId(),
+            'user_id' => $payment->getUser()?->getId(),
             'refund_amount' => $event->getRefundAmount(),
             'is_partial' => $event->isPartialRefund(),
         ]);
 
-        $this->publishUpdate($payment->getId(), [
+        $this->publishUpdate((int) $payment->getId(), [
             'event' => 'payment.refunded',
             'payment_id' => $payment->getId(),
             'status' => $payment->getStatus()->value,
@@ -117,8 +117,8 @@ readonly class PaymentEventSubscriber implements EventSubscriberInterface
     {
         try {
             $update = new Update(
-                topics: ["/payments/{$paymentId}"],
-                data: json_encode($data),
+                topics: ['/payments/' . $paymentId],
+                data: (string) json_encode($data),
                 private: true
             );
 
@@ -128,10 +128,10 @@ readonly class PaymentEventSubscriber implements EventSubscriberInterface
                 'payment_id' => $paymentId,
                 'event' => $data['event'],
             ]);
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             $this->logger->error('Failed to publish Mercure update', [
                 'payment_id' => $paymentId,
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
             ]);
         }
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
@@ -13,15 +15,19 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LocationUpdateRepository::class)]
 #[ORM\Table(name: 'location_updates')]
-#[ORM\Index(columns: ['driver_id', 'created_at'], name: 'idx_driver_created')]
-#[ORM\Index(columns: ['active_route_id', 'created_at'], name: 'idx_route_created')]
+#[ORM\Index(name: 'idx_driver_created', columns: ['driver_id', 'created_at'])]
+#[ORM\Index(name: 'idx_route_created', columns: ['active_route_id', 'created_at'])]
 #[ApiResource(
     operations: [
         new Post(security: "is_granted('ROLE_DRIVER')"),
         new GetCollection(security: "is_granted('ROLE_USER')"),
     ],
-    normalizationContext: ['groups' => ['location:read']],
-    denormalizationContext: ['groups' => ['location:write']]
+    normalizationContext: [
+        'groups' => ['location:read'],
+    ],
+    denormalizationContext: [
+        'groups' => ['location:write'],
+    ]
 )]
 class LocationUpdate
 {
@@ -72,7 +78,7 @@ class LocationUpdate
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['location:read'])]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     public function __construct()
     {
@@ -172,7 +178,7 @@ class LocationUpdate
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
