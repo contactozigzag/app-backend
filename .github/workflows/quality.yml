@@ -87,7 +87,9 @@ jobs:
           openssl rsa -pubout -in config/jwt/private.pem -out config/jwt/public.pem -passin pass:test 2>/dev/null
 
       - name: Warm up Symfony cache (needed for container XML)
-        run: php bin/console cache:warmup --env=dev --no-debug
+        run: php bin/console cache:warmup --env=dev
+        env:
+          APP_ENV: dev
 
       - name: Run PHPStan
         run: >
