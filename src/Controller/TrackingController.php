@@ -5,14 +5,19 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\LocationUpdate;
+use App\Message\DriverLocationUpdatedMessage;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\DriverRepository;
 use App\Repository\LocationUpdateRepository;
+use App\Service\DriverLocationCacheService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -23,7 +28,11 @@ class TrackingController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly LocationUpdateRepository $locationRepository,
         private readonly DriverRepository $driverRepository,
-        private readonly ActiveRouteRepository $activeRouteRepository
+        private readonly ActiveRouteRepository $activeRouteRepository,
+        private readonly MessageBusInterface $bus,
+        #[Autowire(service: 'limiter.gps_ingestion')]
+        private readonly RateLimiterFactoryInterface $gpsIngestionLimiter,
+        private readonly DriverLocationCacheService $locationCache,
     ) {
     }
 
@@ -49,20 +58,28 @@ class TrackingController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
+        // Rate-limit per driver (1 update per 3 seconds)
+        $limiter = $this->gpsIngestionLimiter->create(sprintf('driver_%d', $driver->getId()));
+        if (! $limiter->consume(1)->isAccepted()) {
+            return $this->json([
+                'error' => 'Too many GPS updates. Please wait before sending another.',
+            ], Response::HTTP_TOO_MANY_REQUESTS);
+        }
+
         // Check if driver has an active route today
         $today = new \DateTimeImmutable('today');
         $activeRoute = $this->activeRouteRepository->findActiveByDriverAndDate($driver, $today);
 
-        // Create location update
+        $recordedAt = isset($data['timestamp'])
+            ? new \DateTimeImmutable($data['timestamp'])
+            : new \DateTimeImmutable();
+
+        // Persist LocationUpdate to DB (kept for history/audit)
         $location = new LocationUpdate();
         $location->setDriver($driver);
         $location->setLatitude((string) $data['latitude']);
         $location->setLongitude((string) $data['longitude']);
-        $location->setTimestamp(
-            isset($data['timestamp'])
-                ? new \DateTimeImmutable($data['timestamp'])
-                : new \DateTimeImmutable()
-        );
+        $location->setTimestamp($recordedAt);
 
         if (isset($data['speed'])) {
             $location->setSpeed((string) $data['speed']);
@@ -86,6 +103,32 @@ class TrackingController extends AbstractController
 
         $this->entityManager->persist($location);
         $this->entityManager->flush();
+
+        $lat = (float) $data['latitude'];
+        $lng = (float) $data['longitude'];
+        $speed = isset($data['speed']) ? (float) $data['speed'] : null;
+        $heading = isset($data['heading']) ? (float) $data['heading'] : null;
+        $activeRouteId = $activeRoute?->getId();
+
+        // Cache latest position in Redis (15s TTL)
+        $this->locationCache->cacheLocation($driver->getId(), $lat, $lng, $speed, $heading, $activeRouteId);
+
+        // Build correlation ID
+        $correlationId = $activeRouteId !== null
+            ? (string) $activeRouteId
+            : sprintf('driver-%d-%d', $driver->getId(), $recordedAt->getTimestamp());
+
+        // Dispatch async tracking pipeline
+        $this->bus->dispatch(new DriverLocationUpdatedMessage(
+            driverId: $driver->getId(),
+            activeRouteId: $activeRouteId,
+            latitude: $lat,
+            longitude: $lng,
+            speed: $speed,
+            heading: $heading,
+            correlationId: $correlationId,
+            recordedAt: $recordedAt,
+        ));
 
         return $this->json([
             'success' => true,
@@ -166,7 +209,7 @@ class TrackingController extends AbstractController
     }
 
     /**
-     * Get latest location for a driver
+     * Get latest location for a driver (Redis-first, DB fallback)
      */
     #[Route('/api/tracking/location/driver/{driverId}', name: 'api_tracking_driver_location', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
@@ -179,6 +222,22 @@ class TrackingController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
+        // Try Redis cache first
+        $cached = $this->locationCache->getLocation($driverId);
+        if ($cached !== null) {
+            return $this->json([
+                'driver_id' => $driverId,
+                'latitude' => $cached['lat'],
+                'longitude' => $cached['lng'],
+                'speed' => $cached['speed'],
+                'heading' => $cached['heading'],
+                'accuracy' => null,
+                'timestamp' => $cached['cachedAt'],
+                'source' => 'cache',
+            ]);
+        }
+
+        // Fall back to DB
         $location = $this->locationRepository->findLatestByDriver($driver);
 
         if (! $location instanceof \App\Entity\LocationUpdate) {
@@ -195,6 +254,7 @@ class TrackingController extends AbstractController
             'heading' => $location->getHeading(),
             'accuracy' => $location->getAccuracy(),
             'timestamp' => $location->getTimestamp()->format('c'),
+            'source' => 'db',
         ]);
     }
 
@@ -202,7 +262,7 @@ class TrackingController extends AbstractController
      * Get location history for a driver
      */
     #[Route('/api/tracking/location/driver/{driverId}/history', name: 'api_tracking_driver_location_history', methods: ['GET'])]
-    #[IsGranted('ROLE_SCHOOL_ADMIN')]
+    #[IsGranted('ROUTE_MANAGE')]
     public function getDriverLocationHistory(int $driverId, Request $request): JsonResponse
     {
         $driver = $this->driverRepository->find($driverId);

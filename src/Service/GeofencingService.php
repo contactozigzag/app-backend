@@ -18,7 +18,8 @@ class GeofencingService
         private readonly EntityManagerInterface $entityManager,
         private readonly ActiveRouteStopRepository $stopRepository,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly GeoCalculatorService $geoCalculator,
     ) {
     }
 
@@ -31,7 +32,7 @@ class GeofencingService
      */
     public function isWithinGeofence(array $location, array $geofenceCenter, int $radius): bool
     {
-        $distance = $this->calculateDistance(
+        $distance = $this->geoCalculator->calculateDistance(
             $location['lat'],
             $location['lng'],
             $geofenceCenter['lat'],
@@ -39,27 +40,6 @@ class GeofencingService
         );
 
         return $distance <= $radius;
-    }
-
-    /**
-     * Calculate distance between two coordinates using Haversine formula
-     *
-     * @return float distance in meters
-     */
-    private function calculateDistance(float $lat1, float $lng1, float $lat2, float $lng2): float
-    {
-        $earthRadius = 6371000; // meters
-
-        $dLat = deg2rad($lat2 - $lat1);
-        $dLng = deg2rad($lng2 - $lng1);
-
-        $a = sin($dLat / 2) * sin($dLat / 2) +
-            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-            sin($dLng / 2) * sin($dLng / 2);
-
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-        return $earthRadius * $c;
     }
 
     /**
@@ -106,7 +86,7 @@ class GeofencingService
                 'lng' => (float) $address->getLongitude(),
             ];
 
-            $distance = $this->calculateDistance(
+            $distance = $this->geoCalculator->calculateDistance(
                 $currentLocation['lat'],
                 $currentLocation['lng'],
                 $stopLocation['lat'],
@@ -211,7 +191,7 @@ class GeofencingService
             'lng' => (float) $address->getLongitude(),
         ];
 
-        $distance = $this->calculateDistance(
+        $distance = $this->geoCalculator->calculateDistance(
             $currentLocation['lat'],
             $currentLocation['lng'],
             $stopLocation['lat'],

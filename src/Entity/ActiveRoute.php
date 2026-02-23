@@ -24,9 +24,9 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new Get(security: "is_granted('ROLE_USER')"),
         new GetCollection(security: "is_granted('ROLE_USER')"),
-        new Post(security: "is_granted('ROLE_SCHOOL_ADMIN')"),
+        new Post(security: "is_granted('ROUTE_MANAGE')"),
         new Patch(security: "is_granted('ROLE_DRIVER') or is_granted('ROLE_SCHOOL_ADMIN')"),
-        new Delete(security: "is_granted('ROLE_SCHOOL_ADMIN')"),
+        new Delete(security: "is_granted('ROUTE_MANAGE')"),
     ],
     normalizationContext: [
         'groups' => ['active_route:read'],

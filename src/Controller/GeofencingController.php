@@ -51,7 +51,7 @@ class GeofencingController extends AbstractController
      * Check all in-progress routes
      */
     #[Route('/api/geofencing/check-all', name: 'api_geofencing_check_all', methods: ['POST'])]
-    #[IsGranted('ROLE_SCHOOL_ADMIN')]
+    #[IsGranted('ROUTE_MANAGE')]
     public function checkAllRoutes(): JsonResponse
     {
         $activeRoutes = $this->activeRouteRepository->findInProgress();

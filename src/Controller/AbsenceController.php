@@ -159,7 +159,7 @@ class AbsenceController extends AbstractController
      * Get absences for a specific date
      */
     #[Route('/api/absences/date/{date}', name: 'api_absences_by_date', methods: ['GET'])]
-    #[IsGranted('ROLE_SCHOOL_ADMIN')]
+    #[IsGranted('ROUTE_MANAGE')]
     public function getAbsencesByDate(string $date): JsonResponse
     {
         try {
@@ -193,7 +193,7 @@ class AbsenceController extends AbstractController
      * Trigger manual recalculation for pending absences
      */
     #[Route('/api/absences/recalculate-pending', name: 'api_absences_recalculate_pending', methods: ['POST'])]
-    #[IsGranted('ROLE_SCHOOL_ADMIN')]
+    #[IsGranted('ROUTE_MANAGE')]
     public function recalculatePending(): JsonResponse
     {
         $results = $this->recalculationService->processPendingRecalculations();
