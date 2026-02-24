@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service\Payment;
 
-use RuntimeException;
-use InvalidArgumentException;
-use Throwable;
 use App\Service\Payment\TokenEncryptor;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use Throwable;
 
 final class TokenEncryptorTest extends TestCase
 {

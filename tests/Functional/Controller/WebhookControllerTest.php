@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller;
 
-use Symfony\Component\HttpFoundation\Request;
 use App\Message\ProcessWebhookMessage;
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\PaymentFactory;
 use App\Tests\Factory\UserFactory;
+use Symfony\Component\HttpFoundation\Request;
 use Zenstruck\Messenger\Test\InteractsWithMessenger;
 
 final class WebhookControllerTest extends AbstractApiTestCase

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use DateTimeImmutable;
 use App\Entity\ActiveRoute;
 use App\Entity\Driver;
 use App\Entity\LocationUpdate;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

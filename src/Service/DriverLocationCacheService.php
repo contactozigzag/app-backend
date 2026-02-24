@@ -61,7 +61,7 @@ class DriverLocationCacheService
      */
     public function getLocation(int $driverId): array|null
     {
-        $raw = $this->cache->get($this->locationKey($driverId), static fn(): string => '');
+        $raw = $this->cache->get($this->locationKey($driverId), static fn (): string => '');
 
         if ($raw === '') {
             return null;
@@ -75,7 +75,7 @@ class DriverLocationCacheService
 
     public function getLastSeen(int $driverId): DateTimeImmutable|null
     {
-        $raw = $this->cache->get($this->lastSeenKey($driverId), static fn(): string => '');
+        $raw = $this->cache->get($this->lastSeenKey($driverId), static fn (): string => '');
 
         if ($raw === '') {
             return null;

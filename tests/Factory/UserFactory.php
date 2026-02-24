@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Factory;
 
-use Override;
 use App\Entity\User;
+use Override;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 

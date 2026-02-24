@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use DateTimeImmutable;
 use ApiPlatform\Metadata\ApiResource;
 use App\Enum\EducationalLevel;
 use App\Enum\Gender;
 use App\Enum\Grade;
 use App\Repository\StudentRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

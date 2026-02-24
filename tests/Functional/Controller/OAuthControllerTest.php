@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller;
 
-use Symfony\Component\HttpFoundation\Request;
-use RuntimeException;
 use App\Service\Payment\MercadoPagoOAuthService;
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\DriverFactory;
 use App\Tests\Factory\UserFactory;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * The /oauth/mercadopago/* routes are under the "main" (form-login) firewall,

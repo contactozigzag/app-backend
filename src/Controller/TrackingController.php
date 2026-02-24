@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Driver;
-use DateTimeImmutable;
 use App\Entity\ActiveRoute;
-use Exception;
+use App\Entity\Driver;
 use App\Entity\LocationUpdate;
 use App\Message\DriverLocationUpdatedMessage;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\DriverRepository;
 use App\Repository\LocationUpdateRepository;
 use App\Service\DriverLocationCacheService;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;

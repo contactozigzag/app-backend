@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\DriverAlert;
-use Throwable;
-use DateTimeImmutable;
 use App\Entity\User;
 use App\Enum\AlertStatus;
 use App\Repository\DriverAlertRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,6 +17,7 @@ use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Throwable;
 
 #[Route(name: 'api_driver_alerts_')]
 class DriverAlertController extends AbstractController
@@ -38,7 +38,7 @@ class DriverAlertController extends AbstractController
     {
         $alert = $this->driverAlertRepository->findByAlertId($alertId);
 
-        if (!$alert instanceof DriverAlert) {
+        if (! $alert instanceof DriverAlert) {
             return $this->json([
                 'error' => 'Alert not found',
             ], Response::HTTP_NOT_FOUND);
@@ -105,7 +105,7 @@ class DriverAlertController extends AbstractController
     {
         $alert = $this->driverAlertRepository->findByAlertId($alertId);
 
-        if (!$alert instanceof DriverAlert) {
+        if (! $alert instanceof DriverAlert) {
             return $this->json([
                 'error' => 'Alert not found',
             ], Response::HTTP_NOT_FOUND);

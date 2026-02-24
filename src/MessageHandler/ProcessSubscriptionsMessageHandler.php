@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
-use DateTimeImmutable;
-use Exception;
 use App\Enum\SubscriptionStatus;
 use App\Message\ProcessSubscriptionsMessage;
 use App\Repository\SubscriptionRepository;
 use App\Service\Payment\PaymentProcessor;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 

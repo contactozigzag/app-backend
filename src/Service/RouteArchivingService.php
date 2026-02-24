@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use InvalidArgumentException;
-use DateTimeImmutable;
-use Exception;
 use App\Entity\ActiveRoute;
 use App\Entity\ArchivedRoute;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\AttendanceRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 
 class RouteArchivingService

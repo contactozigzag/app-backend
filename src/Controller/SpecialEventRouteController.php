@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use DateTimeImmutable;
 use App\Entity\SpecialEventRoute;
 use App\Entity\SpecialEventRouteStop;
 use App\Enum\DepartureMode;
@@ -15,6 +14,7 @@ use App\Message\StudentReadyForPickupMessage;
 use App\Repository\SchoolRepository;
 use App\Repository\SpecialEventRouteRepository;
 use App\Service\NotificationService;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

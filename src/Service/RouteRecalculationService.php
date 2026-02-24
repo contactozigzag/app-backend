@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use Exception;
 use App\Entity\Absence;
 use App\Entity\ActiveRoute;
 use App\Entity\ActiveRouteStop;
 use App\Repository\ActiveRouteStopRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Psr\Log\LoggerInterface;
 
 class RouteRecalculationService

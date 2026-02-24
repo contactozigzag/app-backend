@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use DateTimeImmutable;
 use App\Enum\DepartureMode;
 use App\Enum\EventType;
 use App\Enum\RouteMode;
 use App\Enum\SpecialEventRouteStatus;
 use App\Repository\SpecialEventRouteRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

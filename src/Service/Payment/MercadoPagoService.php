@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Service\Payment;
 
-use DateTime;
-use RuntimeException;
-use DateTimeInterface;
 use App\Entity\Payment;
 use App\Entity\User;
+use DateTime;
+use DateTimeInterface;
 use Exception;
 use MercadoPago\Client\Common\RequestOptions;
 use MercadoPago\Client\Payment\PaymentClient;
@@ -18,6 +17,7 @@ use MercadoPago\Exceptions\MPApiException;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Resources\Payment as MPPayment;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;

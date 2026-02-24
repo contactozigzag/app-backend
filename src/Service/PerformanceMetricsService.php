@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use DateTimeImmutable;
 use App\Entity\ArchivedRoute;
 use App\Entity\School;
 use App\Repository\ArchivedRouteRepository;
+use DateTimeImmutable;
 
 class PerformanceMetricsService
 {

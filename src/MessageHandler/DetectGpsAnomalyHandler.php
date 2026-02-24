@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
-use DateTimeImmutable;
 use App\Entity\DriverAlert;
 use App\Enum\AlertStatus;
 use App\Message\DetectGpsAnomalyMessage;
@@ -12,6 +11,7 @@ use App\Message\DriverDistressMessage;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\DriverAlertRepository;
 use App\Service\DriverLocationCacheService;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -57,7 +57,7 @@ class DetectGpsAnomalyHandler
 
             $anomalyDetected = false;
 
-            if (!$lastSeen instanceof DateTimeImmutable && $routeIsOldEnough) {
+            if (! $lastSeen instanceof DateTimeImmutable && $routeIsOldEnough) {
                 $anomalyDetected = true;
 
                 $this->logger->warning('DetectGpsAnomalyHandler: no GPS data since route started', [

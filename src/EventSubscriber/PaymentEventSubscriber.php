@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\EventSubscriber;
 
-use Exception;
 use App\Event\Payment\PaymentApprovedEvent;
 use App\Event\Payment\PaymentCreatedEvent;
 use App\Event\Payment\PaymentFailedEvent;
 use App\Event\Payment\PaymentRefundedEvent;
+use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Mercure\HubInterface;

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use DateTimeImmutable;
-use App\Entity\LocationUpdate;
 use App\Dto\ChildStatusDto;
 use App\Dto\ParentDashboardDto;
+use App\Entity\LocationUpdate;
 use App\Entity\User;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\ActiveRouteStopRepository;
 use App\Repository\AttendanceRepository;
 use App\Repository\LocationUpdateRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

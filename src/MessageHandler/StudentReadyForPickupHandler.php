@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
-use Throwable;
 use App\Message\StudentReadyForPickupMessage;
 use App\Repository\SpecialEventRouteRepository;
 use App\Service\NotificationService;
@@ -15,6 +14,7 @@ use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Throwable;
 
 #[AsMessageHandler]
 class StudentReadyForPickupHandler

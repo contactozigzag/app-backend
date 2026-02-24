@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use DateTimeImmutable;
 use App\Entity\ActiveRoute;
 use App\Entity\ActiveRouteStop;
 use App\Repository\ActiveRouteStopRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;

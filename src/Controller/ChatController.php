@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\ChatMessage;
 use App\Entity\DriverAlert;
 use App\Entity\User;
-use App\Entity\ChatMessage;
 use App\Enum\AlertStatus;
 use App\Message\ChatMessageCreatedMessage;
 use App\Repository\ChatMessageRepository;
@@ -42,7 +42,7 @@ class ChatController extends AbstractController
     {
         $alert = $this->driverAlertRepository->findByAlertId($alertId);
 
-        if (!$alert instanceof DriverAlert) {
+        if (! $alert instanceof DriverAlert) {
             return $this->json([
                 'error' => 'Alert not found',
             ], Response::HTTP_NOT_FOUND);
@@ -96,7 +96,7 @@ class ChatController extends AbstractController
     {
         $alert = $this->driverAlertRepository->findByAlertId($alertId);
 
-        if (!$alert instanceof DriverAlert) {
+        if (! $alert instanceof DriverAlert) {
             return $this->json([
                 'error' => 'Alert not found',
             ], Response::HTTP_NOT_FOUND);

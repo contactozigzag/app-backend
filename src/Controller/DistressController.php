@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\User;
 use App\Entity\DriverAlert;
+use App\Entity\User;
 use App\Enum\AlertStatus;
 use App\Message\DriverDistressMessage;
 use App\Repository\ActiveRouteRepository;

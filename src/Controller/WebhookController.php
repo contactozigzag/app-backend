@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Payment;
-use Exception;
 use App\Message\ProcessWebhookMessage;
 use App\Repository\PaymentRepository;
 use App\Service\Payment\WebhookValidator;
+use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use DateTimeImmutable;
+use App\Dto\SchoolAdminDashboardDto;
 use App\Entity\ActiveRoute;
 use App\Entity\LocationUpdate;
 use App\Entity\School;
-use App\Dto\SchoolAdminDashboardDto;
 use App\Entity\User;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\AttendanceRepository;
 use App\Repository\DriverRepository;
 use App\Repository\LocationUpdateRepository;
 use App\Repository\StudentRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

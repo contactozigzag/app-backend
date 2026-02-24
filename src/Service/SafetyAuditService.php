@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use DateTimeImmutable;
 use App\Entity\School;
 use App\Repository\AttendanceRepository;
+use DateTimeImmutable;
 
 class SafetyAuditService
 {

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Student;
-use DateTimeImmutable;
-use Exception;
 use App\Entity\Absence;
+use App\Entity\Student;
 use App\Repository\AbsenceRepository;
 use App\Repository\StudentRepository;
 use App\Service\RouteRecalculationService;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

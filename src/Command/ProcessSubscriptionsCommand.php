@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use DateTimeImmutable;
-use Exception;
 use App\Enum\SubscriptionStatus;
 use App\Repository\SubscriptionRepository;
 use App\Service\Payment\PaymentProcessor;
+use DateTimeImmutable;
+use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

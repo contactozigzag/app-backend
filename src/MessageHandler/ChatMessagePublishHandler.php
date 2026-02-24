@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
-use Throwable;
 use App\Message\ChatMessageCreatedMessage;
 use App\Repository\ChatMessageRepository;
 use App\Service\Payment\TokenEncryptor;
@@ -12,6 +11,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Throwable;
 
 #[AsMessageHandler]
 class ChatMessagePublishHandler

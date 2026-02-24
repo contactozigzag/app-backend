@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service\Payment;
 
-use RuntimeException;
-use DateTimeImmutable;
 use App\Entity\Driver;
 use App\Repository\DriverRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use MercadoPago\Client\OAuth\OAuthClient;
 use MercadoPago\Client\OAuth\OAuthCreateRequest;
@@ -16,6 +15,7 @@ use MercadoPago\Exceptions\MPApiException;
 use MercadoPago\Resources\OAuth;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
