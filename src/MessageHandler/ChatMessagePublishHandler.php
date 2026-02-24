@@ -20,7 +20,8 @@ class ChatMessagePublishHandler
         private readonly TokenEncryptor $tokenEncryptor,
         private readonly HubInterface $hub,
         private readonly LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function __invoke(ChatMessageCreatedMessage $message): void
     {

@@ -25,7 +25,8 @@ class DistressController extends AbstractController
         private readonly DriverAlertRepository $driverAlertRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly MessageBusInterface $bus,
-    ) {}
+    ) {
+    }
 
     /**
      * Trigger a distress signal for an in-progress route session.
@@ -37,11 +38,15 @@ class DistressController extends AbstractController
         $activeRoute = $this->activeRouteRepository->find($id);
 
         if ($activeRoute === null) {
-            return $this->json(['error' => 'Route session not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Route session not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if ($activeRoute->getStatus() !== 'in_progress') {
-            return $this->json(['error' => 'Route session is not in progress'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Route session is not in progress',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         /** @var \App\Entity\User $user */
@@ -49,7 +54,9 @@ class DistressController extends AbstractController
         $driver = $user->getDriver();
 
         if ($driver === null || $activeRoute->getDriver()?->getId() !== $driver->getId()) {
-            return $this->json(['error' => 'You are not the driver of this route session'], Response::HTTP_FORBIDDEN);
+            return $this->json([
+                'error' => 'You are not the driver of this route session',
+            ], Response::HTTP_FORBIDDEN);
         }
 
         // Check if there's already an active alert for this driver

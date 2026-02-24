@@ -32,7 +32,9 @@ class SpecialEventRouteStop
     #[ORM\Column]
     private int $stopOrder = 0;
 
-    /** Seconds from return departure time */
+    /**
+     * Seconds from return departure time
+     */
     #[ORM\Column(nullable: true)]
     private ?int $estimatedArrivalTime = null;
 

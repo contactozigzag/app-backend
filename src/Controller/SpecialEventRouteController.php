@@ -33,7 +33,8 @@ class SpecialEventRouteController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly MessageBusInterface $bus,
         private readonly NotificationService $notificationService,
-    ) {}
+    ) {
+    }
 
     /**
      * Create a special event route.
@@ -46,12 +47,16 @@ class SpecialEventRouteController extends AbstractController
 
         $school = $this->schoolRepository->find($data['school_id'] ?? 0);
         if ($school === null) {
-            return $this->json(['error' => 'School not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'School not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         $routeMode = RouteMode::tryFrom($data['route_mode'] ?? '');
         if ($routeMode === null) {
-            return $this->json(['error' => 'Invalid route_mode'], Response::HTTP_BAD_REQUEST);
+            return $this->json([
+                'error' => 'Invalid route_mode',
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $departureMode = isset($data['departure_mode'])
@@ -60,7 +65,9 @@ class SpecialEventRouteController extends AbstractController
 
         if ($departureMode !== null && $routeMode === RouteMode::ONE_WAY) {
             return $this->json(
-                ['error' => 'departure_mode cannot be set when route_mode is ONE_WAY'],
+                [
+                    'error' => 'departure_mode cannot be set when route_mode is ONE_WAY',
+                ],
                 Response::HTTP_UNPROCESSABLE_ENTITY,
             );
         }
@@ -89,7 +96,10 @@ class SpecialEventRouteController extends AbstractController
         $this->entityManager->persist($route);
         $this->entityManager->flush();
 
-        return $this->json(['id' => $route->getId(), 'status' => $route->getStatus()->value], Response::HTTP_CREATED);
+        return $this->json([
+            'id' => $route->getId(),
+            'status' => $route->getStatus()->value,
+        ], Response::HTTP_CREATED);
     }
 
     /**
@@ -103,7 +113,9 @@ class SpecialEventRouteController extends AbstractController
         $school = $this->schoolRepository->find($schoolId);
 
         if ($school === null) {
-            return $this->json(['error' => 'school_id is required'], Response::HTTP_BAD_REQUEST);
+            return $this->json([
+                'error' => 'school_id is required',
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $date = $request->query->get('date')
@@ -136,7 +148,9 @@ class SpecialEventRouteController extends AbstractController
     {
         $route = $this->repository->find($id);
         if ($route === null) {
-            return $this->json(['error' => 'Not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json($this->serialize($route));
@@ -151,11 +165,15 @@ class SpecialEventRouteController extends AbstractController
     {
         $route = $this->repository->find($id);
         if ($route === null) {
-            return $this->json(['error' => 'Not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if ($route->getStatus() !== SpecialEventRouteStatus::DRAFT) {
-            return $this->json(['error' => 'Only DRAFT routes can be updated'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Only DRAFT routes can be updated',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -209,12 +227,16 @@ class SpecialEventRouteController extends AbstractController
     {
         $route = $this->repository->find($id);
         if ($route === null) {
-            return $this->json(['error' => 'Not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if (! in_array($route->getStatus(), [SpecialEventRouteStatus::DRAFT, SpecialEventRouteStatus::CANCELLED], true)) {
             return $this->json(
-                ['error' => 'Only DRAFT or CANCELLED routes can be deleted'],
+                [
+                    'error' => 'Only DRAFT or CANCELLED routes can be deleted',
+                ],
                 Response::HTTP_UNPROCESSABLE_ENTITY,
             );
         }
@@ -222,7 +244,9 @@ class SpecialEventRouteController extends AbstractController
         $this->entityManager->remove($route);
         $this->entityManager->flush();
 
-        return $this->json(['success' => true]);
+        return $this->json([
+            'success' => true,
+        ]);
     }
 
     /**
@@ -234,17 +258,23 @@ class SpecialEventRouteController extends AbstractController
     {
         $route = $this->repository->find($id);
         if ($route === null) {
-            return $this->json(['error' => 'Not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if ($route->getStatus() !== SpecialEventRouteStatus::DRAFT) {
-            return $this->json(['error' => 'Only DRAFT routes can be published'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Only DRAFT routes can be published',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         // Validate departureMode + routeMode consistency
         if ($route->getDepartureMode() !== null && $route->getRouteMode() === RouteMode::ONE_WAY) {
             return $this->json(
-                ['error' => 'departure_mode cannot be set when route_mode is ONE_WAY'],
+                [
+                    'error' => 'departure_mode cannot be set when route_mode is ONE_WAY',
+                ],
                 Response::HTTP_UNPROCESSABLE_ENTITY,
             );
         }
@@ -255,7 +285,10 @@ class SpecialEventRouteController extends AbstractController
         $route->setStatus(SpecialEventRouteStatus::PUBLISHED);
         $this->entityManager->flush();
 
-        return $this->json(['id' => $route->getId(), 'status' => $route->getStatus()->value]);
+        return $this->json([
+            'id' => $route->getId(),
+            'status' => $route->getStatus()->value,
+        ]);
     }
 
     /**
@@ -267,17 +300,24 @@ class SpecialEventRouteController extends AbstractController
     {
         $route = $this->repository->find($id);
         if ($route === null) {
-            return $this->json(['error' => 'Not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if ($route->getStatus() !== SpecialEventRouteStatus::PUBLISHED) {
-            return $this->json(['error' => 'Route must be PUBLISHED to start outbound'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Route must be PUBLISHED to start outbound',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $route->setStatus(SpecialEventRouteStatus::IN_PROGRESS);
         $this->entityManager->flush();
 
-        return $this->json(['id' => $route->getId(), 'status' => $route->getStatus()->value]);
+        return $this->json([
+            'id' => $route->getId(),
+            'status' => $route->getStatus()->value,
+        ]);
     }
 
     /**
@@ -289,11 +329,15 @@ class SpecialEventRouteController extends AbstractController
     {
         $route = $this->repository->find($id);
         if ($route === null) {
-            return $this->json(['error' => 'Not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if ($route->getStatus() !== SpecialEventRouteStatus::IN_PROGRESS) {
-            return $this->json(['error' => 'Route is not IN_PROGRESS'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Route is not IN_PROGRESS',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         // ONE_WAY routes auto-complete on arrival
@@ -303,7 +347,10 @@ class SpecialEventRouteController extends AbstractController
 
         $this->entityManager->flush();
 
-        return $this->json(['id' => $route->getId(), 'status' => $route->getStatus()->value]);
+        return $this->json([
+            'id' => $route->getId(),
+            'status' => $route->getStatus()->value,
+        ]);
     }
 
     /**
@@ -315,15 +362,21 @@ class SpecialEventRouteController extends AbstractController
     {
         $route = $this->repository->find($id);
         if ($route === null) {
-            return $this->json(['error' => 'Not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if ($route->getRouteMode() === RouteMode::ONE_WAY) {
-            return $this->json(['error' => 'ONE_WAY routes do not have a return leg'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'ONE_WAY routes do not have a return leg',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if ($route->getStatus() !== SpecialEventRouteStatus::IN_PROGRESS) {
-            return $this->json(['error' => 'Route is not IN_PROGRESS'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Route is not IN_PROGRESS',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         // Mode B: notify parents that bus is departing event
@@ -341,7 +394,10 @@ class SpecialEventRouteController extends AbstractController
 
         $this->entityManager->flush();
 
-        return $this->json(['id' => $route->getId(), 'status' => $route->getStatus()->value]);
+        return $this->json([
+            'id' => $route->getId(),
+            'status' => $route->getStatus()->value,
+        ]);
     }
 
     /**
@@ -353,17 +409,24 @@ class SpecialEventRouteController extends AbstractController
     {
         $route = $this->repository->find($id);
         if ($route === null) {
-            return $this->json(['error' => 'Not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if ($route->getStatus() !== SpecialEventRouteStatus::IN_PROGRESS) {
-            return $this->json(['error' => 'Route is not IN_PROGRESS'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Route is not IN_PROGRESS',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $route->setStatus(SpecialEventRouteStatus::COMPLETED);
         $this->entityManager->flush();
 
-        return $this->json(['id' => $route->getId(), 'status' => $route->getStatus()->value]);
+        return $this->json([
+            'id' => $route->getId(),
+            'status' => $route->getStatus()->value,
+        ]);
     }
 
     /**
@@ -375,19 +438,27 @@ class SpecialEventRouteController extends AbstractController
     {
         $route = $this->repository->find($id);
         if ($route === null) {
-            return $this->json(['error' => 'Route not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Route not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if ($route->getRouteMode() !== RouteMode::FULL_DAY_TRIP) {
-            return $this->json(['error' => 'Only FULL_DAY_TRIP routes support student ready marking'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Only FULL_DAY_TRIP routes support student ready marking',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if ($route->getDepartureMode() !== DepartureMode::INDIVIDUAL) {
-            return $this->json(['error' => 'Only INDIVIDUAL departure mode supports student ready marking'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Only INDIVIDUAL departure mode supports student ready marking',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if ($route->getStatus() !== SpecialEventRouteStatus::IN_PROGRESS) {
-            return $this->json(['error' => 'Route is not IN_PROGRESS'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Route is not IN_PROGRESS',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         // Find the stop for this student
@@ -400,7 +471,9 @@ class SpecialEventRouteController extends AbstractController
         }
 
         if ($stop === null) {
-            return $this->json(['error' => 'Student stop not found for this route'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Student stop not found for this route',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         $stop->setIsStudentReady(true);
@@ -413,7 +486,9 @@ class SpecialEventRouteController extends AbstractController
             [new DelayStamp(30_000)],
         );
 
-        return $this->json(['success' => true], Response::HTTP_ACCEPTED);
+        return $this->json([
+            'success' => true,
+        ], Response::HTTP_ACCEPTED);
     }
 
     /**
@@ -447,7 +522,9 @@ class SpecialEventRouteController extends AbstractController
         }
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array<string, mixed>
+     */
     private function serialize(SpecialEventRoute $route): array
     {
         return [

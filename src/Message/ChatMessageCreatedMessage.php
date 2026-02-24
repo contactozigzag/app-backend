@@ -9,5 +9,6 @@ final readonly class ChatMessageCreatedMessage
     public function __construct(
         public int $chatMessageId,
         public string $alertId,
-    ) {}
+    ) {
+    }
 }

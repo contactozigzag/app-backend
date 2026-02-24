@@ -28,7 +28,8 @@ class ChatController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly MessageBusInterface $bus,
         private readonly TokenEncryptor $tokenEncryptor,
-    ) {}
+    ) {
+    }
 
     /**
      * Post a message to the emergency chat thread for an alert.
@@ -40,22 +41,30 @@ class ChatController extends AbstractController
         $alert = $this->driverAlertRepository->findByAlertId($alertId);
 
         if ($alert === null) {
-            return $this->json(['error' => 'Alert not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Alert not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if (! $this->isParticipant($alert)) {
-            return $this->json(['error' => 'Access denied'], Response::HTTP_FORBIDDEN);
+            return $this->json([
+                'error' => 'Access denied',
+            ], Response::HTTP_FORBIDDEN);
         }
 
         if ($alert->getStatus() === AlertStatus::RESOLVED) {
-            return $this->json(['error' => 'Chat is read-only for resolved alerts'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Chat is read-only for resolved alerts',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $data = json_decode($request->getContent(), true);
         $content = $data['content'] ?? null;
 
         if (! is_string($content) || $content === '') {
-            return $this->json(['error' => 'content is required'], Response::HTTP_BAD_REQUEST);
+            return $this->json([
+                'error' => 'content is required',
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         /** @var \App\Entity\User $user */
@@ -71,7 +80,9 @@ class ChatController extends AbstractController
 
         $this->bus->dispatch(new ChatMessageCreatedMessage((int) $chatMessage->getId(), $alert->getAlertId()));
 
-        return $this->json(['id' => $chatMessage->getId()], Response::HTTP_CREATED);
+        return $this->json([
+            'id' => $chatMessage->getId(),
+        ], Response::HTTP_CREATED);
     }
 
     /**
@@ -84,11 +95,15 @@ class ChatController extends AbstractController
         $alert = $this->driverAlertRepository->findByAlertId($alertId);
 
         if ($alert === null) {
-            return $this->json(['error' => 'Alert not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Alert not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if (! $this->isParticipant($alert)) {
-            return $this->json(['error' => 'Access denied'], Response::HTTP_FORBIDDEN);
+            return $this->json([
+                'error' => 'Access denied',
+            ], Response::HTTP_FORBIDDEN);
         }
 
         $page = max(1, (int) $request->query->get('page', 1));

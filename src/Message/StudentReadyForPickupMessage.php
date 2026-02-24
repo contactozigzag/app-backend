@@ -10,5 +10,6 @@ final readonly class StudentReadyForPickupMessage
         public int $specialEventRouteId,
         public int $studentId,
         public string $lockKey,
-    ) {}
+    ) {
+    }
 }

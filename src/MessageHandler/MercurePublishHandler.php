@@ -11,12 +11,13 @@ use Symfony\Component\Mercure\Update;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
-class MercurePublishHandler
+readonly class MercurePublishHandler
 {
     public function __construct(
-        private readonly HubInterface $hub,
-        private readonly LoggerInterface $logger,
-    ) {}
+        private HubInterface    $hub,
+        private LoggerInterface $logger,
+    ) {
+    }
 
     public function __invoke(DriverLocationUpdatedMessage $message): void
     {

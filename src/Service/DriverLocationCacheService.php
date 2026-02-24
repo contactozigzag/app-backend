@@ -10,11 +10,13 @@ use Symfony\Contracts\Cache\ItemInterface;
 class DriverLocationCacheService
 {
     private const int LOCATION_TTL_SECONDS = 15;
+
     private const int LAST_SEEN_TTL_SECONDS = 600; // 10 minutes
 
     public function __construct(
         private readonly CacheInterface $cache,
-    ) {}
+    ) {
+    }
 
     public function cacheLocation(
         int $driverId,

@@ -87,7 +87,9 @@ class SpecialEventRoute
      * @var Collection<int, SpecialEventRouteStop>
      */
     #[ORM\OneToMany(targetEntity: SpecialEventRouteStop::class, mappedBy: 'specialEventRoute', cascade: ['persist', 'remove'], orphanRemoval: true)]
-    #[ORM\OrderBy(['stopOrder' => 'ASC'])]
+    #[ORM\OrderBy([
+        'stopOrder' => 'ASC',
+    ])]
     private Collection $stops;
 
     public function __construct()

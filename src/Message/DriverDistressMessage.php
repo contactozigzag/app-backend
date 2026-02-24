@@ -8,5 +8,6 @@ final readonly class DriverDistressMessage
 {
     public function __construct(
         public int $driverAlertId,
-    ) {}
+    ) {
+    }
 }

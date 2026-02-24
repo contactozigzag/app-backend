@@ -21,7 +21,8 @@ final class RouteManagementVoter extends Voter
         private readonly RoleHierarchyInterface $roleHierarchy,
         #[Autowire('%app.driver_route_management_enabled%')]
         private readonly bool $driverRouteManagementEnabled,
-    ) {}
+    ) {
+    }
 
     protected function supports(string $attribute, mixed $subject): bool
     {

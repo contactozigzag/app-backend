@@ -55,7 +55,9 @@ class GeoCalculatorService
             );
 
             if ($distance <= $radiusMeters) {
-                $nearby[] = array_merge($pos, ['distanceMeters' => $distance]);
+                $nearby[] = array_merge($pos, [
+                    'distanceMeters' => $distance,
+                ]);
             }
         }
 

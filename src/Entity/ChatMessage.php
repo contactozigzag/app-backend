@@ -26,7 +26,9 @@ class ChatMessage
     #[ORM\JoinColumn(nullable: false)]
     private ?User $sender = null;
 
-    /** Encrypted ciphertext stored in DB */
+    /**
+     * Encrypted ciphertext stored in DB
+     */
     #[ORM\Column(type: Types::TEXT)]
     private string $content = '';
 

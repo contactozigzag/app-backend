@@ -16,7 +16,8 @@ class ProximityEvaluationHandler
 {
     public function __construct(
         private readonly LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function __invoke(DriverLocationUpdatedMessage $message): void
     {

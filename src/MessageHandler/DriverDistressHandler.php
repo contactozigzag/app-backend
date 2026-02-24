@@ -29,7 +29,8 @@ class DriverDistressHandler
         private readonly LoggerInterface $logger,
         #[Autowire('%app.distress_proximity_km%')]
         private readonly float $proximityRadiusKm,
-    ) {}
+    ) {
+    }
 
     public function __invoke(DriverDistressMessage $message): void
     {

@@ -22,7 +22,8 @@ class DriverAlertController extends AbstractController
         private readonly DriverAlertRepository $driverAlertRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly HubInterface $hub,
-    ) {}
+    ) {
+    }
 
     /**
      * Respond to a distress alert (notifies distressed driver of responder).
@@ -34,11 +35,15 @@ class DriverAlertController extends AbstractController
         $alert = $this->driverAlertRepository->findByAlertId($alertId);
 
         if ($alert === null) {
-            return $this->json(['error' => 'Alert not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Alert not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if ($alert->getStatus() !== AlertStatus::PENDING) {
-            return $this->json(['error' => 'Alert is not in PENDING state'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Alert is not in PENDING state',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         /** @var \App\Entity\User $user */
@@ -46,11 +51,15 @@ class DriverAlertController extends AbstractController
         $driver = $user->getDriver();
 
         if ($driver === null) {
-            return $this->json(['error' => 'Caller has no associated driver record'], Response::HTTP_FORBIDDEN);
+            return $this->json([
+                'error' => 'Caller has no associated driver record',
+            ], Response::HTTP_FORBIDDEN);
         }
 
         if (! in_array($driver->getId(), $alert->getNearbyDriverIds(), true)) {
-            return $this->json(['error' => 'You were not notified of this alert'], Response::HTTP_FORBIDDEN);
+            return $this->json([
+                'error' => 'You were not notified of this alert',
+            ], Response::HTTP_FORBIDDEN);
         }
 
         $alert->setStatus(AlertStatus::RESPONDED);
@@ -92,11 +101,15 @@ class DriverAlertController extends AbstractController
         $alert = $this->driverAlertRepository->findByAlertId($alertId);
 
         if ($alert === null) {
-            return $this->json(['error' => 'Alert not found'], Response::HTTP_NOT_FOUND);
+            return $this->json([
+                'error' => 'Alert not found',
+            ], Response::HTTP_NOT_FOUND);
         }
 
         if ($alert->getStatus() === AlertStatus::RESOLVED) {
-            return $this->json(['error' => 'Alert is already resolved'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json([
+                'error' => 'Alert is already resolved',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         /** @var \App\Entity\User $user */
@@ -111,7 +124,9 @@ class DriverAlertController extends AbstractController
         $isRespondingDriver = $driver !== null && $driver->getId() === $respondingDriverId;
 
         if (! $isDistressedDriver && ! $isRespondingDriver && ! $isSchoolAdmin) {
-            return $this->json(['error' => 'You are not authorised to resolve this alert'], Response::HTTP_FORBIDDEN);
+            return $this->json([
+                'error' => 'You are not authorised to resolve this alert',
+            ], Response::HTTP_FORBIDDEN);
         }
 
         $alert->setStatus(AlertStatus::RESOLVED);

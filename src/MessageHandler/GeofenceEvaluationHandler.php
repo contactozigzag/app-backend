@@ -19,7 +19,8 @@ class GeofenceEvaluationHandler
         private readonly GeofencingService $geofencingService,
         private readonly DriverLocationCacheService $locationCache,
         private readonly LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function __invoke(DriverLocationUpdatedMessage $message): void
     {

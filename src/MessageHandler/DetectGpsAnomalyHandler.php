@@ -28,7 +28,8 @@ class DetectGpsAnomalyHandler
         private readonly EntityManagerInterface $entityManager,
         private readonly MessageBusInterface $bus,
         private readonly LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function __invoke(DetectGpsAnomalyMessage $message): void
     {

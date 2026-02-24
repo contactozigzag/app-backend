@@ -26,7 +26,8 @@ class StudentReadyForPickupHandler
         private readonly NotificationService $notificationService,
         private readonly EntityManagerInterface $entityManager,
         private readonly LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function __invoke(StudentReadyForPickupMessage $message): void
     {
@@ -64,7 +65,10 @@ class StudentReadyForPickupHandler
                 return;
             }
 
-            $startPoint = ['lat' => (float) ($eventLocation->getLatitude() ?? '0'), 'lng' => (float) ($eventLocation->getLongitude() ?? '0')];
+            $startPoint = [
+                'lat' => (float) ($eventLocation->getLatitude() ?? '0'),
+                'lng' => (float) ($eventLocation->getLongitude() ?? '0'),
+            ];
 
             $pendingReadyStops = [];
             foreach ($route->getStops() as $stop) {
@@ -85,7 +89,10 @@ class StudentReadyForPickupHandler
             if ($pendingReadyStops !== []) {
                 $schoolAddr = $route->getSchool()?->getAddress();
                 $endPoint = $schoolAddr !== null
-                    ? ['lat' => (float) ($schoolAddr->getLatitude() ?? '0'), 'lng' => (float) ($schoolAddr->getLongitude() ?? '0')]
+                    ? [
+                        'lat' => (float) ($schoolAddr->getLatitude() ?? '0'),
+                        'lng' => (float) ($schoolAddr->getLongitude() ?? '0'),
+                    ]
                     : $startPoint;
 
                 $optimised = $this->routeOptimizationService->optimizeRoute($startPoint, $endPoint, $pendingReadyStops);
@@ -118,7 +125,9 @@ class StudentReadyForPickupHandler
                         ], JSON_THROW_ON_ERROR),
                     ));
                 } catch (\Throwable $e) {
-                    $this->logger->error('StudentReadyForPickupHandler: Mercure publish failed', ['error' => $e->getMessage()]);
+                    $this->logger->error('StudentReadyForPickupHandler: Mercure publish failed', [
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             }
 

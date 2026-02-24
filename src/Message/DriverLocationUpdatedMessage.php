@@ -15,5 +15,6 @@ final readonly class DriverLocationUpdatedMessage
         public float|null $heading,
         public string $correlationId,
         public \DateTimeImmutable $recordedAt,
-    ) {}
+    ) {
+    }
 }
