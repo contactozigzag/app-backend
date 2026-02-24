@@ -14,6 +14,7 @@ return RectorConfig::configure()
         __DIR__.'/src',
         __DIR__.'/tests',
     ])
+    ->withImportNames(removeUnusedImports: true)
     ->withSkip([
         // Skip Symfony cache and generated files
         __DIR__.'/var',

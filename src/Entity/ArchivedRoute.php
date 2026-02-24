@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -56,7 +57,7 @@ class ArchivedRoute
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     #[Groups(['archived_route:read'])]
-    private ?\DateTimeImmutable $date = null;
+    private ?DateTimeImmutable $date = null;
 
     #[ORM\Column(length: 20)]
     #[Groups(['archived_route:read'])]
@@ -64,11 +65,11 @@ class ArchivedRoute
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['archived_route:read'])]
-    private ?\DateTimeImmutable $startedAt = null;
+    private ?DateTimeImmutable $startedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['archived_route:read'])]
-    private ?\DateTimeImmutable $completedAt = null;
+    private ?DateTimeImmutable $completedAt = null;
 
     #[ORM\Column(nullable: true)]
     #[Groups(['archived_route:read'])]
@@ -124,11 +125,11 @@ class ArchivedRoute
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['archived_route:read'])]
-    private \DateTimeImmutable $archivedAt;
+    private DateTimeImmutable $archivedAt;
 
     public function __construct()
     {
-        $this->archivedAt = new \DateTimeImmutable();
+        $this->archivedAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -191,12 +192,12 @@ class ArchivedRoute
         return $this;
     }
 
-    public function getDate(): ?\DateTimeImmutable
+    public function getDate(): ?DateTimeImmutable
     {
         return $this->date;
     }
 
-    public function setDate(\DateTimeImmutable $date): static
+    public function setDate(DateTimeImmutable $date): static
     {
         $this->date = $date;
         return $this;
@@ -213,23 +214,23 @@ class ArchivedRoute
         return $this;
     }
 
-    public function getStartedAt(): ?\DateTimeImmutable
+    public function getStartedAt(): ?DateTimeImmutable
     {
         return $this->startedAt;
     }
 
-    public function setStartedAt(?\DateTimeImmutable $startedAt): static
+    public function setStartedAt(?DateTimeImmutable $startedAt): static
     {
         $this->startedAt = $startedAt;
         return $this;
     }
 
-    public function getCompletedAt(): ?\DateTimeImmutable
+    public function getCompletedAt(): ?DateTimeImmutable
     {
         return $this->completedAt;
     }
 
-    public function setCompletedAt(?\DateTimeImmutable $completedAt): static
+    public function setCompletedAt(?DateTimeImmutable $completedAt): static
     {
         $this->completedAt = $completedAt;
         return $this;
@@ -390,7 +391,7 @@ class ArchivedRoute
         return $this;
     }
 
-    public function getArchivedAt(): \DateTimeImmutable
+    public function getArchivedAt(): DateTimeImmutable
     {
         return $this->archivedAt;
     }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Message;
 
+use DateTimeImmutable;
+
 final readonly class DriverLocationUpdatedMessage
 {
     public function __construct(
@@ -14,7 +16,7 @@ final readonly class DriverLocationUpdatedMessage
         public float|null $speed,
         public float|null $heading,
         public string $correlationId,
-        public \DateTimeImmutable $recordedAt,
+        public DateTimeImmutable $recordedAt,
     ) {
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\RouteStopRepository;
 use Doctrine\DBAL\Types\Types;
@@ -76,11 +77,11 @@ class RouteStop
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['route_stop:read'])]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -187,7 +188,7 @@ class RouteStop
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }

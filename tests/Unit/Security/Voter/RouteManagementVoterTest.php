@@ -45,7 +45,7 @@ final class RouteManagementVoterTest extends TestCase
 
         $result = $voter->vote($this->makeToken(['ROLE_SCHOOL_ADMIN']), null, [RouteManagementVoter::ATTRIBUTE]);
 
-        self::assertSame(VoterInterface::ACCESS_GRANTED, $result);
+        $this->assertSame(VoterInterface::ACCESS_GRANTED, $result);
     }
 
     public function testFlagDisabledDriverIsDenied(): void
@@ -57,7 +57,7 @@ final class RouteManagementVoterTest extends TestCase
 
         $result = $voter->vote($this->makeToken(['ROLE_DRIVER']), null, [RouteManagementVoter::ATTRIBUTE]);
 
-        self::assertSame(VoterInterface::ACCESS_DENIED, $result);
+        $this->assertSame(VoterInterface::ACCESS_DENIED, $result);
     }
 
     // ── Flag enabled ───────────────────────────────────────────────────────────
@@ -71,7 +71,7 @@ final class RouteManagementVoterTest extends TestCase
 
         $result = $voter->vote($this->makeToken(['ROLE_DRIVER']), null, [RouteManagementVoter::ATTRIBUTE]);
 
-        self::assertSame(VoterInterface::ACCESS_GRANTED, $result);
+        $this->assertSame(VoterInterface::ACCESS_GRANTED, $result);
     }
 
     public function testFlagEnabledParentWithoutDriverRoleIsDenied(): void
@@ -83,7 +83,7 @@ final class RouteManagementVoterTest extends TestCase
 
         $result = $voter->vote($this->makeToken(['ROLE_PARENT']), null, [RouteManagementVoter::ATTRIBUTE]);
 
-        self::assertSame(VoterInterface::ACCESS_DENIED, $result);
+        $this->assertSame(VoterInterface::ACCESS_DENIED, $result);
     }
 
     // ── Abstain on unknown attribute ───────────────────────────────────────────
@@ -97,6 +97,6 @@ final class RouteManagementVoterTest extends TestCase
 
         $result = $voter->vote($this->makeToken(['ROLE_SCHOOL_ADMIN']), null, ['SOME_OTHER_ATTRIBUTE']);
 
-        self::assertSame(VoterInterface::ACCESS_ABSTAIN, $result);
+        $this->assertSame(VoterInterface::ACCESS_ABSTAIN, $result);
     }
 }

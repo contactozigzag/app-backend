@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -54,7 +55,7 @@ class Attendance
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     #[Assert\NotNull]
     #[Groups(['attendance:read', 'attendance:write'])]
-    private ?\DateTimeImmutable $date = null;
+    private ?DateTimeImmutable $date = null;
 
     #[ORM\Column(length: 20)]
     #[Assert\Choice(choices: ['picked_up', 'dropped_off', 'no_show', 'cancelled'])]
@@ -63,11 +64,11 @@ class Attendance
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['attendance:read', 'attendance:write'])]
-    private ?\DateTimeImmutable $pickedUpAt = null;
+    private ?DateTimeImmutable $pickedUpAt = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['attendance:read', 'attendance:write'])]
-    private ?\DateTimeImmutable $droppedOffAt = null;
+    private ?DateTimeImmutable $droppedOffAt = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 6, nullable: true)]
     #[Groups(['attendance:read', 'attendance:write'])]
@@ -96,22 +97,22 @@ class Attendance
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['attendance:read'])]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['attendance:read'])]
-    private \DateTimeImmutable $updatedAt;
+    private DateTimeImmutable $updatedAt;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -141,12 +142,12 @@ class Attendance
         return $this;
     }
 
-    public function getDate(): ?\DateTimeImmutable
+    public function getDate(): ?DateTimeImmutable
     {
         return $this->date;
     }
 
-    public function setDate(\DateTimeImmutable $date): static
+    public function setDate(DateTimeImmutable $date): static
     {
         $this->date = $date;
         return $this;
@@ -163,23 +164,23 @@ class Attendance
         return $this;
     }
 
-    public function getPickedUpAt(): ?\DateTimeImmutable
+    public function getPickedUpAt(): ?DateTimeImmutable
     {
         return $this->pickedUpAt;
     }
 
-    public function setPickedUpAt(?\DateTimeImmutable $pickedUpAt): static
+    public function setPickedUpAt(?DateTimeImmutable $pickedUpAt): static
     {
         $this->pickedUpAt = $pickedUpAt;
         return $this;
     }
 
-    public function getDroppedOffAt(): ?\DateTimeImmutable
+    public function getDroppedOffAt(): ?DateTimeImmutable
     {
         return $this->droppedOffAt;
     }
 
-    public function setDroppedOffAt(?\DateTimeImmutable $droppedOffAt): static
+    public function setDroppedOffAt(?DateTimeImmutable $droppedOffAt): static
     {
         $this->droppedOffAt = $droppedOffAt;
         return $this;
@@ -251,12 +252,12 @@ class Attendance
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use App\Enum\DepartureMode;
 use App\Enum\EventType;
 use App\Enum\RouteMode;
@@ -32,7 +33,7 @@ class SpecialEventRoute
     private string $name = '';
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
-    private ?\DateTimeImmutable $eventDate = null;
+    private ?DateTimeImmutable $eventDate = null;
 
     #[ORM\Column(enumType: EventType::class)]
     private EventType $eventType = EventType::OTHER;
@@ -44,7 +45,7 @@ class SpecialEventRoute
     #[ORM\Column(enumType: RouteMode::class)]
     private RouteMode $routeMode = RouteMode::ONE_WAY;
 
-    #[ORM\Column(enumType: DepartureMode::class, nullable: true)]
+    #[ORM\Column(nullable: true, enumType: DepartureMode::class)]
     private ?DepartureMode $departureMode = null;
 
     #[ORM\ManyToOne(targetEntity: Driver::class)]
@@ -66,10 +67,10 @@ class SpecialEventRoute
     private SpecialEventRouteStatus $status = SpecialEventRouteStatus::DRAFT;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $outboundDepartureTime = null;
+    private ?DateTimeImmutable $outboundDepartureTime = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $returnDepartureTime = null;
+    private ?DateTimeImmutable $returnDepartureTime = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 6, nullable: true)]
     private ?string $currentLatitude = null;
@@ -78,10 +79,10 @@ class SpecialEventRoute
     private ?string $currentLongitude = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $updatedAt;
+    private DateTimeImmutable $updatedAt;
 
     /**
      * @var Collection<int, SpecialEventRouteStop>
@@ -96,14 +97,14 @@ class SpecialEventRoute
     {
         $this->students = new ArrayCollection();
         $this->stops = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -135,12 +136,12 @@ class SpecialEventRoute
         return $this;
     }
 
-    public function getEventDate(): ?\DateTimeImmutable
+    public function getEventDate(): ?DateTimeImmutable
     {
         return $this->eventDate;
     }
 
-    public function setEventDate(\DateTimeImmutable $eventDate): static
+    public function setEventDate(DateTimeImmutable $eventDate): static
     {
         $this->eventDate = $eventDate;
 
@@ -255,24 +256,24 @@ class SpecialEventRoute
         return $this;
     }
 
-    public function getOutboundDepartureTime(): ?\DateTimeImmutable
+    public function getOutboundDepartureTime(): ?DateTimeImmutable
     {
         return $this->outboundDepartureTime;
     }
 
-    public function setOutboundDepartureTime(?\DateTimeImmutable $outboundDepartureTime): static
+    public function setOutboundDepartureTime(?DateTimeImmutable $outboundDepartureTime): static
     {
         $this->outboundDepartureTime = $outboundDepartureTime;
 
         return $this;
     }
 
-    public function getReturnDepartureTime(): ?\DateTimeImmutable
+    public function getReturnDepartureTime(): ?DateTimeImmutable
     {
         return $this->returnDepartureTime;
     }
 
-    public function setReturnDepartureTime(?\DateTimeImmutable $returnDepartureTime): static
+    public function setReturnDepartureTime(?DateTimeImmutable $returnDepartureTime): static
     {
         $this->returnDepartureTime = $returnDepartureTime;
 
@@ -303,12 +304,12 @@ class SpecialEventRoute
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
     }

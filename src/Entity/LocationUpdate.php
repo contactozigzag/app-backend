@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
@@ -74,15 +75,15 @@ class LocationUpdate
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['location:read', 'location:write'])]
-    private ?\DateTimeImmutable $timestamp = null;
+    private ?DateTimeImmutable $timestamp = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['location:read'])]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -167,18 +168,18 @@ class LocationUpdate
         return $this;
     }
 
-    public function getTimestamp(): ?\DateTimeImmutable
+    public function getTimestamp(): ?DateTimeImmutable
     {
         return $this->timestamp;
     }
 
-    public function setTimestamp(\DateTimeImmutable $timestamp): static
+    public function setTimestamp(DateTimeImmutable $timestamp): static
     {
         $this->timestamp = $timestamp;
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }

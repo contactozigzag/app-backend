@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use Throwable;
 use App\Message\StudentReadyForPickupMessage;
 use App\Repository\SpecialEventRouteRepository;
 use App\Service\NotificationService;
@@ -124,7 +125,7 @@ class StudentReadyForPickupHandler
                             'studentReadyCount' => count($pendingReadyStops),
                         ], JSON_THROW_ON_ERROR),
                     ));
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $this->logger->error('StudentReadyForPickupHandler: Mercure publish failed', [
                         'error' => $e->getMessage(),
                     ]);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\DriverAlert;
 use App\Enum\AlertStatus;
 use App\Message\DriverDistressMessage;
@@ -49,7 +50,7 @@ class DistressController extends AbstractController
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        /** @var \App\Entity\User $user */
+        /** @var User $user */
         $user = $this->getUser();
         $driver = $user->getDriver();
 
@@ -61,7 +62,7 @@ class DistressController extends AbstractController
 
         // Check if there's already an active alert for this driver
         $existing = $this->driverAlertRepository->findActiveByDistressedDriver($driver);
-        if ($existing !== null) {
+        if ($existing instanceof DriverAlert) {
             return $this->json([
                 'error' => 'An active distress alert already exists',
                 'alertId' => $existing->getAlertId(),

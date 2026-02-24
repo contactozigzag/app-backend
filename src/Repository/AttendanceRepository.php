@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use DateTimeImmutable;
 use App\Entity\Attendance;
 use App\Entity\Student;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -26,8 +27,8 @@ class AttendanceRepository extends ServiceEntityRepository
      */
     public function findByStudentAndDateRange(
         Student $student,
-        \DateTimeImmutable $start,
-        \DateTimeImmutable $end
+        DateTimeImmutable $start,
+        DateTimeImmutable $end
     ): array {
         return $this->createQueryBuilder('a')
             ->andWhere('a.student = :student')
@@ -46,7 +47,7 @@ class AttendanceRepository extends ServiceEntityRepository
      *
      * @return Attendance[]
      */
-    public function findByStudentAndDate(Student $student, \DateTimeImmutable $date): array
+    public function findByStudentAndDate(Student $student, DateTimeImmutable $date): array
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.student = :student')
@@ -60,7 +61,7 @@ class AttendanceRepository extends ServiceEntityRepository
     /**
      * Get attendance statistics for a date range
      */
-    public function getStatsByDateRange(\DateTimeImmutable $start, \DateTimeImmutable $end): array
+    public function getStatsByDateRange(DateTimeImmutable $start, DateTimeImmutable $end): array
     {
         $qb = $this->createQueryBuilder('a')
             ->select('a.status, COUNT(a.id) as count')

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -76,7 +77,7 @@ class Driver
      * When the current access token expires (MP tokens last ~180 days).
      */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $mpTokenExpiresAt = null;
+    private ?DateTimeImmutable $mpTokenExpiresAt = null;
 
     public function getId(): ?int
     {
@@ -155,12 +156,12 @@ class Driver
         return $this;
     }
 
-    public function getMpTokenExpiresAt(): ?\DateTimeImmutable
+    public function getMpTokenExpiresAt(): ?DateTimeImmutable
     {
         return $this->mpTokenExpiresAt;
     }
 
-    public function setMpTokenExpiresAt(?\DateTimeImmutable $mpTokenExpiresAt): static
+    public function setMpTokenExpiresAt(?DateTimeImmutable $mpTokenExpiresAt): static
     {
         $this->mpTokenExpiresAt = $mpTokenExpiresAt;
 

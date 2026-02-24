@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -85,7 +86,7 @@ class Subscription
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     #[Groups(['subscription:read', 'subscription:list'])]
-    private ?\DateTimeImmutable $nextBillingDate = null;
+    private ?DateTimeImmutable $nextBillingDate = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['subscription:read'])]
@@ -93,14 +94,14 @@ class Subscription
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['subscription:read', 'subscription:list'])]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $updatedAt;
+    private DateTimeImmutable $updatedAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['subscription:read'])]
-    private ?\DateTimeImmutable $cancelledAt = null;
+    private ?DateTimeImmutable $cancelledAt = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['subscription:read', 'subscription:write'])]
@@ -113,13 +114,13 @@ class Subscription
     private int $failedPaymentCount = 0;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $lastPaymentAttemptAt = null;
+    private ?DateTimeImmutable $lastPaymentAttemptAt = null;
 
     public function __construct()
     {
         $this->students = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -183,10 +184,10 @@ class Subscription
     public function setStatus(SubscriptionStatus $status): static
     {
         $this->status = $status;
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
 
-        if ($status === SubscriptionStatus::CANCELLED && ! $this->cancelledAt instanceof \DateTimeImmutable) {
-            $this->cancelledAt = new \DateTimeImmutable();
+        if ($status === SubscriptionStatus::CANCELLED && ! $this->cancelledAt instanceof DateTimeImmutable) {
+            $this->cancelledAt = new DateTimeImmutable();
         }
 
         return $this;
@@ -228,12 +229,12 @@ class Subscription
         return $this;
     }
 
-    public function getNextBillingDate(): ?\DateTimeImmutable
+    public function getNextBillingDate(): ?DateTimeImmutable
     {
         return $this->nextBillingDate;
     }
 
-    public function setNextBillingDate(\DateTimeImmutable $nextBillingDate): static
+    public function setNextBillingDate(DateTimeImmutable $nextBillingDate): static
     {
         $this->nextBillingDate = $nextBillingDate;
 
@@ -252,17 +253,17 @@ class Subscription
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function getCancelledAt(): ?\DateTimeImmutable
+    public function getCancelledAt(): ?DateTimeImmutable
     {
         return $this->cancelledAt;
     }
@@ -287,7 +288,7 @@ class Subscription
     public function incrementFailedPaymentCount(): static
     {
         $this->failedPaymentCount++;
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
 
         return $this;
     }
@@ -295,27 +296,27 @@ class Subscription
     public function resetFailedPaymentCount(): static
     {
         $this->failedPaymentCount = 0;
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
 
         return $this;
     }
 
-    public function getLastPaymentAttemptAt(): ?\DateTimeImmutable
+    public function getLastPaymentAttemptAt(): ?DateTimeImmutable
     {
         return $this->lastPaymentAttemptAt;
     }
 
-    public function setLastPaymentAttemptAt(\DateTimeImmutable $lastPaymentAttemptAt): static
+    public function setLastPaymentAttemptAt(DateTimeImmutable $lastPaymentAttemptAt): static
     {
         $this->lastPaymentAttemptAt = $lastPaymentAttemptAt;
 
         return $this;
     }
 
-    public function calculateNextBillingDate(): \DateTimeImmutable
+    public function calculateNextBillingDate(): DateTimeImmutable
     {
-        if (! $this->nextBillingDate instanceof \DateTimeImmutable) {
-            $this->nextBillingDate = new \DateTimeImmutable();
+        if (! $this->nextBillingDate instanceof DateTimeImmutable) {
+            $this->nextBillingDate = new DateTimeImmutable();
         }
 
         $days = $this->billingCycle?->getDays() ?? 30;
@@ -326,15 +327,15 @@ class Subscription
     public function isDueForBilling(): bool
     {
         return $this->status === SubscriptionStatus::ACTIVE
-            && $this->nextBillingDate instanceof \DateTimeImmutable
-            && $this->nextBillingDate <= new \DateTimeImmutable();
+            && $this->nextBillingDate instanceof DateTimeImmutable
+            && $this->nextBillingDate <= new DateTimeImmutable();
     }
 
     public function shouldRetryPayment(): bool
     {
         return $this->status === SubscriptionStatus::PAYMENT_FAILED
             && $this->failedPaymentCount < 3
-            && $this->lastPaymentAttemptAt instanceof \DateTimeImmutable
-            && $this->lastPaymentAttemptAt < new \DateTimeImmutable('-24 hours');
+            && $this->lastPaymentAttemptAt instanceof DateTimeImmutable
+            && $this->lastPaymentAttemptAt < new DateTimeImmutable('-24 hours');
     }
 }

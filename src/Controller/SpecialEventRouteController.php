@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use DateTimeImmutable;
 use App\Entity\SpecialEventRoute;
 use App\Entity\SpecialEventRouteStop;
 use App\Enum\DepartureMode;
@@ -82,15 +83,15 @@ class SpecialEventRouteController extends AbstractController
         $route->setDepartureMode($departureMode);
 
         if (isset($data['event_date'])) {
-            $route->setEventDate(new \DateTimeImmutable($data['event_date']));
+            $route->setEventDate(new DateTimeImmutable($data['event_date']));
         }
 
         if (isset($data['outbound_departure_time'])) {
-            $route->setOutboundDepartureTime(new \DateTimeImmutable($data['outbound_departure_time']));
+            $route->setOutboundDepartureTime(new DateTimeImmutable($data['outbound_departure_time']));
         }
 
         if (isset($data['return_departure_time'])) {
-            $route->setReturnDepartureTime(new \DateTimeImmutable($data['return_departure_time']));
+            $route->setReturnDepartureTime(new DateTimeImmutable($data['return_departure_time']));
         }
 
         $this->entityManager->persist($route);
@@ -119,7 +120,7 @@ class SpecialEventRouteController extends AbstractController
         }
 
         $date = $request->query->get('date')
-            ? new \DateTimeImmutable((string) $request->query->get('date'))
+            ? new DateTimeImmutable((string) $request->query->get('date'))
             : null;
 
         $status = $request->query->get('status')
@@ -136,7 +137,7 @@ class SpecialEventRouteController extends AbstractController
 
         $routes = $this->repository->findByFilters($school, $date, $status, $eventType, $routeMode);
 
-        return $this->json(array_map(fn (SpecialEventRoute $r): array => $this->serialize($r), $routes));
+        return $this->json(array_map($this->serialize(...), $routes));
     }
 
     /**
@@ -183,7 +184,7 @@ class SpecialEventRouteController extends AbstractController
         }
 
         if (isset($data['event_date'])) {
-            $route->setEventDate(new \DateTimeImmutable($data['event_date']));
+            $route->setEventDate(new DateTimeImmutable($data['event_date']));
         }
 
         if (isset($data['event_type'])) {
@@ -206,11 +207,11 @@ class SpecialEventRouteController extends AbstractController
         }
 
         if (isset($data['outbound_departure_time'])) {
-            $route->setOutboundDepartureTime(new \DateTimeImmutable($data['outbound_departure_time']));
+            $route->setOutboundDepartureTime(new DateTimeImmutable($data['outbound_departure_time']));
         }
 
         if (isset($data['return_departure_time'])) {
-            $route->setReturnDepartureTime(new \DateTimeImmutable($data['return_departure_time']));
+            $route->setReturnDepartureTime(new DateTimeImmutable($data['return_departure_time']));
         }
 
         $this->entityManager->flush();
@@ -477,7 +478,8 @@ class SpecialEventRouteController extends AbstractController
         }
 
         $stop->setIsStudentReady(true);
-        $stop->setReadyAt(new \DateTimeImmutable());
+        $stop->setReadyAt(new DateTimeImmutable());
+
         $this->entityManager->flush();
 
         // Dispatch with 30-second delay for debounce batching

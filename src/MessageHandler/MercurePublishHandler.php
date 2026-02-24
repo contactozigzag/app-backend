@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use Throwable;
 use App\Message\DriverLocationUpdatedMessage;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mercure\HubInterface;
@@ -42,7 +43,7 @@ readonly class MercurePublishHandler
 
             try {
                 $this->hub->publish($update);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error('MercurePublishHandler: failed to publish', [
                     'topic' => $topic,
                     'correlationId' => $message->correlationId,

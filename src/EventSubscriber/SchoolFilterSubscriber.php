@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\EventSubscriber;
 
+use App\Entity\School;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -47,7 +48,7 @@ class SchoolFilterSubscriber implements EventSubscriberInterface
         }
 
         $school = $user->getSchool();
-        if (! $school instanceof \App\Entity\School) {
+        if (! $school instanceof School) {
             return;
         }
 

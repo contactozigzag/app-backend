@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use DateTimeImmutable;
+use App\Entity\User;
 use App\Entity\ActiveRoute;
 use App\Entity\Driver;
 use App\Entity\School;
@@ -23,7 +25,7 @@ class ActiveRouteRepository extends ServiceEntityRepository
     /**
      * Find active route for a driver on a specific date
      */
-    public function findActiveByDriverAndDate(Driver $driver, \DateTimeImmutable $date): ?ActiveRoute
+    public function findActiveByDriverAndDate(Driver $driver, DateTimeImmutable $date): ?ActiveRoute
     {
         return $this->createQueryBuilder('ar')
             ->andWhere('ar.driver = :driver')
@@ -56,7 +58,7 @@ class ActiveRouteRepository extends ServiceEntityRepository
      *
      * @return ActiveRoute[]
      */
-    public function findBySchoolAndDate(School $school, \DateTimeImmutable $date): array
+    public function findBySchoolAndDate(School $school, DateTimeImmutable $date): array
     {
         return $this->createQueryBuilder('ar')
             ->join('ar.routeTemplate', 'rt')
@@ -75,9 +77,9 @@ class ActiveRouteRepository extends ServiceEntityRepository
      * @return ActiveRoute[]
      */
     public function findUpcomingByParent(
-        \App\Entity\User $parent,
-        \DateTimeImmutable $start,
-        \DateTimeImmutable $end
+        User $parent,
+        DateTimeImmutable $start,
+        DateTimeImmutable $end
     ): array {
         return $this->createQueryBuilder('ar')
             ->join('ar.stops', 'ars')
@@ -99,7 +101,7 @@ class ActiveRouteRepository extends ServiceEntityRepository
      *
      * @return ActiveRoute[]
      */
-    public function findActiveBySchool(School $school, \DateTimeImmutable $date): array
+    public function findActiveBySchool(School $school, DateTimeImmutable $date): array
     {
         return $this->createQueryBuilder('ar')
             ->join('ar.routeTemplate', 'rt')

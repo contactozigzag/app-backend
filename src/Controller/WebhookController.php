@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\Payment;
+use Exception;
 use App\Message\ProcessWebhookMessage;
 use App\Repository\PaymentRepository;
 use App\Service\Payment\WebhookValidator;
@@ -104,7 +106,7 @@ class WebhookController extends AbstractController
             // then fall back to the external_reference we stamped on the preference.
             $payment = $this->paymentRepository->findByPaymentProviderId($paymentProviderId);
 
-            if (! $payment instanceof \App\Entity\Payment && isset($webhookData['data']['external_reference'])) {
+            if (! $payment instanceof Payment && isset($webhookData['data']['external_reference'])) {
                 $payment = $this->paymentRepository->find(
                     (int) $webhookData['data']['external_reference']
                 );
@@ -139,7 +141,7 @@ class WebhookController extends AbstractController
             return new JsonResponse([
                 'status' => 'received',
             ], Response::HTTP_OK);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->error('MP webhook controller error', [
                 'request_id' => $requestId,
                 'error' => $exception->getMessage(),

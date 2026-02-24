@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Factory;
 
+use DateTimeImmutable;
 use App\Entity\Driver;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
@@ -41,7 +42,7 @@ final class DriverFactory extends PersistentObjectFactory
             'mpAccessToken' => $mpAccessToken,
             'mpRefreshToken' => $mpRefreshToken,
             'mpAccountId' => $mpAccountId,
-            'mpTokenExpiresAt' => new \DateTimeImmutable('+90 days'),
+            'mpTokenExpiresAt' => new DateTimeImmutable('+90 days'),
         ]);
     }
 }

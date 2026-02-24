@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service\Payment;
 
+use DateTime;
+use RuntimeException;
+use DateTimeInterface;
 use App\Entity\Payment;
 use App\Entity\User;
 use Exception;
@@ -14,7 +17,6 @@ use MercadoPago\Exceptions\InvalidArgumentException;
 use MercadoPago\Exceptions\MPApiException;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Resources\Payment as MPPayment;
-use MercadoPago\Resources\Preference;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -103,9 +105,9 @@ class MercadoPagoService
                 'marketplace' => 'MP',
                 'marketplace_fee' => $marketplaceFee,
                 'expires' => true,
-                'expiration_date_from' => new \DateTime()->format('c'),
+                'expiration_date_from' => new DateTime()->format('c'),
                 'expiration_date_to' => $payment->getExpiresAt()?->format('c')
-                    ?? new \DateTime('+24 hours')->format('c'),
+                    ?? new DateTime('+24 hours')->format('c'),
             ];
 
             // RequestOptions carries the driver's access token for this single call.
@@ -140,14 +142,14 @@ class MercadoPagoService
                 'api_response' => $e->getApiResponse(),
             ]);
 
-            throw new \RuntimeException('Failed to create payment preference: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to create payment preference: ' . $e->getMessage(), 0, $e);
         } catch (Exception $e) {
             $this->logger->error('Error creating Mercado Pago preference', [
                 'payment_id' => $payment->getId(),
                 'error' => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException('Failed to create payment preference', 0, $e);
+            throw new RuntimeException('Failed to create payment preference', 0, $e);
         }
     }
 
@@ -189,7 +191,7 @@ class MercadoPagoService
                 'error' => $mpApiException->getMessage(),
             ]);
 
-            throw new \RuntimeException('Failed to fetch payment status: ' . $mpApiException->getMessage(), 0, $mpApiException);
+            throw new RuntimeException('Failed to fetch payment status: ' . $mpApiException->getMessage(), 0, $mpApiException);
         }
     }
 
@@ -206,7 +208,7 @@ class MercadoPagoService
                 'error' => $mpApiException->getMessage(),
             ]);
 
-            throw new \RuntimeException('Failed to fetch payment details', 0, $mpApiException);
+            throw new RuntimeException('Failed to fetch payment details', 0, $mpApiException);
         }
     }
 
@@ -252,14 +254,14 @@ class MercadoPagoService
                 'error' => $mpApiException->getMessage(),
             ]);
 
-            throw new \RuntimeException('Failed to process refund: ' . $mpApiException->getMessage(), 0, $mpApiException);
+            throw new RuntimeException('Failed to process refund: ' . $mpApiException->getMessage(), 0, $mpApiException);
         }
     }
 
     /**
      * Get payments by date range for reconciliation
      */
-    public function getPaymentsByDateRange(\DateTimeInterface $from, \DateTimeInterface $to): array
+    public function getPaymentsByDateRange(DateTimeInterface $from, DateTimeInterface $to): array
     {
         try {
             $this->logger->info('Fetching payments from Mercado Pago for reconciliation', [
@@ -277,7 +279,7 @@ class MercadoPagoService
                 'error' => $exception->getMessage(),
             ]);
 
-            throw new \RuntimeException('Failed to fetch payments for reconciliation', 0, $exception);
+            throw new RuntimeException('Failed to fetch payments for reconciliation', 0, $exception);
         }
     }
 

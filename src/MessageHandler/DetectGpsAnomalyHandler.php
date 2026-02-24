@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use DateTimeImmutable;
 use App\Entity\DriverAlert;
 use App\Enum\AlertStatus;
 use App\Message\DetectGpsAnomalyMessage;
@@ -34,7 +35,7 @@ class DetectGpsAnomalyHandler
     public function __invoke(DetectGpsAnomalyMessage $message): void
     {
         $inProgressRoutes = $this->activeRouteRepository->findInProgress();
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
 
         foreach ($inProgressRoutes as $route) {
             $driver = $route->getDriver();
@@ -44,7 +45,7 @@ class DetectGpsAnomalyHandler
 
             // Skip routes that already have an open alert
             $existingAlert = $this->driverAlertRepository->findActiveByDistressedDriver($driver);
-            if ($existingAlert !== null) {
+            if ($existingAlert instanceof DriverAlert) {
                 continue;
             }
 
@@ -56,14 +57,14 @@ class DetectGpsAnomalyHandler
 
             $anomalyDetected = false;
 
-            if ($lastSeen === null && $routeIsOldEnough) {
+            if (!$lastSeen instanceof DateTimeImmutable && $routeIsOldEnough) {
                 $anomalyDetected = true;
 
                 $this->logger->warning('DetectGpsAnomalyHandler: no GPS data since route started', [
                     'routeId' => $route->getId(),
                     'driverId' => $driver->getId(),
                 ]);
-            } elseif ($lastSeen !== null) {
+            } elseif ($lastSeen instanceof DateTimeImmutable) {
                 $secondsSinceSeen = $now->getTimestamp() - $lastSeen->getTimestamp();
 
                 if ($secondsSinceSeen > self::ANOMALY_THRESHOLD_SECONDS) {

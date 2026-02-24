@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use DateTimeImmutable;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
@@ -41,7 +42,7 @@ class DriverLocationCacheService
                 'lng' => $lng,
                 'speed' => $speed,
                 'heading' => $heading,
-                'cachedAt' => (new \DateTimeImmutable())->format('c'),
+                'cachedAt' => new DateTimeImmutable()->format('c'),
             ], JSON_THROW_ON_ERROR);
         });
 
@@ -60,7 +61,7 @@ class DriverLocationCacheService
      */
     public function getLocation(int $driverId): array|null
     {
-        $raw = $this->cache->get($this->locationKey($driverId), static function (): string { return ''; });
+        $raw = $this->cache->get($this->locationKey($driverId), static fn(): string => '');
 
         if ($raw === '') {
             return null;
@@ -72,9 +73,9 @@ class DriverLocationCacheService
         return $data;
     }
 
-    public function getLastSeen(int $driverId): \DateTimeImmutable|null
+    public function getLastSeen(int $driverId): DateTimeImmutable|null
     {
-        $raw = $this->cache->get($this->lastSeenKey($driverId), static function (): string { return ''; });
+        $raw = $this->cache->get($this->lastSeenKey($driverId), static fn(): string => '');
 
         if ($raw === '') {
             return null;
@@ -83,7 +84,7 @@ class DriverLocationCacheService
         /** @var array{ts: int, routeId: int|null} $data */
         $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 
-        return (new \DateTimeImmutable())->setTimestamp($data['ts']);
+        return new DateTimeImmutable()->setTimestamp($data['ts']);
     }
 
     private function locationKey(int $driverId): string

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use App\Repository\SpecialEventRouteStopRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -45,17 +46,17 @@ class SpecialEventRouteStop
     private bool $isStudentReady = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $readyAt = null;
+    private ?DateTimeImmutable $readyAt = null;
 
     #[ORM\Column]
     private int $geofenceRadius = 50;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -147,12 +148,12 @@ class SpecialEventRouteStop
         return $this;
     }
 
-    public function getReadyAt(): ?\DateTimeImmutable
+    public function getReadyAt(): ?DateTimeImmutable
     {
         return $this->readyAt;
     }
 
-    public function setReadyAt(?\DateTimeImmutable $readyAt): static
+    public function setReadyAt(?DateTimeImmutable $readyAt): static
     {
         $this->readyAt = $readyAt;
 
@@ -171,7 +172,7 @@ class SpecialEventRouteStop
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }

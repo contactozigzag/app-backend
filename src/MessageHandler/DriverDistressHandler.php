@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use Throwable;
 use App\Message\DriverDistressMessage;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\DriverAlertRepository;
@@ -27,7 +28,7 @@ class DriverDistressHandler
         private readonly HubInterface $hub,
         private readonly EntityManagerInterface $entityManager,
         private readonly LoggerInterface $logger,
-        #[Autowire('%app.distress_proximity_km%')]
+        #[Autowire(param: 'app.distress_proximity_km')]
         private readonly float $proximityRadiusKm,
     ) {
     }
@@ -54,7 +55,11 @@ class DriverDistressHandler
 
         foreach ($inProgressRoutes as $route) {
             $driverId = $route->getDriver()?->getId();
-            if ($driverId === null || $driverId === $distressedDriverId) {
+            if ($driverId === null) {
+                continue;
+            }
+
+            if ($driverId === $distressedDriverId) {
                 continue;
             }
 
@@ -95,7 +100,7 @@ class DriverDistressHandler
             try {
                 $this->hub->publish(new Update($topic, $alertPayload));
                 $notifiedDriverIds[] = $nearbyDriverId;
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error('DriverDistressHandler: failed to publish to nearby driver', [
                     'nearbyDriverId' => $nearbyDriverId,
                     'error' => $e->getMessage(),
@@ -111,7 +116,7 @@ class DriverDistressHandler
                     sprintf('/alerts/admin/%d', $school->getId()),
                     $alertPayload,
                 ));
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error('DriverDistressHandler: failed to publish to admin', [
                     'schoolId' => $school->getId(),
                     'error' => $e->getMessage(),

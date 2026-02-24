@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service\Payment;
 
+use RuntimeException;
+use Exception;
+use DateTimeImmutable;
 use App\Entity\IdempotencyRecord;
 use App\Repository\IdempotencyRecordRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -65,7 +68,7 @@ class IdempotencyService
                         return $cached;
                     }
 
-                    throw new \RuntimeException('Concurrent idempotency key usage detected');
+                    throw new RuntimeException('Concurrent idempotency key usage detected');
                 }
 
                 try {
@@ -85,7 +88,7 @@ class IdempotencyService
                     $lock->release();
                 }
             });
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->error('Redis cache error, falling back to database', [
                 'key' => $key,
                 'error' => $exception->getMessage(),
@@ -110,7 +113,7 @@ class IdempotencyService
                 ]);
                 return true;
             }
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->warning('Cache check failed', [
                 'key' => $key,
                 'error' => $exception->getMessage(),
@@ -119,8 +122,8 @@ class IdempotencyService
 
         // Check database fallback
         try {
-            return $this->repository->findActiveByKey($key) instanceof \App\Entity\IdempotencyRecord;
-        } catch (\Exception $exception) {
+            return $this->repository->findActiveByKey($key) instanceof IdempotencyRecord;
+        } catch (Exception $exception) {
             $this->logger->error('Database idempotency check failed', [
                 'key' => $key,
                 'error' => $exception->getMessage(),
@@ -140,11 +143,11 @@ class IdempotencyService
             $this->cache->delete($cacheKey);
 
             $record = $this->repository->findByKey($key);
-            if ($record instanceof \App\Entity\IdempotencyRecord) {
+            if ($record instanceof IdempotencyRecord) {
                 $this->entityManager->remove($record);
                 $this->entityManager->flush();
             }
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->error('Failed to delete idempotency key', [
                 'key' => $key,
                 'error' => $exception->getMessage(),
@@ -158,7 +161,7 @@ class IdempotencyService
         $lock = $this->lockFactory->createLock('idempotency_db_' . $key, self::LOCK_TTL);
 
         if (! $lock->acquire(true)) { // blocking=true, wait for lock
-            throw new \RuntimeException('Failed to acquire database lock for idempotency');
+            throw new RuntimeException('Failed to acquire database lock for idempotency');
         }
 
         try {
@@ -184,11 +187,11 @@ class IdempotencyService
     private function storeInDatabase(string $key, mixed $result, int $ttl): void
     {
         try {
-            $expiresAt = new \DateTimeImmutable(sprintf('+%d seconds', $ttl));
+            $expiresAt = new DateTimeImmutable(sprintf('+%d seconds', $ttl));
             $serializedResult = serialize($result);
 
             $record = $this->repository->findByKey($key);
-            if ($record instanceof \App\Entity\IdempotencyRecord) {
+            if ($record instanceof IdempotencyRecord) {
                 $record->setResult($serializedResult);
                 $record->setExpiresAt($expiresAt);
             } else {
@@ -197,7 +200,7 @@ class IdempotencyService
             }
 
             $this->entityManager->flush();
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->error('Failed to store idempotency record in database', [
                 'key' => $key,
                 'error' => $exception->getMessage(),
@@ -209,10 +212,10 @@ class IdempotencyService
     {
         try {
             $record = $this->repository->findActiveByKey($key);
-            if ($record instanceof \App\Entity\IdempotencyRecord) {
+            if ($record instanceof IdempotencyRecord) {
                 return unserialize($record->getResult());
             }
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->error('Failed to get idempotency record from database', [
                 'key' => $key,
                 'error' => $exception->getMessage(),
@@ -227,7 +230,7 @@ class IdempotencyService
         try {
             $cacheKey = $this->getCacheKey($key);
             return $this->cache->get($cacheKey, fn (): null => null);
-        } catch (\Exception) {
+        } catch (Exception) {
             return null;
         }
     }

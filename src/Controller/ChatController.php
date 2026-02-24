@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\DriverAlert;
+use App\Entity\User;
 use App\Entity\ChatMessage;
 use App\Enum\AlertStatus;
 use App\Message\ChatMessageCreatedMessage;
@@ -40,7 +42,7 @@ class ChatController extends AbstractController
     {
         $alert = $this->driverAlertRepository->findByAlertId($alertId);
 
-        if ($alert === null) {
+        if (!$alert instanceof DriverAlert) {
             return $this->json([
                 'error' => 'Alert not found',
             ], Response::HTTP_NOT_FOUND);
@@ -67,7 +69,7 @@ class ChatController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        /** @var \App\Entity\User $user */
+        /** @var User $user */
         $user = $this->getUser();
 
         $chatMessage = new ChatMessage();
@@ -94,7 +96,7 @@ class ChatController extends AbstractController
     {
         $alert = $this->driverAlertRepository->findByAlertId($alertId);
 
-        if ($alert === null) {
+        if (!$alert instanceof DriverAlert) {
             return $this->json([
                 'error' => 'Alert not found',
             ], Response::HTTP_NOT_FOUND);
@@ -138,13 +140,13 @@ class ChatController extends AbstractController
     /**
      * Determine if the current user is a chat participant for the given alert.
      */
-    private function isParticipant(\App\Entity\DriverAlert $alert): bool
+    private function isParticipant(DriverAlert $alert): bool
     {
         if ($this->isGranted('ROLE_SCHOOL_ADMIN')) {
             return true;
         }
 
-        /** @var \App\Entity\User $user */
+        /** @var User $user */
         $user = $this->getUser();
         $driver = $user->getDriver();
 
@@ -156,10 +158,6 @@ class ChatController extends AbstractController
             return true;
         }
 
-        if ($alert->getRespondingDriver()?->getId() === $driver->getId()) {
-            return true;
-        }
-
-        return false;
+        return $alert->getRespondingDriver()?->getId() === $driver->getId();
     }
 }

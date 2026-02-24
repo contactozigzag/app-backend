@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use RuntimeException;
 use App\Entity\User;
 use App\Service\Payment\MercadoPagoOAuthService;
 use Psr\Log\LoggerInterface;
@@ -100,7 +101,7 @@ class OAuthController extends AbstractController
                 'driver_id' => $driver->getId(),
                 'mp_account_id' => $driver->getMpAccountId(),
             ]);
-        } catch (\RuntimeException $runtimeException) {
+        } catch (RuntimeException $runtimeException) {
             $this->logger->error('MP OAuth callback failed', [
                 'error' => $runtimeException->getMessage(),
             ]);

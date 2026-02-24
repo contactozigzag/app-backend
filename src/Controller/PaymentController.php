@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use InvalidArgumentException;
+use Exception;
+use App\Entity\Driver;
+use App\Entity\Student;
+use ValueError;
+use App\Entity\PaymentTransaction;
 use App\Entity\Payment;
 use App\Entity\User;
 use App\Enum\PaymentStatus;
@@ -144,7 +150,7 @@ class PaymentController extends AbstractController
                 'currency' => $payment->getCurrency(),
                 'expires_at' => $payment->getExpiresAt()?->format('c'),
             ], Response::HTTP_CREATED);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $this->logger->warning('Payment creation failed - validation error', [
                 'user_id' => $user->getId(),
                 'error' => $e->getMessage(),
@@ -153,7 +159,7 @@ class PaymentController extends AbstractController
             return new JsonResponse([
                 'error' => $e->getMessage(),
             ], Response::HTTP_BAD_REQUEST);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error('Payment preference creation failed', [
                 'user_id' => $user->getId(),
                 'error' => $e->getMessage(),
@@ -174,7 +180,7 @@ class PaymentController extends AbstractController
 
         $payment = $this->paymentRepository->find($id);
 
-        if (! $payment instanceof \App\Entity\Payment) {
+        if (! $payment instanceof Payment) {
             return new JsonResponse([
                 'error' => 'Payment not found',
             ], Response::HTTP_NOT_FOUND);
@@ -191,7 +197,7 @@ class PaymentController extends AbstractController
         if ($payment->getPaymentProviderId()) {
             try {
                 $payment = $this->paymentProcessor->syncPaymentStatus($payment);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->warning('Failed to sync payment status', [
                     'payment_id' => $payment->getId(),
                     'error' => $e->getMessage(),
@@ -210,12 +216,12 @@ class PaymentController extends AbstractController
             'paid_at' => $payment->getPaidAt()?->format('c'),
             'created_at' => $payment->getCreatedAt()->format('c'),
             'mercado_pago_id' => $payment->getPaymentProviderId(),
-            'driver' => $driver instanceof \App\Entity\Driver ? [
+            'driver' => $driver instanceof Driver ? [
                 'id' => $driver->getId(),
                 'nickname' => $driver->getNickname(),
                 'mp_account_id' => $driver->getMpAccountId(),
             ] : null,
-            'students' => array_map(fn (\App\Entity\Student $student): array => [
+            'students' => array_map(fn (Student $student): array => [
                 'id' => $student->getId(),
                 'name' => $student->getFirstName() . ' ' . $student->getLastName(),
             ], $payment->getStudents()->toArray()),
@@ -236,7 +242,7 @@ class PaymentController extends AbstractController
         if ($status) {
             try {
                 $paymentStatus = PaymentStatus::from($status);
-            } catch (\ValueError) {
+            } catch (ValueError) {
                 return new JsonResponse([
                     'error' => 'Invalid status value',
                 ], Response::HTTP_BAD_REQUEST);
@@ -273,7 +279,7 @@ class PaymentController extends AbstractController
 
         $payment = $this->paymentRepository->find($id);
 
-        if (! $payment instanceof \App\Entity\Payment) {
+        if (! $payment instanceof Payment) {
             return new JsonResponse([
                 'error' => 'Payment not found',
             ], Response::HTTP_NOT_FOUND);
@@ -301,17 +307,17 @@ class PaymentController extends AbstractController
             'paid_at' => $payment->getPaidAt()?->format('c'),
             'expires_at' => $payment->getExpiresAt()?->format('c'),
             'refunded_amount' => $payment->getRefundedAmount(),
-            'driver' => $driver instanceof \App\Entity\Driver ? [
+            'driver' => $driver instanceof Driver ? [
                 'id' => $driver->getId(),
                 'nickname' => $driver->getNickname(),
                 'mp_account_id' => $driver->getMpAccountId(),
             ] : null,
-            'students' => array_map(fn (\App\Entity\Student $student): array => [
+            'students' => array_map(fn (Student $student): array => [
                 'id' => $student->getId(),
                 'first_name' => $student->getFirstName(),
                 'last_name' => $student->getLastName(),
             ], $payment->getStudents()->toArray()),
-            'transactions' => array_map(fn (\App\Entity\PaymentTransaction $transaction): array => [
+            'transactions' => array_map(fn (PaymentTransaction $transaction): array => [
                 'event_type' => $transaction->getEventType()->value,
                 'status' => $transaction->getStatus()->value,
                 'created_at' => $transaction->getCreatedAt()->format('c'),

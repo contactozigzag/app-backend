@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use DateTimeInterface;
 use App\Entity\Payment;
 use App\Entity\User;
 use App\Enum\PaymentStatus;
@@ -50,7 +51,7 @@ class PaymentRepository extends ServiceEntityRepository
             ->setMaxResults($limit)
             ->setFirstResult($offset);
 
-        if ($status instanceof \App\Enum\PaymentStatus) {
+        if ($status instanceof PaymentStatus) {
             $qb->andWhere('p.status = :status')
                 ->setParameter('status', $status);
         }
@@ -75,7 +76,7 @@ class PaymentRepository extends ServiceEntityRepository
     /**
      * @return Payment[]
      */
-    public function findPendingPayments(\DateTimeInterface $olderThan): array
+    public function findPendingPayments(DateTimeInterface $olderThan): array
     {
         return $this->createQueryBuilder('p')
             ->where('p.status = :status')
@@ -91,8 +92,8 @@ class PaymentRepository extends ServiceEntityRepository
      */
     public function findPaymentsByDateRange(
         User $user,
-        \DateTimeInterface $from,
-        \DateTimeInterface $to
+        DateTimeInterface $from,
+        DateTimeInterface $to
     ): array {
         return $this->createQueryBuilder('p')
             ->where('p.user = :user')
@@ -124,8 +125,8 @@ class PaymentRepository extends ServiceEntityRepository
      */
     public function countByStatusAndDateRange(
         PaymentStatus $status,
-        \DateTimeInterface $from,
-        \DateTimeInterface $to
+        DateTimeInterface $from,
+        DateTimeInterface $to
     ): int {
         return (int) $this->createQueryBuilder('p')
             ->select('COUNT(p.id)')

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use DateTimeImmutable;
 use App\Entity\ActiveRoute;
 use App\Entity\ActiveRouteStop;
 use App\Repository\ActiveRouteStopRepository;
@@ -99,7 +100,7 @@ class GeofencingService
             if ($distance <= $geofenceRadius) {
                 if ($stop->getStatus() !== 'arrived') {
                     $stop->setStatus('arrived');
-                    $stop->setArrivedAt(new \DateTimeImmutable());
+                    $stop->setArrivedAt(new DateTimeImmutable());
                     $arrived[] = $stop;
 
                     $this->logger->info('Stop arrived', [
@@ -139,8 +140,8 @@ class GeofencingService
         }
 
         return [
-            'approaching' => array_map(fn (\App\Entity\ActiveRouteStop $s): ?int => $s->getId(), $approaching),
-            'arrived' => array_map(fn (\App\Entity\ActiveRouteStop $s): ?int => $s->getId(), $arrived),
+            'approaching' => array_map(fn (ActiveRouteStop $s): ?int => $s->getId(), $approaching),
+            'arrived' => array_map(fn (ActiveRouteStop $s): ?int => $s->getId(), $arrived),
         ];
     }
 
@@ -176,7 +177,7 @@ class GeofencingService
 
         $nextStop = $this->stopRepository->findNextPendingStop($activeRoute);
 
-        if (! $nextStop instanceof \App\Entity\ActiveRouteStop) {
+        if (! $nextStop instanceof ActiveRouteStop) {
             return null;
         }
 

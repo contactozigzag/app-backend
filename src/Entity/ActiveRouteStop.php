@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\ActiveRouteStopRepository;
 use Doctrine\DBAL\Types\Types;
@@ -57,15 +58,15 @@ class ActiveRouteStop
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['active_route_stop:read', 'active_route_stop:write', 'active_route:read'])]
-    private ?\DateTimeImmutable $arrivedAt = null;
+    private ?DateTimeImmutable $arrivedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['active_route_stop:read', 'active_route_stop:write', 'active_route:read'])]
-    private ?\DateTimeImmutable $pickedUpAt = null;
+    private ?DateTimeImmutable $pickedUpAt = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['active_route_stop:read', 'active_route_stop:write', 'active_route:read'])]
-    private ?\DateTimeImmutable $droppedOffAt = null;
+    private ?DateTimeImmutable $droppedOffAt = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     #[Groups(['active_route_stop:read', 'active_route:read'])]
@@ -81,22 +82,22 @@ class ActiveRouteStop
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['active_route_stop:read'])]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['active_route_stop:read'])]
-    private \DateTimeImmutable $updatedAt;
+    private DateTimeImmutable $updatedAt;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -159,34 +160,34 @@ class ActiveRouteStop
         return $this;
     }
 
-    public function getArrivedAt(): ?\DateTimeImmutable
+    public function getArrivedAt(): ?DateTimeImmutable
     {
         return $this->arrivedAt;
     }
 
-    public function setArrivedAt(?\DateTimeImmutable $arrivedAt): static
+    public function setArrivedAt(?DateTimeImmutable $arrivedAt): static
     {
         $this->arrivedAt = $arrivedAt;
         return $this;
     }
 
-    public function getPickedUpAt(): ?\DateTimeImmutable
+    public function getPickedUpAt(): ?DateTimeImmutable
     {
         return $this->pickedUpAt;
     }
 
-    public function setPickedUpAt(?\DateTimeImmutable $pickedUpAt): static
+    public function setPickedUpAt(?DateTimeImmutable $pickedUpAt): static
     {
         $this->pickedUpAt = $pickedUpAt;
         return $this;
     }
 
-    public function getDroppedOffAt(): ?\DateTimeImmutable
+    public function getDroppedOffAt(): ?DateTimeImmutable
     {
         return $this->droppedOffAt;
     }
 
-    public function setDroppedOffAt(?\DateTimeImmutable $droppedOffAt): static
+    public function setDroppedOffAt(?DateTimeImmutable $droppedOffAt): static
     {
         $this->droppedOffAt = $droppedOffAt;
         return $this;
@@ -225,12 +226,12 @@ class ActiveRouteStop
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
     }

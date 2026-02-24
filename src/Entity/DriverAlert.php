@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use App\Enum\AlertStatus;
 use App\Repository\DriverAlertRepository;
 use Doctrine\DBAL\Types\Types;
@@ -32,19 +33,19 @@ class DriverAlert
     private ?ActiveRoute $routeSession = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 6)]
-    private string $locationLat;
+    private string $locationLat = '0.000000';
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 6)]
-    private string $locationLng;
+    private string $locationLng = '0.000000';
 
     #[ORM\Column(enumType: AlertStatus::class)]
     private AlertStatus $status = AlertStatus::PENDING;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $triggeredAt;
+    private DateTimeImmutable $triggeredAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $resolvedAt = null;
+    private ?DateTimeImmutable $resolvedAt = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
@@ -61,15 +62,13 @@ class DriverAlert
     private array $nearbyDriverIds = [];
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     public function __construct()
     {
         $this->alertId = Uuid::v4()->toRfc4122();
-        $this->triggeredAt = new \DateTimeImmutable();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->locationLat = '0.000000';
-        $this->locationLng = '0.000000';
+        $this->triggeredAt = new DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -142,17 +141,17 @@ class DriverAlert
         return $this;
     }
 
-    public function getTriggeredAt(): \DateTimeImmutable
+    public function getTriggeredAt(): DateTimeImmutable
     {
         return $this->triggeredAt;
     }
 
-    public function getResolvedAt(): ?\DateTimeImmutable
+    public function getResolvedAt(): ?DateTimeImmutable
     {
         return $this->resolvedAt;
     }
 
-    public function setResolvedAt(?\DateTimeImmutable $resolvedAt): static
+    public function setResolvedAt(?DateTimeImmutable $resolvedAt): static
     {
         $this->resolvedAt = $resolvedAt;
 
@@ -201,7 +200,7 @@ class DriverAlert
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }

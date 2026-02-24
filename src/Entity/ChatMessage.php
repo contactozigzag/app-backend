@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use App\Repository\ChatMessageRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -33,7 +34,7 @@ class ChatMessage
     private string $content = '';
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $sentAt;
+    private DateTimeImmutable $sentAt;
 
     /**
      * @var int[] Array of user IDs who have read this message
@@ -42,12 +43,12 @@ class ChatMessage
     private array $readBy = [];
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     public function __construct()
     {
-        $this->sentAt = new \DateTimeImmutable();
-        $this->createdAt = new \DateTimeImmutable();
+        $this->sentAt = new DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -91,7 +92,7 @@ class ChatMessage
         return $this;
     }
 
-    public function getSentAt(): \DateTimeImmutable
+    public function getSentAt(): DateTimeImmutable
     {
         return $this->sentAt;
     }
@@ -114,7 +115,7 @@ class ChatMessage
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }

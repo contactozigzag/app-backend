@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\EventSubscriber;
 
+use Exception;
 use App\Event\Payment\PaymentApprovedEvent;
 use App\Event\Payment\PaymentCreatedEvent;
 use App\Event\Payment\PaymentFailedEvent;
@@ -128,7 +129,7 @@ readonly class PaymentEventSubscriber implements EventSubscriberInterface
                 'payment_id' => $paymentId,
                 'event' => $data['event'],
             ]);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->error('Failed to publish Mercure update', [
                 'payment_id' => $paymentId,
                 'error' => $exception->getMessage(),

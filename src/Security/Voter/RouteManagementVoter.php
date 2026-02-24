@@ -19,7 +19,7 @@ final class RouteManagementVoter extends Voter
 
     public function __construct(
         private readonly RoleHierarchyInterface $roleHierarchy,
-        #[Autowire('%app.driver_route_management_enabled%')]
+        #[Autowire(param: 'app.driver_route_management_enabled')]
         private readonly bool $driverRouteManagementEnabled,
     ) {
     }
@@ -37,10 +37,6 @@ final class RouteManagementVoter extends Voter
             return true;
         }
 
-        if ($this->driverRouteManagementEnabled && in_array('ROLE_DRIVER', $reachableRoles, true)) {
-            return true;
-        }
-
-        return false;
+        return $this->driverRouteManagementEnabled && in_array('ROLE_DRIVER', $reachableRoles, true);
     }
 }

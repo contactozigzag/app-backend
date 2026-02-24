@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use DateTimeImmutable;
 use App\Entity\School;
 use App\Repository\AttendanceRepository;
 
@@ -19,8 +20,8 @@ class SafetyAuditService
      */
     public function performSafetyAudit(
         School $school,
-        \DateTimeImmutable $startDate,
-        \DateTimeImmutable $endDate
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate
     ): array {
         return [
             'period' => [
@@ -45,8 +46,8 @@ class SafetyAuditService
      */
     private function verifyCheckInCheckOut(
         School $school,
-        \DateTimeImmutable $startDate,
-        \DateTimeImmutable $endDate
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate
     ): array {
         $qb = $this->attendanceRepository->createQueryBuilder('a')
             ->join('a.student', 's')
@@ -113,8 +114,8 @@ class SafetyAuditService
      */
     private function findOrphanedRecords(
         School $school,
-        \DateTimeImmutable $startDate,
-        \DateTimeImmutable $endDate
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate
     ): array {
         $qb = $this->attendanceRepository->createQueryBuilder('a')
             ->join('a.student', 's')
@@ -147,8 +148,8 @@ class SafetyAuditService
      */
     private function findMissingCheckOuts(
         School $school,
-        \DateTimeImmutable $startDate,
-        \DateTimeImmutable $endDate
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate
     ): array {
         $qb = $this->attendanceRepository->createQueryBuilder('a')
             ->join('a.student', 's')
@@ -184,8 +185,8 @@ class SafetyAuditService
      */
     private function findDuplicateRecords(
         School $school,
-        \DateTimeImmutable $startDate,
-        \DateTimeImmutable $endDate
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate
     ): array {
         $qb = $this->attendanceRepository->createQueryBuilder('a')
             ->select('a.date, s.id as student_id, COUNT(a.id) as record_count')
@@ -212,8 +213,8 @@ class SafetyAuditService
      */
     private function detectTimeAnomalies(
         School $school,
-        \DateTimeImmutable $startDate,
-        \DateTimeImmutable $endDate
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate
     ): array {
         $qb = $this->attendanceRepository->createQueryBuilder('a')
             ->join('a.student', 's')
@@ -261,8 +262,8 @@ class SafetyAuditService
      */
     private function calculateSafetyScore(
         School $school,
-        \DateTimeImmutable $startDate,
-        \DateTimeImmutable $endDate
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate
     ): array {
         $checkInOut = $this->verifyCheckInCheckOut($school, $startDate, $endDate);
         $orphaned = $this->findOrphanedRecords($school, $startDate, $endDate);

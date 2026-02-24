@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
+use DateTimeImmutable;
 use App\Entity\User;
 use App\Repository\PaymentRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -108,7 +110,7 @@ class MercureController extends AbstractController
 
         $factory = $this->hub->getFactory();
 
-        if (! $factory instanceof \Symfony\Component\Mercure\Jwt\TokenFactoryInterface) {
+        if (! $factory instanceof TokenFactoryInterface) {
             return new JsonResponse(
                 [
                     'error' => 'Mercure hub is not configured with a token factory.',
@@ -123,7 +125,7 @@ class MercureController extends AbstractController
             subscribe: [$topic],
             publish: [],
             additionalClaims: [
-                'exp' => new \DateTimeImmutable('+' . self::TOKEN_TTL . ' seconds'),
+                'exp' => new DateTimeImmutable('+' . self::TOKEN_TTL . ' seconds'),
             ],
         );
 

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\DriverAlert;
+use Throwable;
+use DateTimeImmutable;
+use App\Entity\User;
 use App\Enum\AlertStatus;
 use App\Repository\DriverAlertRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,7 +38,7 @@ class DriverAlertController extends AbstractController
     {
         $alert = $this->driverAlertRepository->findByAlertId($alertId);
 
-        if ($alert === null) {
+        if (!$alert instanceof DriverAlert) {
             return $this->json([
                 'error' => 'Alert not found',
             ], Response::HTTP_NOT_FOUND);
@@ -46,7 +50,7 @@ class DriverAlertController extends AbstractController
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        /** @var \App\Entity\User $user */
+        /** @var User $user */
         $user = $this->getUser();
         $driver = $user->getDriver();
 
@@ -64,6 +68,7 @@ class DriverAlertController extends AbstractController
 
         $alert->setStatus(AlertStatus::RESPONDED);
         $alert->setRespondingDriver($driver);
+
         $this->entityManager->flush();
 
         // Notify distressed driver via Mercure
@@ -79,7 +84,7 @@ class DriverAlertController extends AbstractController
                         'responderName' => $user->getfullName(),
                     ], JSON_THROW_ON_ERROR),
                 ));
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Non-fatal: Mercure publish failure should not fail the response
             }
         }
@@ -100,7 +105,7 @@ class DriverAlertController extends AbstractController
     {
         $alert = $this->driverAlertRepository->findByAlertId($alertId);
 
-        if ($alert === null) {
+        if (!$alert instanceof DriverAlert) {
             return $this->json([
                 'error' => 'Alert not found',
             ], Response::HTTP_NOT_FOUND);
@@ -112,7 +117,7 @@ class DriverAlertController extends AbstractController
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        /** @var \App\Entity\User $user */
+        /** @var User $user */
         $user = $this->getUser();
         $driver = $user->getDriver();
 
@@ -130,8 +135,9 @@ class DriverAlertController extends AbstractController
         }
 
         $alert->setStatus(AlertStatus::RESOLVED);
-        $alert->setResolvedAt(new \DateTimeImmutable());
+        $alert->setResolvedAt(new DateTimeImmutable());
         $alert->setResolvedBy($user);
+
         $this->entityManager->flush();
 
         return $this->json([

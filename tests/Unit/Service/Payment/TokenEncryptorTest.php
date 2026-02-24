@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service\Payment;
 
+use RuntimeException;
+use InvalidArgumentException;
+use Throwable;
 use App\Service\Payment\TokenEncryptor;
 use PHPUnit\Framework\TestCase;
 
@@ -51,7 +54,7 @@ final class TokenEncryptorTest extends TestCase
 
     public function testDecryptThrowsOnInvalidBase64(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('malformed');
 
         $this->encryptor->decrypt('not-valid-base64!!@@##');
@@ -62,7 +65,7 @@ final class TokenEncryptorTest extends TestCase
         // Too short: only the nonce length, no ciphertext appended
         $truncated = base64_encode(str_repeat("\x00", SODIUM_CRYPTO_SECRETBOX_NONCEBYTES));
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->encryptor->decrypt($truncated);
     }
 
@@ -74,7 +77,7 @@ final class TokenEncryptorTest extends TestCase
         $wrongKey = base64_encode(random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES));
         $wrongEncryptor = new TokenEncryptor($wrongKey);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to decrypt token');
 
         $wrongEncryptor->decrypt($encrypted);
@@ -84,7 +87,7 @@ final class TokenEncryptorTest extends TestCase
     {
         $shortKey = base64_encode(random_bytes(16)); // 16 bytes instead of 32
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('TOKEN_ENCRYPTION_KEY');
 
         new TokenEncryptor($shortKey);
@@ -94,7 +97,7 @@ final class TokenEncryptorTest extends TestCase
     {
         // PHP typed property rejects the false returned by base64_decode(strict:true)
         // before the manual check can run — either exception signals invalid input.
-        $this->expectException(\Throwable::class);
+        $this->expectException(Throwable::class);
 
         new TokenEncryptor('this-is-not-base64!@#$');
     }

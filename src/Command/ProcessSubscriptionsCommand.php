@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use DateTimeImmutable;
+use Exception;
 use App\Enum\SubscriptionStatus;
 use App\Repository\SubscriptionRepository;
 use App\Service\Payment\PaymentProcessor;
@@ -101,7 +103,7 @@ class ProcessSubscriptionsCommand extends Command
 
                 // Update subscription
                 $subscription->setNextBillingDate($subscription->calculateNextBillingDate());
-                $subscription->setLastPaymentAttemptAt(new \DateTimeImmutable());
+                $subscription->setLastPaymentAttemptAt(new DateTimeImmutable());
                 $subscription->resetFailedPaymentCount();
 
                 $this->logger->info('Subscription payment processed', [
@@ -117,12 +119,12 @@ class ProcessSubscriptionsCommand extends Command
                 ));
 
                 $processed++;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $failed++;
 
                 // Increment failed payment count
                 $subscription->incrementFailedPaymentCount();
-                $subscription->setLastPaymentAttemptAt(new \DateTimeImmutable());
+                $subscription->setLastPaymentAttemptAt(new DateTimeImmutable());
 
                 // Mark as failed if exceeded max retries
                 if ($subscription->getFailedPaymentCount() >= 3) {
@@ -187,11 +189,11 @@ class ProcessSubscriptionsCommand extends Command
                         currency: $subscription->getCurrency()
                     );
 
-                    $subscription->setLastPaymentAttemptAt(new \DateTimeImmutable());
+                    $subscription->setLastPaymentAttemptAt(new DateTimeImmutable());
 
                     $io->success(sprintf('Retry payment #%d created for subscription #%d', $payment->getId(), $subscription->getId()));
                     $processed++;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $failed++;
                     $subscription->incrementFailedPaymentCount();
 

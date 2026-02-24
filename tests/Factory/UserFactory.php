@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Factory;
 
+use Override;
 use App\Entity\User;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
@@ -37,7 +38,7 @@ final class UserFactory extends PersistentObjectFactory
         ];
     }
 
-    #[\Override]
+    #[Override]
     protected function initialize(): static
     {
         return $this->afterInstantiate(function (User $user): void {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use DateTimeImmutable;
 use App\Entity\User;
 use App\Service\SafetyAuditService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,9 +41,9 @@ class SafetyAuditController extends AbstractController
         $endDate = $request->query->get('end_date');
 
         // Default to last 30 days if not provided
-        $startDate = $startDate ? new \DateTimeImmutable($startDate) : new \DateTimeImmutable('-30 days');
+        $startDate = $startDate ? new DateTimeImmutable($startDate) : new DateTimeImmutable('-30 days');
 
-        $endDate = $endDate ? new \DateTimeImmutable($endDate) : new \DateTimeImmutable('today');
+        $endDate = $endDate ? new DateTimeImmutable($endDate) : new DateTimeImmutable('today');
 
         $audit = $this->safetyAuditService->performSafetyAudit($school, $startDate, $endDate);
 

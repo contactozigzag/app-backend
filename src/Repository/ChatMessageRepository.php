@@ -42,7 +42,7 @@ class ChatMessageRepository extends ServiceEntityRepository
     {
         // Messages where the user's ID is NOT in the readBy JSON array.
         // Uses LIKE as a cross-DB compatible approximation.
-        $userId = (string) $user->getId();
+        $user->getId();
 
         $all = $this->findByAlert($alert);
 

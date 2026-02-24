@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use DateTimeImmutable;
 use App\Entity\ArchivedRoute;
 use App\Entity\School;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -26,8 +27,8 @@ class ArchivedRouteRepository extends ServiceEntityRepository
      */
     public function findBySchoolAndDateRange(
         School $school,
-        \DateTimeImmutable $start,
-        \DateTimeImmutable $end
+        DateTimeImmutable $start,
+        DateTimeImmutable $end
     ): array {
         return $this->createQueryBuilder('ar')
             ->andWhere('ar.school = :school')
@@ -46,8 +47,8 @@ class ArchivedRouteRepository extends ServiceEntityRepository
      */
     public function getPerformanceStats(
         School $school,
-        \DateTimeImmutable $start,
-        \DateTimeImmutable $end
+        DateTimeImmutable $start,
+        DateTimeImmutable $end
     ): array {
         return $this->createQueryBuilder('ar')
             ->select([
@@ -79,8 +80,8 @@ class ArchivedRouteRepository extends ServiceEntityRepository
      */
     public function getOnTimePerformanceByDay(
         School $school,
-        \DateTimeImmutable $start,
-        \DateTimeImmutable $end
+        DateTimeImmutable $start,
+        DateTimeImmutable $end
     ): array {
         return $this->createQueryBuilder('ar')
             ->select('ar.date, AVG(ar.onTimePercentage) as avgOnTime')

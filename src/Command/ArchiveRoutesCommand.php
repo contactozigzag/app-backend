@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use Exception;
 use App\Service\RouteArchivingService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -50,7 +51,7 @@ class ArchiveRoutesCommand extends Command
             $io->success(sprintf('Successfully archived %d routes', $archivedCount));
 
             return Command::SUCCESS;
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $io->error(sprintf('Failed to archive routes: %s', $exception->getMessage()));
 
             return Command::FAILURE;

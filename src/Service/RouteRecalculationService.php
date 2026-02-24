@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Exception;
 use App\Entity\Absence;
 use App\Entity\ActiveRoute;
 use App\Entity\ActiveRouteStop;
@@ -205,7 +206,7 @@ class RouteRecalculationService
                     'student_id' => $absence->getStudent()->getId(),
                     'result' => $result,
                 ];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->error('Failed to process absence', [
                     'absence_id' => $absence->getId(),
                     'error' => $e->getMessage(),

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use DateTimeImmutable;
+use App\Entity\LocationUpdate;
 use App\Dto\ChildStatusDto;
 use App\Dto\ParentDashboardDto;
 use App\Entity\User;
@@ -42,7 +44,7 @@ class ParentDashboardController extends AbstractController
         $todayAttendance = [];
         $upcomingRoutes = [];
 
-        $today = new \DateTimeImmutable('today');
+        $today = new DateTimeImmutable('today');
 
         // Get all children of the parent
         foreach ($user->getStudents() as $student) {
@@ -74,7 +76,7 @@ class ParentDashboardController extends AbstractController
 
                     // Get the latest location update timestamp
                     $latestLocation = $this->locationUpdateRepository->findLatestByActiveRoute($activeRoute);
-                    if ($latestLocation instanceof \App\Entity\LocationUpdate) {
+                    if ($latestLocation instanceof LocationUpdate) {
                         $lastUpdate = $latestLocation->getTimestamp()->format('c');
                     }
                 }

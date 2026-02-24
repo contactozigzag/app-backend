@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use Throwable;
 use App\Message\ChatMessageCreatedMessage;
 use App\Repository\ChatMessageRepository;
 use App\Service\Payment\TokenEncryptor;
@@ -51,10 +52,10 @@ class ChatMessagePublishHandler
 
         try {
             $this->hub->publish(new Update($topic, $payload, true));
-        } catch (\Throwable $e) {
+        } catch (Throwable $throwable) {
             $this->logger->error('ChatMessagePublishHandler: failed to publish', [
                 'topic' => $topic,
-                'error' => $e->getMessage(),
+                'error' => $throwable->getMessage(),
             ]);
         }
     }

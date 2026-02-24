@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use DateTimeImmutable;
+use App\Entity\ActiveRoute;
+use App\Entity\LocationUpdate;
+use App\Entity\School;
 use App\Dto\SchoolAdminDashboardDto;
 use App\Entity\User;
 use App\Repository\ActiveRouteRepository;
@@ -45,7 +49,7 @@ class SchoolAdminDashboardController extends AbstractController
             ], 400);
         }
 
-        $today = new \DateTimeImmutable('today');
+        $today = new DateTimeImmutable('today');
 
         // Get statistics
         $statistics = $this->getStatistics($school, $today);
@@ -93,10 +97,10 @@ class SchoolAdminDashboardController extends AbstractController
                 'name' => $driver->getUser()->getFirstName() . ' ' . $driver->getUser()->getLastName(),
                 'email' => $driver->getUser()->getEmail(),
                 'phoneNumber' => $driver->getUser()->getPhoneNumber(),
-                'status' => $activeRoute instanceof \App\Entity\ActiveRoute ? $activeRoute->getStatus() : 'idle',
+                'status' => $activeRoute instanceof ActiveRoute ? $activeRoute->getStatus() : 'idle',
                 'activeRouteId' => $activeRoute?->getId(),
                 'lastLocationUpdate' => $latestLocation?->getTimestamp()->format('c'),
-                'currentLocation' => $latestLocation instanceof \App\Entity\LocationUpdate ? [
+                'currentLocation' => $latestLocation instanceof LocationUpdate ? [
                     'latitude' => (float) $latestLocation->getLatitude(),
                     'longitude' => (float) $latestLocation->getLongitude(),
                 ] : null,
@@ -121,18 +125,18 @@ class SchoolAdminDashboardController extends AbstractController
         return $this->json($dashboard);
     }
 
-    private function getStatistics(\App\Entity\School $school, \DateTimeImmutable $today): array
+    private function getStatistics(School $school, DateTimeImmutable $today): array
     {
         $totalStudents = $this->studentRepository->count([
             'school' => $school,
         ]);
 
         $allRoutes = $this->activeRouteRepository->findBySchoolAndDate($school, $today);
-        $activeRoutes = array_filter($allRoutes, fn (\App\Entity\ActiveRoute $r): bool => in_array($r->getStatus(), ['scheduled', 'in_progress'], true));
-        $completedRoutes = array_filter($allRoutes, fn (\App\Entity\ActiveRoute $r): bool => $r->getStatus() === 'completed');
+        $activeRoutes = array_filter($allRoutes, fn (ActiveRoute $r): bool => in_array($r->getStatus(), ['scheduled', 'in_progress'], true));
+        $completedRoutes = array_filter($allRoutes, fn (ActiveRoute $r): bool => $r->getStatus() === 'completed');
 
         $totalDrivers = $this->driverRepository->countBySchool($school);
-        $activeDrivers = count(array_unique(array_map(fn (\App\Entity\ActiveRoute $r): ?int => $r->getDriver()->getId(), $activeRoutes)));
+        $activeDrivers = count(array_unique(array_map(fn (ActiveRoute $r): ?int => $r->getDriver()->getId(), $activeRoutes)));
 
         $attendanceStats = $this->attendanceRepository->getStatsByDateRange($today, $today);
 
@@ -150,7 +154,7 @@ class SchoolAdminDashboardController extends AbstractController
     private function generateAlerts(array $routes): array
     {
         $alerts = [];
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
 
         foreach ($routes as $route) {
             // Check for delays (route started but taking too long)
@@ -176,7 +180,7 @@ class SchoolAdminDashboardController extends AbstractController
             // Check for no location updates (driver might have issues)
             if ($route->getStatus() === 'in_progress') {
                 $latestLocation = $this->locationUpdateRepository->findLatestByActiveRoute($route);
-                if ($latestLocation instanceof \App\Entity\LocationUpdate) {
+                if ($latestLocation instanceof LocationUpdate) {
                     $timeSinceUpdate = $now->getTimestamp() - $latestLocation->getTimestamp()->getTimestamp();
                     if ($timeSinceUpdate > 300) { // 5 minutes
                         $alerts[] = [
@@ -198,7 +202,7 @@ class SchoolAdminDashboardController extends AbstractController
         return $alerts;
     }
 
-    private function getTodayMetrics(\App\Entity\School $school, \DateTimeImmutable $today): array
+    private function getTodayMetrics(School $school, DateTimeImmutable $today): array
     {
         $routes = $this->activeRouteRepository->findBySchoolAndDate($school, $today);
 

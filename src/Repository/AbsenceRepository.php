@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use DateTimeImmutable;
 use App\Entity\Absence;
 use App\Entity\Student;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -24,7 +25,7 @@ class AbsenceRepository extends ServiceEntityRepository
      *
      * @return Absence[]
      */
-    public function findByStudentAndDate(Student $student, \DateTimeImmutable $date): array
+    public function findByStudentAndDate(Student $student, DateTimeImmutable $date): array
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.student = :student')
@@ -40,7 +41,7 @@ class AbsenceRepository extends ServiceEntityRepository
      *
      * @return Absence[]
      */
-    public function findByDate(\DateTimeImmutable $date): array
+    public function findByDate(DateTimeImmutable $date): array
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.date = :date')
@@ -60,7 +61,7 @@ class AbsenceRepository extends ServiceEntityRepository
             ->andWhere('a.routeRecalculated = :recalculated')
             ->andWhere('a.date >= :today')
             ->setParameter('recalculated', false)
-            ->setParameter('today', new \DateTimeImmutable('today'))
+            ->setParameter('today', new DateTimeImmutable('today'))
             ->getQuery()
             ->getResult();
     }
@@ -68,7 +69,7 @@ class AbsenceRepository extends ServiceEntityRepository
     /**
      * Check if student is absent for a specific route type on a date
      */
-    public function isStudentAbsent(Student $student, \DateTimeImmutable $date, string $routeType): bool
+    public function isStudentAbsent(Student $student, DateTimeImmutable $date, string $routeType): bool
     {
         $absences = $this->findByStudentAndDate($student, $date);
 
