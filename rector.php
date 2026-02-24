@@ -23,11 +23,9 @@ return RectorConfig::configure()
         // Skip vendor
         __DIR__.'/vendor',
     ])
-    ->withPhpSets()
+    ->withComposerBased(twig: true, doctrine: true, phpunit: true, symfony: true)
+    ->withPhpSets(php85: true)
     ->withSets([
-        // PHP 8.4 upgrades (covers all PHP 8.0–8.4 migrations)
-        LevelSetList::UP_TO_PHP_84,
-
         // Code quality improvements
         SetList::DEAD_CODE,
         SetList::CODE_QUALITY,
@@ -36,27 +34,10 @@ return RectorConfig::configure()
         SetList::PRIVATIZATION,
         SetList::EARLY_RETURN,
 
-        // Symfony — all sets up to 8.0
-        SymfonySetList::SYMFONY_60,
-        SymfonySetList::SYMFONY_61,
-        SymfonySetList::SYMFONY_62,
-        SymfonySetList::SYMFONY_63,
-        SymfonySetList::SYMFONY_64,
-        SymfonySetList::SYMFONY_70,
-        SymfonySetList::SYMFONY_71,
-        SymfonySetList::SYMFONY_72,
-        SymfonySetList::SYMFONY_73,
-        SymfonySetList::SYMFONY_74,
-        SymfonySetList::SYMFONY_80,
+        // Symfony
         SymfonySetList::SYMFONY_CODE_QUALITY,
 
-        // Doctrine ORM 3.x migrations
-        DoctrineSetList::DOCTRINE_ORM_25,
-        DoctrineSetList::DOCTRINE_ORM_28,
-        DoctrineSetList::DOCTRINE_ORM_213,
-        DoctrineSetList::DOCTRINE_ORM_214,
-        DoctrineSetList::DOCTRINE_ORM_219,
-        DoctrineSetList::DOCTRINE_ORM_300,
+        // Doctrine ORM
         DoctrineSetList::DOCTRINE_CODE_QUALITY,
 
         // PHPUnit 12.x migrations
