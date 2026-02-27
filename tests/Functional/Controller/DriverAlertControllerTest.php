@@ -45,7 +45,7 @@ final class DriverAlertControllerTest extends AbstractApiTestCase
         $data = $this->postJson($client, '/api/driver-alerts/non-existent-uuid/respond', []);
 
         self::assertResponseStatusCodeSame(404);
-        self::assertSame('Alert not found', $data['error']);
+        $this->assertSame('Alert not found', $data['error']);
     }
 
     // ── POST /api/driver-alerts/{alertId}/resolve — authentication & authorisation
@@ -81,7 +81,7 @@ final class DriverAlertControllerTest extends AbstractApiTestCase
         $data = $this->postJson($client, '/api/driver-alerts/non-existent-uuid/resolve', []);
 
         self::assertResponseStatusCodeSame(404);
-        self::assertSame('Alert not found', $data['error']);
+        $this->assertSame('Alert not found', $data['error']);
     }
 
     public function testResolveAlreadyResolvedReturns422(): void
@@ -91,16 +91,17 @@ final class DriverAlertControllerTest extends AbstractApiTestCase
         $this->loginUser($client, $driver->getUser());
 
         // Create a RESOLVED alert directly via EntityManager
-        $em = static::getContainer()->get('doctrine.orm.entity_manager');
+        $em = self::getContainer()->get('doctrine.orm.entity_manager');
         $alert = new DriverAlert();
         $alert->setDistressedDriver($driver);
         $alert->setStatus(AlertStatus::RESOLVED);
+
         $em->persist($alert);
         $em->flush();
 
         $data = $this->postJson($client, sprintf('/api/driver-alerts/%s/resolve', $alert->getAlertId()), []);
 
         self::assertResponseStatusCodeSame(422);
-        self::assertSame('Alert is already resolved', $data['error']);
+        $this->assertSame('Alert is already resolved', $data['error']);
     }
 }

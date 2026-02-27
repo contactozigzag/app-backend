@@ -42,7 +42,7 @@ final class GeofencingControllerTest extends AbstractApiTestCase
         $data = $this->postJson($client, '/api/geofencing/check/99999', []);
 
         self::assertResponseStatusCodeSame(404);
-        self::assertSame('Active route not found', $data['error']);
+        $this->assertSame('Active route not found', $data['error']);
     }
 
     // ── POST /api/geofencing/check-all — authentication & authorisation ───────
@@ -80,8 +80,8 @@ final class GeofencingControllerTest extends AbstractApiTestCase
         $data = $this->postJson($client, '/api/geofencing/check-all', []);
 
         self::assertResponseIsSuccessful();
-        self::assertArrayHasKey('routes_checked', $data);
-        self::assertSame(0, $data['routes_checked']);
+        $this->assertArrayHasKey('routes_checked', $data);
+        $this->assertSame(0, $data['routes_checked']);
     }
 
     // ── GET /api/geofencing/distance-to-next/{routeId} — authentication ───────
@@ -104,6 +104,6 @@ final class GeofencingControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/api/geofencing/distance-to-next/99999');
 
         self::assertResponseStatusCodeSame(404);
-        self::assertSame('Active route not found', $data['error']);
+        $this->assertSame('Active route not found', $data['error']);
     }
 }

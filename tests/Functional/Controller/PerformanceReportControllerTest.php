@@ -35,13 +35,15 @@ final class PerformanceReportControllerTest extends AbstractApiTestCase
     public function testPerformanceReportWithoutSchoolReturnsBadRequest(): void
     {
         $client = $this->createApiClient();
-        $admin = UserFactory::createOne(['roles' => ['ROLE_SCHOOL_ADMIN']]); // no school
+        $admin = UserFactory::createOne([
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
+        ]); // no school
         $this->loginUser($client, $admin);
 
         $data = $this->getJson($client, '/api/reports/performance');
 
         self::assertResponseStatusCodeSame(400);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 
     public function testPerformanceReportSuccess(): void
@@ -54,7 +56,7 @@ final class PerformanceReportControllerTest extends AbstractApiTestCase
         ]);
         $this->loginUser($client, $admin);
 
-        $data = $this->getJson($client, '/api/reports/performance?start_date=2026-01-01&end_date=2026-02-01');
+        $this->getJson($client, '/api/reports/performance?start_date=2026-01-01&end_date=2026-02-01');
 
         self::assertResponseIsSuccessful();
     }
@@ -91,7 +93,7 @@ final class PerformanceReportControllerTest extends AbstractApiTestCase
         ]);
         $this->loginUser($client, $admin);
 
-        $data = $this->getJson($client, '/api/reports/efficiency');
+        $this->getJson($client, '/api/reports/efficiency');
 
         self::assertResponseIsSuccessful();
     }
@@ -120,7 +122,7 @@ final class PerformanceReportControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/api/reports/top-performing');
 
         self::assertResponseIsSuccessful();
-        self::assertArrayHasKey('top_routes', $data);
+        $this->assertArrayHasKey('top_routes', $data);
     }
 
     // ── GET /api/reports/comparative — authentication ─────────────────────────
@@ -144,7 +146,7 @@ final class PerformanceReportControllerTest extends AbstractApiTestCase
         ]);
         $this->loginUser($client, $admin);
 
-        $data = $this->getJson($client, '/api/reports/comparative');
+        $this->getJson($client, '/api/reports/comparative');
 
         self::assertResponseIsSuccessful();
     }

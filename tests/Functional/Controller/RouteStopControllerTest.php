@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Controller;
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\DriverFactory;
 use App\Tests\Factory\UserFactory;
+use Symfony\Component\HttpFoundation\Request;
 
 final class RouteStopControllerTest extends AbstractApiTestCase
 {
@@ -32,7 +33,7 @@ final class RouteStopControllerTest extends AbstractApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(400);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 
     // ── GET /api/route-stops/unconfirmed — authentication & authorisation ─────
@@ -66,8 +67,8 @@ final class RouteStopControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/api/route-stops/unconfirmed');
 
         self::assertResponseIsSuccessful();
-        self::assertArrayHasKey('unconfirmed_stops', $data);
-        self::assertSame(0, $data['total']);
+        $this->assertArrayHasKey('unconfirmed_stops', $data);
+        $this->assertSame(0, $data['total']);
     }
 
     // ── PATCH /api/route-stops/{id}/confirm — authentication & validation ─────
@@ -76,7 +77,9 @@ final class RouteStopControllerTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        $client->request('PATCH', '/api/route-stops/1/confirm', [], [], ['HTTP_ACCEPT' => 'application/json']);
+        $client->request(Request::METHOD_PATCH, '/api/route-stops/1/confirm', [], [], [
+            'HTTP_ACCEPT' => 'application/json',
+        ]);
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -87,7 +90,7 @@ final class RouteStopControllerTest extends AbstractApiTestCase
         $user = UserFactory::createOne(); // ROLE_PARENT
         $this->loginUser($client, $user);
 
-        $client->request('PATCH', '/api/route-stops/1/confirm', [], [], [
+        $client->request(Request::METHOD_PATCH, '/api/route-stops/1/confirm', [], [], [
             'HTTP_ACCEPT' => 'application/json',
             'HTTP_AUTHORIZATION' => $client->getServerParameter('HTTP_AUTHORIZATION'),
         ]);
@@ -101,7 +104,7 @@ final class RouteStopControllerTest extends AbstractApiTestCase
         $driver = DriverFactory::createOne();
         $this->loginUser($client, $driver->getUser());
 
-        $client->request('PATCH', '/api/route-stops/99999/confirm', [], [], [
+        $client->request(Request::METHOD_PATCH, '/api/route-stops/99999/confirm', [], [], [
             'HTTP_ACCEPT' => 'application/json',
             'HTTP_AUTHORIZATION' => $client->getServerParameter('HTTP_AUTHORIZATION'),
         ]);
@@ -109,7 +112,7 @@ final class RouteStopControllerTest extends AbstractApiTestCase
         $data = json_decode((string) $client->getResponse()->getContent(), true) ?? [];
 
         self::assertResponseStatusCodeSame(404);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 
     // ── PATCH /api/route-stops/{id}/reject — authentication & validation ──────
@@ -118,7 +121,9 @@ final class RouteStopControllerTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        $client->request('PATCH', '/api/route-stops/1/reject', [], [], ['HTTP_ACCEPT' => 'application/json']);
+        $client->request(Request::METHOD_PATCH, '/api/route-stops/1/reject', [], [], [
+            'HTTP_ACCEPT' => 'application/json',
+        ]);
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -129,7 +134,7 @@ final class RouteStopControllerTest extends AbstractApiTestCase
         $driver = DriverFactory::createOne();
         $this->loginUser($client, $driver->getUser());
 
-        $client->request('PATCH', '/api/route-stops/99999/reject', [], [], [
+        $client->request(Request::METHOD_PATCH, '/api/route-stops/99999/reject', [], [], [
             'HTTP_ACCEPT' => 'application/json',
             'HTTP_AUTHORIZATION' => $client->getServerParameter('HTTP_AUTHORIZATION'),
         ]);
@@ -137,6 +142,6 @@ final class RouteStopControllerTest extends AbstractApiTestCase
         $data = json_decode((string) $client->getResponse()->getContent(), true) ?? [];
 
         self::assertResponseStatusCodeSame(404);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 }
