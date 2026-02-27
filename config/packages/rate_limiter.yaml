@@ -12,9 +12,28 @@ framework:
             interval: '3 seconds'
             storage_service: 'cache.rate_limiter'
 
-# In tests the cache.rate_limiter pool is wrapped in TraceableAdapter which does
-# not implement StorageInterface. Override to use InMemoryStorage so controllers
-# can be instantiated without a real Redis/DB storage backend.
+# In dev/test the cache.rate_limiter pool is wrapped in TraceableAdapter (debug
+# mode) which does not implement StorageInterface. Override to InMemoryStorage so
+# lint:container and functional tests can instantiate controllers cleanly.
+when@dev:
+    services:
+        dev.rate_limiter.storage:
+            class: Symfony\Component\RateLimiter\Storage\InMemoryStorage
+
+    framework:
+        rate_limiter:
+            payment_api:
+                policy: 'sliding_window'
+                limit: 10
+                interval: '1 minute'
+                storage_service: 'dev.rate_limiter.storage'
+
+            gps_ingestion:
+                policy: 'fixed_window'
+                limit: 1
+                interval: '3 seconds'
+                storage_service: 'dev.rate_limiter.storage'
+
 when@test:
     services:
         test.rate_limiter.storage:
