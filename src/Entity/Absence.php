@@ -7,7 +7,6 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
 use App\Repository\AbsenceRepository;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
@@ -22,7 +21,6 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new Get(security: "is_granted('ROLE_USER')"),
         new GetCollection(security: "is_granted('ROLE_USER')"),
-        new Post(security: "is_granted('ROLE_PARENT') or is_granted('ROLE_SCHOOL_ADMIN')"),
     ],
     normalizationContext: [
         'groups' => ['absence:read'],

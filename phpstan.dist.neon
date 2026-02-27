@@ -381,6 +381,22 @@ parameters:
                 - tests/Functional/Controller/OAuthControllerTest.php
 
         # ——————————————————————————————————————————————————————————————————————
+        # Functional test helpers — Foundry factory createOne() and getUser() on
+        # Driver return User|null; loginUser() expects non-null User. Tests guard
+        # against null by construction (factory always persists).
+        # json_decode() ?? [] returns mixed; assertArrayHasKey callers in tests
+        # build their own json_decode responses with a safe fallback.
+        # ——————————————————————————————————————————————————————————————————————
+        -
+            message: '#Parameter \#2 \$user of method App\\Tests\\AbstractApiTestCase::loginUser\(\) expects App\\Entity\\User, App\\Entity\\User\|null given#'
+            paths:
+                - tests/
+        -
+            message: '#Parameter \#2 \$array of static method PHPUnit\\Framework\\Assert::assertArrayHasKey\(\) expects array<mixed>\|ArrayAccess.+, mixed given#'
+            paths:
+                - tests/
+
+        # ——————————————————————————————————————————————————————————————————————
         # WebhookControllerTest — validSignatureHeaders array type and json_decode
         # mixed/string|false issues in test helpers.
         # ——————————————————————————————————————————————————————————————————————

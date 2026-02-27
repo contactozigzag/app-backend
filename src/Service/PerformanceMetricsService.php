@@ -240,8 +240,8 @@ class PerformanceMetricsService
 
     private function calculatePercentageChange(float $old, float $new): float
     {
-        if ($old === 0) {
-            return $new > 0 ? 100 : 0;
+        if ($old == 0) {
+            return $new > 0 ? 100.0 : 0.0;
         }
 
         return round((($new - $old) / $old) * 100, 2);
