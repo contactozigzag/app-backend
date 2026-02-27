@@ -232,7 +232,6 @@ parameters:
         # PerformanceMetricsService internal array shape calculations.
         # ——————————————————————————————————————————————————————————————————————
         - '#Method App\\Service\\PerformanceMetricsService::[a-zA-Z]+\(\)#'
-        - '#Strict comparison using === between float and 0 will always evaluate to false#'
 
         # ——————————————————————————————————————————————————————————————————————
         # SafetyAuditService return types with mixed arrays — audit data shapes
