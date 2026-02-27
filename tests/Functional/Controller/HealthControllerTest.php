@@ -27,13 +27,13 @@ final class HealthControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/health');
 
         self::assertResponseIsSuccessful();
-        self::assertArrayHasKey('status', $data);
-        self::assertArrayHasKey('timestamp', $data);
-        self::assertArrayHasKey('checks', $data);
-        self::assertArrayHasKey('database', $data['checks']);
-        self::assertArrayHasKey('disk', $data['checks']);
-        self::assertArrayHasKey('memory', $data['checks']);
-        self::assertArrayHasKey('application', $data['checks']);
+        $this->assertArrayHasKey('status', $data);
+        $this->assertArrayHasKey('timestamp', $data);
+        $this->assertArrayHasKey('checks', $data);
+        $this->assertArrayHasKey('database', $data['checks']);
+        $this->assertArrayHasKey('disk', $data['checks']);
+        $this->assertArrayHasKey('memory', $data['checks']);
+        $this->assertArrayHasKey('application', $data['checks']);
     }
 
     public function testHealthCheckDatabaseIsHealthy(): void
@@ -42,7 +42,7 @@ final class HealthControllerTest extends AbstractApiTestCase
 
         $data = $this->getJson($client, '/health');
 
-        self::assertSame('healthy', $data['checks']['database']['status']);
+        $this->assertSame('healthy', $data['checks']['database']['status']);
     }
 
     // ── GET /health/ready ─────────────────────────────────────────────────────
@@ -54,8 +54,8 @@ final class HealthControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/health/ready');
 
         self::assertResponseIsSuccessful();
-        self::assertSame('ready', $data['status']);
-        self::assertArrayHasKey('timestamp', $data);
+        $this->assertSame('ready', $data['status']);
+        $this->assertArrayHasKey('timestamp', $data);
     }
 
     // ── GET /health/live ──────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ final class HealthControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/health/live');
 
         self::assertResponseIsSuccessful();
-        self::assertSame('alive', $data['status']);
-        self::assertArrayHasKey('timestamp', $data);
+        $this->assertSame('alive', $data['status']);
+        $this->assertArrayHasKey('timestamp', $data);
     }
 }

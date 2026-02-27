@@ -8,6 +8,7 @@ use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\DriverFactory;
 use App\Tests\Factory\StudentFactory;
 use App\Tests\Factory\UserFactory;
+use Symfony\Component\HttpFoundation\Request;
 
 final class AbsenceControllerTest extends AbstractApiTestCase
 {
@@ -51,7 +52,7 @@ final class AbsenceControllerTest extends AbstractApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(400);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 
     public function testReportAbsenceStudentNotFoundReturns404(): void
@@ -67,7 +68,7 @@ final class AbsenceControllerTest extends AbstractApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(404);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 
     // ── POST /api/absences — success ──────────────────────────────────────────
@@ -87,8 +88,8 @@ final class AbsenceControllerTest extends AbstractApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(201);
-        self::assertTrue($data['success']);
-        self::assertArrayHasKey('absence_id', $data);
+        $this->assertTrue($data['success']);
+        $this->assertArrayHasKey('absence_id', $data);
     }
 
     public function testReportAbsenceDuplicateReturnsConflict(): void
@@ -110,7 +111,7 @@ final class AbsenceControllerTest extends AbstractApiTestCase
 
         $data = $this->postJson($client, '/api/absences', $payload);
         self::assertResponseStatusCodeSame(409);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 
     // ── GET /api/absences/student/{studentId} — authentication & results ──────
@@ -133,7 +134,7 @@ final class AbsenceControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/api/absences/student/99999');
 
         self::assertResponseStatusCodeSame(404);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 
     public function testGetStudentAbsencesSuccess(): void
@@ -146,9 +147,9 @@ final class AbsenceControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, sprintf('/api/absences/student/%d', $student->getId()));
 
         self::assertResponseIsSuccessful();
-        self::assertSame($student->getId(), $data['student_id']);
-        self::assertSame(0, $data['count']);
-        self::assertIsArray($data['absences']);
+        $this->assertSame($student->getId(), $data['student_id']);
+        $this->assertSame(0, $data['count']);
+        $this->assertIsArray($data['absences']);
     }
 
     // ── DELETE /api/absences/{id} — authentication & authorisation ────────────
@@ -157,7 +158,9 @@ final class AbsenceControllerTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        $client->request('DELETE', '/api/absences/1', [], [], ['HTTP_ACCEPT' => 'application/json']);
+        $client->request(Request::METHOD_DELETE, '/api/absences/1', [], [], [
+            'HTTP_ACCEPT' => 'application/json',
+        ]);
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -168,7 +171,7 @@ final class AbsenceControllerTest extends AbstractApiTestCase
         $driver = DriverFactory::createOne();
         $this->loginUser($client, $driver->getUser());
 
-        $client->request('DELETE', '/api/absences/1', [], [], [
+        $client->request(Request::METHOD_DELETE, '/api/absences/1', [], [], [
             'HTTP_ACCEPT' => 'application/json',
             'HTTP_AUTHORIZATION' => $client->getServerParameter('HTTP_AUTHORIZATION'),
         ]);
@@ -182,7 +185,7 @@ final class AbsenceControllerTest extends AbstractApiTestCase
         $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
-        $client->request('DELETE', '/api/absences/99999', [], [], [
+        $client->request(Request::METHOD_DELETE, '/api/absences/99999', [], [], [
             'HTTP_ACCEPT' => 'application/json',
             'HTTP_AUTHORIZATION' => $client->getServerParameter('HTTP_AUTHORIZATION'),
         ]);
@@ -190,7 +193,7 @@ final class AbsenceControllerTest extends AbstractApiTestCase
         $data = json_decode((string) $client->getResponse()->getContent(), true) ?? [];
 
         self::assertResponseStatusCodeSame(404);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 
     public function testCancelAbsenceSuccess(): void
@@ -209,7 +212,7 @@ final class AbsenceControllerTest extends AbstractApiTestCase
 
         self::assertResponseStatusCodeSame(201);
 
-        $client->request('DELETE', sprintf('/api/absences/%d', $created['absence_id']), [], [], [
+        $client->request(Request::METHOD_DELETE, sprintf('/api/absences/%d', $created['absence_id']), [], [], [
             'HTTP_ACCEPT' => 'application/json',
             'HTTP_AUTHORIZATION' => $client->getServerParameter('HTTP_AUTHORIZATION'),
         ]);
@@ -217,6 +220,6 @@ final class AbsenceControllerTest extends AbstractApiTestCase
         $data = json_decode((string) $client->getResponse()->getContent(), true) ?? [];
 
         self::assertResponseIsSuccessful();
-        self::assertTrue($data['success']);
+        $this->assertTrue($data['success']);
     }
 }

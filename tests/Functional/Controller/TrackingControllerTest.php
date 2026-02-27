@@ -50,7 +50,7 @@ final class TrackingControllerTest extends AbstractApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(400);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 
     public function testUpdateLocationDriverNotFoundReturns404(): void
@@ -66,7 +66,7 @@ final class TrackingControllerTest extends AbstractApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(404);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 
     // ── POST /api/tracking/location — success ─────────────────────────────────
@@ -84,9 +84,9 @@ final class TrackingControllerTest extends AbstractApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(201);
-        self::assertTrue($data['success']);
-        self::assertArrayHasKey('location_id', $data);
-        self::assertFalse($data['has_active_route']);
+        $this->assertTrue($data['success']);
+        $this->assertArrayHasKey('location_id', $data);
+        $this->assertFalse($data['has_active_route']);
     }
 
     // ── POST /api/tracking/location/batch — authentication & validation ───────
@@ -111,7 +111,7 @@ final class TrackingControllerTest extends AbstractApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(400);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 
     public function testBatchUpdateLocationDriverNotFoundReturns404(): void
@@ -120,7 +120,7 @@ final class TrackingControllerTest extends AbstractApiTestCase
         $driver = DriverFactory::createOne();
         $this->loginUser($client, $driver->getUser());
 
-        $data = $this->postJson($client, '/api/tracking/location/batch', [
+        $this->postJson($client, '/api/tracking/location/batch', [
             'driver_id' => 99999,
             'locations' => [],
         ]);
@@ -137,17 +137,27 @@ final class TrackingControllerTest extends AbstractApiTestCase
         $data = $this->postJson($client, '/api/tracking/location/batch', [
             'driver_id' => $driver->getId(),
             'locations' => [
-                ['latitude' => -34.6037, 'longitude' => -58.3816],
-                ['latitude' => -34.6040, 'longitude' => -58.3820],
-                ['latitude' => -34.6045, 'longitude' => -58.3825, 'speed' => 30.5],
+                [
+                    'latitude' => -34.6037,
+                    'longitude' => -58.3816,
+                ],
+                [
+                    'latitude' => -34.6040,
+                    'longitude' => -58.3820,
+                ],
+                [
+                    'latitude' => -34.6045,
+                    'longitude' => -58.3825,
+                    'speed' => 30.5,
+                ],
             ],
         ]);
 
         self::assertResponseIsSuccessful();
-        self::assertTrue($data['success']);
-        self::assertSame(3, $data['processed_count']);
-        self::assertSame(3, $data['total_count']);
-        self::assertEmpty($data['errors']);
+        $this->assertTrue($data['success']);
+        $this->assertSame(3, $data['processed_count']);
+        $this->assertSame(3, $data['total_count']);
+        $this->assertEmpty($data['errors']);
     }
 
     // ── GET /api/tracking/location/driver/{id} — authentication ───────────────
@@ -170,7 +180,7 @@ final class TrackingControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/api/tracking/location/driver/99999');
 
         self::assertResponseStatusCodeSame(404);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 
     public function testGetDriverLocationNoDataReturns404(): void
@@ -182,7 +192,7 @@ final class TrackingControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, sprintf('/api/tracking/location/driver/%d', $driver->getId()));
 
         self::assertResponseStatusCodeSame(404);
-        self::assertSame('No location data available', $data['error']);
+        $this->assertSame('No location data available', $data['error']);
     }
 
     // ── GET /api/tracking/location/driver/{id}/history — authentication ───────
@@ -210,13 +220,15 @@ final class TrackingControllerTest extends AbstractApiTestCase
     public function testGetDriverLocationHistoryMissingDatesReturnsBadRequest(): void
     {
         $client = $this->createApiClient();
-        $admin = UserFactory::createOne(['roles' => ['ROLE_SCHOOL_ADMIN']]);
+        $admin = UserFactory::createOne([
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
+        ]);
         $driver = DriverFactory::createOne();
         $this->loginUser($client, $admin);
 
         $data = $this->getJson($client, sprintf('/api/tracking/location/driver/%d/history', $driver->getId()));
 
         self::assertResponseStatusCodeSame(400);
-        self::assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('error', $data);
     }
 }
