@@ -22,12 +22,12 @@ final class ApiLoginTest extends AbstractApiTestCase
         ]);
 
         self::assertResponseIsSuccessful();
-        self::assertArrayHasKey('token', $data);
-        self::assertArrayHasKey('refresh_token', $data);
-        self::assertArrayHasKey('refresh_token_expiration', $data);
-        self::assertIsString($data['token']);
-        self::assertIsString($data['refresh_token']);
-        self::assertIsInt($data['refresh_token_expiration']);
+        $this->assertArrayHasKey('token', $data);
+        $this->assertArrayHasKey('refresh_token', $data);
+        $this->assertArrayHasKey('refresh_token_expiration', $data);
+        $this->assertIsString($data['token']);
+        $this->assertIsString($data['refresh_token']);
+        $this->assertIsInt($data['refresh_token_expiration']);
     }
 
     public function testLoginWithWrongPasswordReturnsUnauthorized(): void
@@ -79,20 +79,20 @@ final class ApiLoginTest extends AbstractApiTestCase
         ]);
 
         self::assertResponseIsSuccessful();
-        self::assertArrayHasKey('refresh_token', $loginData);
+        $this->assertArrayHasKey('refresh_token', $loginData);
 
         $refreshData = $this->postJson($client, '/api/token/refresh', [
             'refresh_token' => $loginData['refresh_token'],
         ]);
 
         self::assertResponseIsSuccessful();
-        self::assertArrayHasKey('token', $refreshData);
-        self::assertArrayHasKey('refresh_token', $refreshData);
-        self::assertArrayHasKey('refresh_token_expiration', $refreshData);
-        self::assertIsString($refreshData['token']);
-        self::assertIsString($refreshData['refresh_token']);
+        $this->assertArrayHasKey('token', $refreshData);
+        $this->assertArrayHasKey('refresh_token', $refreshData);
+        $this->assertArrayHasKey('refresh_token_expiration', $refreshData);
+        $this->assertIsString($refreshData['token']);
+        $this->assertIsString($refreshData['refresh_token']);
         // Single-use rotation: the new refresh_token must differ from the consumed one
-        self::assertNotSame($loginData['refresh_token'], $refreshData['refresh_token']);
+        $this->assertNotSame($loginData['refresh_token'], $refreshData['refresh_token']);
     }
 
     public function testRefreshTokenWithInvalidTokenReturnsUnauthorized(): void
