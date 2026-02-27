@@ -2258,6 +2258,27 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     }
                 },
                 "summary": "Retrieves the collection of Driver resources.",
@@ -2275,6 +2296,21 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "name": "search[nickname][]",
+                        "in": "query",
+                        "description": "Driver search[nickname]",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     }
                 ]
             },
@@ -2346,6 +2382,27 @@
                             }
                         },
                         "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     }
                 },
                 "summary": "Creates a Driver resource.",
@@ -2401,6 +2458,27 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
                     "404": {
                         "description": "Not found",
                         "content": {
@@ -2448,6 +2526,27 @@
                 "responses": {
                     "204": {
                         "description": "Driver resource deleted"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     },
                     "404": {
                         "description": "Not found",
@@ -2552,6 +2651,27 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
                                 }
                             }
                         },
@@ -3311,6 +3431,36 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "name": "search[driver][]",
+                        "in": "query",
+                        "description": "Route search[driver]",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    },
+                    {
+                        "name": "search[school][]",
+                        "in": "query",
+                        "description": "Route search[school]",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     }
                 ]
             },
@@ -4398,7 +4548,7 @@
                             "application/ld+json": {
                                 "schema": {
                                     "type": "object",
-                                    "description": "School.jsonld collection.",
+                                    "description": "School.jsonld-school.read collection.",
                                     "allOf": [
                                         {
                                             "$ref": "#/components/schemas/HydraCollectionBaseSchema"
@@ -4412,7 +4562,7 @@
                                                 "member": {
                                                     "type": "array",
                                                     "items": {
-                                                        "$ref": "#/components/schemas/School.jsonld"
+                                                        "$ref": "#/components/schemas/School.jsonld-school.read"
                                                     }
                                                 }
                                             }
@@ -4424,7 +4574,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/School"
+                                        "$ref": "#/components/schemas/School-school.read"
                                     }
                                 }
                             },
@@ -4432,11 +4582,32 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/School.html"
+                                        "$ref": "#/components/schemas/School.html-school.read"
                                     }
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     }
                 },
                 "summary": "Retrieves the collection of School resources.",
@@ -4454,6 +4625,21 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "name": "search[name][]",
+                        "in": "query",
+                        "description": "School search[name]",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     }
                 ]
             },
@@ -4468,17 +4654,17 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/School.jsonld"
+                                    "$ref": "#/components/schemas/School.jsonld-school.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/School"
+                                    "$ref": "#/components/schemas/School-school.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/School.html"
+                                    "$ref": "#/components/schemas/School.html-school.read"
                                 }
                             }
                         },
@@ -4525,6 +4711,27 @@
                             }
                         },
                         "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     }
                 },
                 "summary": "Creates a School resource.",
@@ -4535,17 +4742,17 @@
                     "content": {
                         "application/ld+json": {
                             "schema": {
-                                "$ref": "#/components/schemas/School"
+                                "$ref": "#/components/schemas/School-school.write"
                             }
                         },
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/School"
+                                "$ref": "#/components/schemas/School-school.write"
                             }
                         },
                         "text/html": {
                             "schema": {
-                                "$ref": "#/components/schemas/School"
+                                "$ref": "#/components/schemas/School-school.write"
                             }
                         }
                     },
@@ -4565,20 +4772,41 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/School.jsonld"
+                                    "$ref": "#/components/schemas/School.jsonld-school.read_school.address.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/School"
+                                    "$ref": "#/components/schemas/School-school.read_school.address.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/School.html"
+                                    "$ref": "#/components/schemas/School.html-school.read_school.address.read"
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     },
                     "404": {
                         "description": "Not found",
@@ -4627,6 +4855,27 @@
                 "responses": {
                     "204": {
                         "description": "School resource deleted"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     },
                     "404": {
                         "description": "Not found",
@@ -4678,17 +4927,17 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/School.jsonld"
+                                    "$ref": "#/components/schemas/School.jsonld-school.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/School"
+                                    "$ref": "#/components/schemas/School-school.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/School.html"
+                                    "$ref": "#/components/schemas/School.html-school.read"
                                 }
                             }
                         },
@@ -4731,6 +4980,27 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
                                 }
                             }
                         },
@@ -4779,7 +5049,7 @@
                     "content": {
                         "application/merge-patch+json": {
                             "schema": {
-                                "$ref": "#/components/schemas/School.jsonMergePatch"
+                                "$ref": "#/components/schemas/School-school.write.jsonMergePatch"
                             }
                         }
                     },
@@ -5182,6 +5452,444 @@
                         "application/merge-patch+json": {
                             "schema": {
                                 "$ref": "#/components/schemas/Student.jsonMergePatch"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/api/subscriptions": {
+            "get": {
+                "operationId": "api_subscriptions_get_collection",
+                "tags": [
+                    "Subscription"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscription collection",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "Subscription.jsonld-subscription.read_subscription.list collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchema"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Subscription.jsonld-subscription.read_subscription.list"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Subscription-subscription.read_subscription.list"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Subscription.html-subscription.read_subscription.list"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves the collection of Subscription resources.",
+                "description": "Retrieves the collection of Subscription resources.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "The collection page number",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        },
+                        "style": "form",
+                        "explode": false
+                    }
+                ]
+            },
+            "post": {
+                "operationId": "api_subscriptions_post",
+                "tags": [
+                    "Subscription"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Subscription resource created",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription.html"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "422": {
+                        "description": "An error occurred",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Creates a Subscription resource.",
+                "description": "Creates a Subscription resource.",
+                "parameters": [],
+                "requestBody": {
+                    "description": "The new Subscription resource",
+                    "content": {
+                        "application/ld+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Subscription-subscription.write"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Subscription-subscription.write"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Subscription-subscription.write"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/api/subscriptions/{id}": {
+            "get": {
+                "operationId": "api_subscriptions_id_get",
+                "tags": [
+                    "Subscription"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscription resource",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription.jsonld-subscription.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription-subscription.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription.html-subscription.read"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a Subscription resource.",
+                "description": "Retrieves a Subscription resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Subscription identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            },
+            "patch": {
+                "operationId": "api_subscriptions_id_patch",
+                "tags": [
+                    "Subscription"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscription resource updated",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription.html"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "422": {
+                        "description": "An error occurred",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Updates the Subscription resource.",
+                "description": "Updates the Subscription resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Subscription identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "requestBody": {
+                    "description": "The updated Subscription resource",
+                    "content": {
+                        "application/merge-patch+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Subscription-subscription.update.jsonMergePatch"
                             }
                         }
                     },
@@ -5689,6 +6397,408 @@
                         "application/merge-patch+json": {
                             "schema": {
                                 "$ref": "#/components/schemas/User-user.write.jsonMergePatch"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/api/vehicles": {
+            "get": {
+                "operationId": "api_vehicles_get_collection",
+                "tags": [
+                    "Vehicle"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Vehicle collection",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "Vehicle.jsonld collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchema"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Vehicle.jsonld"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Vehicle"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Vehicle.html"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Retrieves the collection of Vehicle resources.",
+                "description": "Retrieves the collection of Vehicle resources.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "The collection page number",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        },
+                        "style": "form",
+                        "explode": false
+                    }
+                ]
+            },
+            "post": {
+                "operationId": "api_vehicles_post",
+                "tags": [
+                    "Vehicle"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Vehicle resource created",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Vehicle.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Vehicle"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Vehicle.html"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "422": {
+                        "description": "An error occurred",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Creates a Vehicle resource.",
+                "description": "Creates a Vehicle resource.",
+                "parameters": [],
+                "requestBody": {
+                    "description": "The new Vehicle resource",
+                    "content": {
+                        "application/ld+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Vehicle"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Vehicle"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Vehicle"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/api/vehicles/{id}": {
+            "get": {
+                "operationId": "api_vehicles_id_get",
+                "tags": [
+                    "Vehicle"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Vehicle resource",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Vehicle.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Vehicle"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Vehicle.html"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a Vehicle resource.",
+                "description": "Retrieves a Vehicle resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Vehicle identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            },
+            "delete": {
+                "operationId": "api_vehicles_id_delete",
+                "tags": [
+                    "Vehicle"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Vehicle resource deleted"
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Removes the Vehicle resource.",
+                "description": "Removes the Vehicle resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Vehicle identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            },
+            "patch": {
+                "operationId": "api_vehicles_id_patch",
+                "tags": [
+                    "Vehicle"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Vehicle resource updated",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Vehicle.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Vehicle"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Vehicle.html"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "422": {
+                        "description": "An error occurred",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Updates the Vehicle resource.",
+                "description": "Updates the Vehicle resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Vehicle identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "requestBody": {
+                    "description": "The updated Vehicle resource",
+                    "content": {
+                        "application/merge-patch+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Vehicle.jsonMergePatch"
                             }
                         }
                     },
@@ -7005,8 +8115,41 @@
                         "readOnly": true,
                         "type": "integer"
                     },
-                    "name": {
+                    "streetAddress": {
                         "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "postalCode": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "string"
+                    },
+                    "longitude": {
+                        "type": "string"
+                    },
+                    "placeId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "Address-school.read_school.address.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
                     },
                     "streetAddress": {
                         "type": "string"
@@ -7034,17 +8177,70 @@
                             "string",
                             "null"
                         ]
+                    }
+                }
+            },
+            "Address-school.write": {
+                "type": "object",
+                "properties": {
+                    "streetAddress": {
+                        "type": "string"
                     },
-                    "isDefault": {
-                        "type": "boolean"
+                    "city": {
+                        "type": "string"
                     },
-                    "user": {
+                    "state": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "postalCode": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "string"
+                    },
+                    "longitude": {
+                        "type": "string"
+                    },
+                    "placeId": {
                         "type": [
                             "string",
                             "null"
-                        ],
-                        "format": "iri-reference",
-                        "example": "https://example.com/"
+                        ]
+                    }
+                }
+            },
+            "Address-user.write": {
+                "type": "object",
+                "properties": {
+                    "streetAddress": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "postalCode": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "string"
+                    },
+                    "longitude": {
+                        "type": "string"
+                    },
+                    "placeId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 }
             },
@@ -7055,8 +8251,41 @@
                         "readOnly": true,
                         "type": "integer"
                     },
-                    "name": {
+                    "streetAddress": {
                         "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "postalCode": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "string"
+                    },
+                    "longitude": {
+                        "type": "string"
+                    },
+                    "placeId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "Address.html-school.read_school.address.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
                     },
                     "streetAddress": {
                         "type": "string"
@@ -7084,17 +8313,6 @@
                             "string",
                             "null"
                         ]
-                    },
-                    "isDefault": {
-                        "type": "boolean"
-                    },
-                    "user": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "iri-reference",
-                        "example": "https://example.com/"
                     }
                 }
             },
@@ -7105,9 +8323,6 @@
                         "readOnly": true,
                         "type": "integer"
                     },
-                    "name": {
-                        "type": "string"
-                    },
                     "streetAddress": {
                         "type": "string"
                     },
@@ -7134,17 +8349,6 @@
                             "string",
                             "null"
                         ]
-                    },
-                    "isDefault": {
-                        "type": "boolean"
-                    },
-                    "user": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "iri-reference",
-                        "example": "https://example.com/"
                     }
                 }
             },
@@ -7159,9 +8363,6 @@
                             "id": {
                                 "readOnly": true,
                                 "type": "integer"
-                            },
-                            "name": {
-                                "type": "string"
                             },
                             "streetAddress": {
                                 "type": "string"
@@ -7189,17 +8390,49 @@
                                     "string",
                                     "null"
                                 ]
+                            }
+                        }
+                    }
+                ]
+            },
+            "Address.jsonld-school.read_school.address.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
                             },
-                            "isDefault": {
-                                "type": "boolean"
+                            "streetAddress": {
+                                "type": "string"
                             },
-                            "user": {
+                            "city": {
+                                "type": "string"
+                            },
+                            "state": {
+                                "type": "string"
+                            },
+                            "country": {
+                                "type": "string"
+                            },
+                            "postalCode": {
+                                "type": "string"
+                            },
+                            "latitude": {
+                                "type": "string"
+                            },
+                            "longitude": {
+                                "type": "string"
+                            },
+                            "placeId": {
                                 "type": [
                                     "string",
                                     "null"
-                                ],
-                                "format": "iri-reference",
-                                "example": "https://example.com/"
+                                ]
                             }
                         }
                     }
@@ -7294,10 +8527,10 @@
                     },
                     "stopData": {
                         "type": [
-                            "array",
+                            "object",
                             "null"
                         ],
-                        "items": {
+                        "additionalProperties": {
                             "type": [
                                 "string",
                                 "null"
@@ -7306,10 +8539,10 @@
                     },
                     "performanceMetrics": {
                         "type": [
-                            "array",
+                            "object",
                             "null"
                         ],
-                        "items": {
+                        "additionalProperties": {
                             "type": [
                                 "string",
                                 "null"
@@ -7418,10 +8651,10 @@
                     },
                     "stopData": {
                         "type": [
-                            "array",
+                            "object",
                             "null"
                         ],
-                        "items": {
+                        "additionalProperties": {
                             "type": [
                                 "string",
                                 "null"
@@ -7430,10 +8663,10 @@
                     },
                     "performanceMetrics": {
                         "type": [
-                            "array",
+                            "object",
                             "null"
                         ],
-                        "items": {
+                        "additionalProperties": {
                             "type": [
                                 "string",
                                 "null"
@@ -7547,10 +8780,10 @@
                             },
                             "stopData": {
                                 "type": [
-                                    "array",
+                                    "object",
                                     "null"
                                 ],
-                                "items": {
+                                "additionalProperties": {
                                     "type": [
                                         "string",
                                         "null"
@@ -7559,10 +8792,10 @@
                             },
                             "performanceMetrics": {
                                 "type": [
-                                    "array",
+                                    "object",
                                     "null"
                                 ],
-                                "items": {
+                                "additionalProperties": {
                                     "type": [
                                         "string",
                                         "null"
@@ -7993,8 +9226,25 @@
                                 "message": {
                                     "type": "string",
                                     "description": "The message associated with the violation"
+                                },
+                                "code": {
+                                    "type": "string",
+                                    "description": "The code of the violation"
+                                },
+                                "hint": {
+                                    "type": "string",
+                                    "description": "An extra hint to understand the violation"
+                                },
+                                "payload": {
+                                    "type": "object",
+                                    "additionalProperties": true,
+                                    "description": "The serialized payload of the violation"
                                 }
-                            }
+                            },
+                            "required": [
+                                "propertyPath",
+                                "message"
+                            ]
                         }
                     },
                     "detail": {
@@ -8045,8 +9295,25 @@
                                         "message": {
                                             "type": "string",
                                             "description": "The message associated with the violation"
+                                        },
+                                        "code": {
+                                            "type": "string",
+                                            "description": "The code of the violation"
+                                        },
+                                        "hint": {
+                                            "type": "string",
+                                            "description": "An extra hint to understand the violation"
+                                        },
+                                        "payload": {
+                                            "type": "object",
+                                            "additionalProperties": true,
+                                            "description": "The serialized payload of the violation"
                                         }
-                                    }
+                                    },
+                                    "required": [
+                                        "propertyPath",
+                                        "message"
+                                    ]
                                 }
                             },
                             "detail": {
@@ -8097,6 +9364,57 @@
                             "string",
                             "null"
                         ]
+                    },
+                    "nickname": {
+                        "type": "string"
+                    },
+                    "mpAccessToken": {
+                        "description": "Encrypted MP access token (XSalsa20-Poly1305 via TokenEncryptor).",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "mpRefreshToken": {
+                        "description": "Encrypted MP refresh token.",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "mpAccountId": {
+                        "description": "MP seller account ID (user_id returned by OAuth).",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "mpTokenExpiresAt": {
+                        "description": "When the current access token expires (MP tokens last ~180 days).",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "mpAuthorized": {
+                        "readOnly": true,
+                        "description": "Returns true once the driver has completed the OAuth flow.",
+                        "type": "boolean"
+                    }
+                }
+            },
+            "Driver-user.write": {
+                "type": "object",
+                "properties": {
+                    "licenseNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "nickname": {
+                        "type": "string"
                     }
                 }
             },
@@ -8117,6 +9435,43 @@
                             "string",
                             "null"
                         ]
+                    },
+                    "nickname": {
+                        "type": "string"
+                    },
+                    "mpAccessToken": {
+                        "description": "Encrypted MP access token (XSalsa20-Poly1305 via TokenEncryptor).",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "mpRefreshToken": {
+                        "description": "Encrypted MP refresh token.",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "mpAccountId": {
+                        "description": "MP seller account ID (user_id returned by OAuth).",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "mpTokenExpiresAt": {
+                        "description": "When the current access token expires (MP tokens last ~180 days).",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "mpAuthorized": {
+                        "readOnly": true,
+                        "description": "Returns true once the driver has completed the OAuth flow.",
+                        "type": "boolean"
                     }
                 }
             },
@@ -8137,6 +9492,43 @@
                             "string",
                             "null"
                         ]
+                    },
+                    "nickname": {
+                        "type": "string"
+                    },
+                    "mpAccessToken": {
+                        "description": "Encrypted MP access token (XSalsa20-Poly1305 via TokenEncryptor).",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "mpRefreshToken": {
+                        "description": "Encrypted MP refresh token.",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "mpAccountId": {
+                        "description": "MP seller account ID (user_id returned by OAuth).",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "mpTokenExpiresAt": {
+                        "description": "When the current access token expires (MP tokens last ~180 days).",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "mpAuthorized": {
+                        "readOnly": true,
+                        "description": "Returns true once the driver has completed the OAuth flow.",
+                        "type": "boolean"
                     }
                 }
             },
@@ -8162,6 +9554,43 @@
                                     "string",
                                     "null"
                                 ]
+                            },
+                            "nickname": {
+                                "type": "string"
+                            },
+                            "mpAccessToken": {
+                                "description": "Encrypted MP access token (XSalsa20-Poly1305 via TokenEncryptor).",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "mpRefreshToken": {
+                                "description": "Encrypted MP refresh token.",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "mpAccountId": {
+                                "description": "MP seller account ID (user_id returned by OAuth).",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "mpTokenExpiresAt": {
+                                "description": "When the current access token expires (MP tokens last ~180 days).",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "mpAuthorized": {
+                                "readOnly": true,
+                                "description": "Returns true once the driver has completed the OAuth flow.",
+                                "type": "boolean"
                             }
                         }
                     }
@@ -9425,6 +10854,10 @@
                     "isActive": {
                         "default": true,
                         "type": "boolean"
+                    },
+                    "isConfirmed": {
+                        "default": false,
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -9477,6 +10910,10 @@
                     },
                     "isActive": {
                         "default": true,
+                        "type": "boolean"
+                    },
+                    "isConfirmed": {
+                        "default": false,
                         "type": "boolean"
                     },
                     "createdAt": {
@@ -9626,6 +11063,10 @@
                     "isActive": {
                         "default": true,
                         "type": "boolean"
+                    },
+                    "isConfirmed": {
+                        "default": false,
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -9678,6 +11119,10 @@
                     },
                     "isActive": {
                         "default": true,
+                        "type": "boolean"
+                    },
+                    "isConfirmed": {
+                        "default": false,
                         "type": "boolean"
                     },
                     "createdAt": {
@@ -9737,6 +11182,10 @@
                             },
                             "isActive": {
                                 "default": true,
+                                "type": "boolean"
+                            },
+                            "isConfirmed": {
+                                "default": false,
                                 "type": "boolean"
                             }
                         },
@@ -9799,6 +11248,10 @@
                                 "default": true,
                                 "type": "boolean"
                             },
+                            "isConfirmed": {
+                                "default": false,
+                                "type": "boolean"
+                            },
                             "createdAt": {
                                 "readOnly": true,
                                 "type": "string",
@@ -9814,7 +11267,7 @@
                     }
                 ]
             },
-            "School": {
+            "School-school.read": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -9824,25 +11277,17 @@
                     "name": {
                         "type": "string"
                     },
-                    "users": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "iri-reference",
-                            "example": "https://example.com/"
-                        }
-                    },
-                    "students": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "iri-reference",
-                            "example": "https://example.com/"
-                        }
+                    "address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     }
                 }
             },
-            "School.html": {
+            "School-school.read_school.address.read": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -9852,25 +11297,55 @@
                     "name": {
                         "type": "string"
                     },
-                    "users": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "iri-reference",
-                            "example": "https://example.com/"
-                        }
-                    },
-                    "students": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "iri-reference",
-                            "example": "https://example.com/"
-                        }
+                    "address": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Address-school.read_school.address.read"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     }
                 }
             },
-            "School.jsonMergePatch": {
+            "School-school.write": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "address": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Address-school.write"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                }
+            },
+            "School-school.write.jsonMergePatch": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "address": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Address-school.write"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                }
+            },
+            "School.html-school.read": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -9880,25 +11355,39 @@
                     "name": {
                         "type": "string"
                     },
-                    "users": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "iri-reference",
-                            "example": "https://example.com/"
-                        }
-                    },
-                    "students": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "iri-reference",
-                            "example": "https://example.com/"
-                        }
+                    "address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     }
                 }
             },
-            "School.jsonld": {
+            "School.html-school.read_school.address.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "address": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Address.html-school.read_school.address.read"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                }
+            },
+            "School.jsonld-school.read": {
                 "allOf": [
                     {
                         "$ref": "#/components/schemas/HydraItemBaseSchema"
@@ -9913,21 +11402,42 @@
                             "name": {
                                 "type": "string"
                             },
-                            "users": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string",
-                                    "format": "iri-reference",
-                                    "example": "https://example.com/"
-                                }
+                            "address": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            }
+                        }
+                    }
+                ]
+            },
+            "School.jsonld-school.read_school.address.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
                             },
-                            "students": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string",
-                                    "format": "iri-reference",
-                                    "example": "https://example.com/"
-                                }
+                            "name": {
+                                "type": "string"
+                            },
+                            "address": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/Address.jsonld-school.read_school.address.read"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
                             }
                         }
                     }
@@ -9947,9 +11457,85 @@
                         "type": "string"
                     },
                     "school": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "iri-reference",
                         "example": "https://example.com/"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "male",
+                            "female",
+                            null
+                        ]
+                    },
+                    "birthday": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "medicalHistory": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "additionalInfo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContact": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContactNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "educationalLevel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "kindergarten",
+                            "elementary_school",
+                            "high_school",
+                            null
+                        ]
+                    },
+                    "grade": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            null
+                        ]
                     },
                     "parents": {
                         "type": "array",
@@ -9959,7 +11545,10 @@
                             "example": "https://example.com/"
                         }
                     }
-                }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
             },
             "Student.html": {
                 "type": "object",
@@ -9975,9 +11564,85 @@
                         "type": "string"
                     },
                     "school": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "iri-reference",
                         "example": "https://example.com/"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "male",
+                            "female",
+                            null
+                        ]
+                    },
+                    "birthday": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "medicalHistory": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "additionalInfo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContact": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContactNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "educationalLevel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "kindergarten",
+                            "elementary_school",
+                            "high_school",
+                            null
+                        ]
+                    },
+                    "grade": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            null
+                        ]
                     },
                     "parents": {
                         "type": "array",
@@ -9987,7 +11652,10 @@
                             "example": "https://example.com/"
                         }
                     }
-                }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
             },
             "Student.jsonMergePatch": {
                 "type": "object",
@@ -10003,9 +11671,85 @@
                         "type": "string"
                     },
                     "school": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "iri-reference",
                         "example": "https://example.com/"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "male",
+                            "female",
+                            null
+                        ]
+                    },
+                    "birthday": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "medicalHistory": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "additionalInfo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContact": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContactNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "educationalLevel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "kindergarten",
+                            "elementary_school",
+                            "high_school",
+                            null
+                        ]
+                    },
+                    "grade": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            null
+                        ]
                     },
                     "parents": {
                         "type": "array",
@@ -10036,9 +11780,85 @@
                                 "type": "string"
                             },
                             "school": {
-                                "type": "string",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
                                 "format": "iri-reference",
                                 "example": "https://example.com/"
+                            },
+                            "identificationNumber": {
+                                "pattern": "^(\\d{8,10})$",
+                                "type": "string"
+                            },
+                            "gender": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "enum": [
+                                    "male",
+                                    "female",
+                                    null
+                                ]
+                            },
+                            "birthday": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "medicalHistory": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "additionalInfo": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "emergencyContact": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "emergencyContactNumber": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "educationalLevel": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "enum": [
+                                    "kindergarten",
+                                    "elementary_school",
+                                    "high_school",
+                                    null
+                                ]
+                            },
+                            "grade": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "enum": [
+                                    "1",
+                                    "2",
+                                    "3",
+                                    "4",
+                                    "5",
+                                    "6",
+                                    null
+                                ]
                             },
                             "parents": {
                                 "type": "array",
@@ -10048,7 +11868,974 @@
                                     "example": "https://example.com/"
                                 }
                             }
+                        },
+                        "required": [
+                            "identificationNumber"
+                        ]
+                    }
+                ]
+            },
+            "Subscription": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
                         }
+                    },
+                    "planType": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "default": "active",
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "paused",
+                            "cancelled",
+                            "expired",
+                            "payment_failed"
+                        ]
+                    },
+                    "amount": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "USD",
+                        "type": "string"
+                    },
+                    "billingCycle": {
+                        "type": "string",
+                        "enum": [
+                            "weekly",
+                            "monthly",
+                            "quarterly",
+                            "yearly"
+                        ]
+                    },
+                    "nextBillingDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "mercadoPagoSubscriptionId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "cancelledAt": {
+                        "readOnly": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "failedPaymentCount": {
+                        "readOnly": true,
+                        "default": 0,
+                        "type": "integer"
+                    },
+                    "lastPaymentAttemptAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "dueForBilling": {
+                        "readOnly": true,
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "planType",
+                    "amount",
+                    "billingCycle"
+                ]
+            },
+            "Subscription-subscription.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "planType": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "default": "active",
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "paused",
+                            "cancelled",
+                            "expired",
+                            "payment_failed"
+                        ]
+                    },
+                    "amount": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "USD",
+                        "type": "string"
+                    },
+                    "billingCycle": {
+                        "type": "string",
+                        "enum": [
+                            "weekly",
+                            "monthly",
+                            "quarterly",
+                            "yearly"
+                        ]
+                    },
+                    "nextBillingDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "mercadoPagoSubscriptionId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "cancelledAt": {
+                        "readOnly": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "failedPaymentCount": {
+                        "readOnly": true,
+                        "default": 0,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "planType",
+                    "amount",
+                    "billingCycle"
+                ]
+            },
+            "Subscription-subscription.read_subscription.list": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "planType": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "default": "active",
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "paused",
+                            "cancelled",
+                            "expired",
+                            "payment_failed"
+                        ]
+                    },
+                    "amount": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "USD",
+                        "type": "string"
+                    },
+                    "billingCycle": {
+                        "type": "string",
+                        "enum": [
+                            "weekly",
+                            "monthly",
+                            "quarterly",
+                            "yearly"
+                        ]
+                    },
+                    "nextBillingDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "mercadoPagoSubscriptionId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "cancelledAt": {
+                        "readOnly": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "failedPaymentCount": {
+                        "readOnly": true,
+                        "default": 0,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "planType",
+                    "amount",
+                    "billingCycle"
+                ]
+            },
+            "Subscription-subscription.update.jsonMergePatch": {
+                "type": "object"
+            },
+            "Subscription-subscription.write": {
+                "type": "object",
+                "properties": {
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "planType": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "USD",
+                        "type": "string"
+                    },
+                    "billingCycle": {
+                        "type": "string",
+                        "enum": [
+                            "weekly",
+                            "monthly",
+                            "quarterly",
+                            "yearly"
+                        ]
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "planType",
+                    "amount",
+                    "billingCycle"
+                ]
+            },
+            "Subscription.html": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "planType": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "default": "active",
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "paused",
+                            "cancelled",
+                            "expired",
+                            "payment_failed"
+                        ]
+                    },
+                    "amount": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "USD",
+                        "type": "string"
+                    },
+                    "billingCycle": {
+                        "type": "string",
+                        "enum": [
+                            "weekly",
+                            "monthly",
+                            "quarterly",
+                            "yearly"
+                        ]
+                    },
+                    "nextBillingDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "mercadoPagoSubscriptionId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "cancelledAt": {
+                        "readOnly": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "failedPaymentCount": {
+                        "readOnly": true,
+                        "default": 0,
+                        "type": "integer"
+                    },
+                    "lastPaymentAttemptAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "dueForBilling": {
+                        "readOnly": true,
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "planType",
+                    "amount",
+                    "billingCycle"
+                ]
+            },
+            "Subscription.html-subscription.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "planType": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "default": "active",
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "paused",
+                            "cancelled",
+                            "expired",
+                            "payment_failed"
+                        ]
+                    },
+                    "amount": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "USD",
+                        "type": "string"
+                    },
+                    "billingCycle": {
+                        "type": "string",
+                        "enum": [
+                            "weekly",
+                            "monthly",
+                            "quarterly",
+                            "yearly"
+                        ]
+                    },
+                    "nextBillingDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "mercadoPagoSubscriptionId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "cancelledAt": {
+                        "readOnly": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "failedPaymentCount": {
+                        "readOnly": true,
+                        "default": 0,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "planType",
+                    "amount",
+                    "billingCycle"
+                ]
+            },
+            "Subscription.html-subscription.read_subscription.list": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "planType": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "default": "active",
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "paused",
+                            "cancelled",
+                            "expired",
+                            "payment_failed"
+                        ]
+                    },
+                    "amount": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "USD",
+                        "type": "string"
+                    },
+                    "billingCycle": {
+                        "type": "string",
+                        "enum": [
+                            "weekly",
+                            "monthly",
+                            "quarterly",
+                            "yearly"
+                        ]
+                    },
+                    "nextBillingDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "mercadoPagoSubscriptionId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "cancelledAt": {
+                        "readOnly": true,
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "failedPaymentCount": {
+                        "readOnly": true,
+                        "default": 0,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "planType",
+                    "amount",
+                    "billingCycle"
+                ]
+            },
+            "Subscription.jsonld": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "user": {
+                                "type": "string",
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "students": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "iri-reference",
+                                    "example": "https://example.com/"
+                                }
+                            },
+                            "planType": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "default": "active",
+                                "type": "string",
+                                "enum": [
+                                    "active",
+                                    "paused",
+                                    "cancelled",
+                                    "expired",
+                                    "payment_failed"
+                                ]
+                            },
+                            "amount": {
+                                "type": "string"
+                            },
+                            "currency": {
+                                "externalDocs": {
+                                    "url": "https://schema.org/priceCurrency"
+                                },
+                                "default": "USD",
+                                "type": "string"
+                            },
+                            "billingCycle": {
+                                "type": "string",
+                                "enum": [
+                                    "weekly",
+                                    "monthly",
+                                    "quarterly",
+                                    "yearly"
+                                ]
+                            },
+                            "nextBillingDate": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "mercadoPagoSubscriptionId": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "createdAt": {
+                                "readOnly": true,
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updatedAt": {
+                                "readOnly": true,
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "cancelledAt": {
+                                "readOnly": true,
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "notes": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "failedPaymentCount": {
+                                "readOnly": true,
+                                "default": 0,
+                                "type": "integer"
+                            },
+                            "lastPaymentAttemptAt": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "dueForBilling": {
+                                "readOnly": true,
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "planType",
+                            "amount",
+                            "billingCycle"
+                        ]
+                    }
+                ]
+            },
+            "Subscription.jsonld-subscription.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "user": {
+                                "type": "string",
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "students": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "iri-reference",
+                                    "example": "https://example.com/"
+                                }
+                            },
+                            "planType": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "default": "active",
+                                "type": "string",
+                                "enum": [
+                                    "active",
+                                    "paused",
+                                    "cancelled",
+                                    "expired",
+                                    "payment_failed"
+                                ]
+                            },
+                            "amount": {
+                                "type": "string"
+                            },
+                            "currency": {
+                                "externalDocs": {
+                                    "url": "https://schema.org/priceCurrency"
+                                },
+                                "default": "USD",
+                                "type": "string"
+                            },
+                            "billingCycle": {
+                                "type": "string",
+                                "enum": [
+                                    "weekly",
+                                    "monthly",
+                                    "quarterly",
+                                    "yearly"
+                                ]
+                            },
+                            "nextBillingDate": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "mercadoPagoSubscriptionId": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "createdAt": {
+                                "readOnly": true,
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "cancelledAt": {
+                                "readOnly": true,
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "notes": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "failedPaymentCount": {
+                                "readOnly": true,
+                                "default": 0,
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "planType",
+                            "amount",
+                            "billingCycle"
+                        ]
+                    }
+                ]
+            },
+            "Subscription.jsonld-subscription.read_subscription.list": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "user": {
+                                "type": "string",
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "students": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "iri-reference",
+                                    "example": "https://example.com/"
+                                }
+                            },
+                            "planType": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "default": "active",
+                                "type": "string",
+                                "enum": [
+                                    "active",
+                                    "paused",
+                                    "cancelled",
+                                    "expired",
+                                    "payment_failed"
+                                ]
+                            },
+                            "amount": {
+                                "type": "string"
+                            },
+                            "currency": {
+                                "externalDocs": {
+                                    "url": "https://schema.org/priceCurrency"
+                                },
+                                "default": "USD",
+                                "type": "string"
+                            },
+                            "billingCycle": {
+                                "type": "string",
+                                "enum": [
+                                    "weekly",
+                                    "monthly",
+                                    "quarterly",
+                                    "yearly"
+                                ]
+                            },
+                            "nextBillingDate": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "mercadoPagoSubscriptionId": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "createdAt": {
+                                "readOnly": true,
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "cancelledAt": {
+                                "readOnly": true,
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "notes": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "failedPaymentCount": {
+                                "readOnly": true,
+                                "default": 0,
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "planType",
+                            "amount",
+                            "billingCycle"
+                        ]
                     }
                 ]
             },
@@ -10094,13 +12881,17 @@
                     "phoneNumber": {
                         "type": "string"
                     },
-                    "addresses": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "iri-reference",
-                            "example": "https://example.com/"
-                        }
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     },
                     "driver": {
                         "type": [
@@ -10110,7 +12901,10 @@
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     }
-                }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
             },
             "User-user.write": {
                 "type": "object",
@@ -10148,8 +12942,35 @@
                     },
                     "phoneNumber": {
                         "type": "string"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "address": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Address-user.write"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "driver": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Driver-user.write"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     }
-                }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
             },
             "User-user.write.jsonMergePatch": {
                 "type": "object",
@@ -10187,6 +13008,30 @@
                     },
                     "phoneNumber": {
                         "type": "string"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "address": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Address-user.write"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "driver": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Driver-user.write"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     }
                 }
             },
@@ -10232,13 +13077,17 @@
                     "phoneNumber": {
                         "type": "string"
                     },
-                    "addresses": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "iri-reference",
-                            "example": "https://example.com/"
-                        }
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     },
                     "driver": {
                         "type": [
@@ -10248,7 +13097,10 @@
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     }
-                }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
             },
             "User.jsonld-user.read": {
                 "allOf": [
@@ -10297,19 +13149,209 @@
                             "phoneNumber": {
                                 "type": "string"
                             },
-                            "addresses": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string",
-                                    "format": "iri-reference",
-                                    "example": "https://example.com/"
-                                }
+                            "identificationNumber": {
+                                "pattern": "^(\\d{8,10})$",
+                                "type": "string"
+                            },
+                            "address": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
                             },
                             "driver": {
                                 "type": [
                                     "string",
                                     "null"
                                 ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            }
+                        },
+                        "required": [
+                            "identificationNumber"
+                        ]
+                    }
+                ]
+            },
+            "Vehicle": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "licensePlate": {
+                        "type": "string"
+                    },
+                    "make": {
+                        "type": "string"
+                    },
+                    "model": {
+                        "type": "string"
+                    },
+                    "capacity": {
+                        "type": "integer"
+                    },
+                    "year": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "color": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    }
+                }
+            },
+            "Vehicle.html": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "licensePlate": {
+                        "type": "string"
+                    },
+                    "make": {
+                        "type": "string"
+                    },
+                    "model": {
+                        "type": "string"
+                    },
+                    "capacity": {
+                        "type": "integer"
+                    },
+                    "year": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "color": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    }
+                }
+            },
+            "Vehicle.jsonMergePatch": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "licensePlate": {
+                        "type": "string"
+                    },
+                    "make": {
+                        "type": "string"
+                    },
+                    "model": {
+                        "type": "string"
+                    },
+                    "capacity": {
+                        "type": "integer"
+                    },
+                    "year": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "color": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    }
+                }
+            },
+            "Vehicle.jsonld": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "licensePlate": {
+                                "type": "string"
+                            },
+                            "make": {
+                                "type": "string"
+                            },
+                            "model": {
+                                "type": "string"
+                            },
+                            "capacity": {
+                                "type": "integer"
+                            },
+                            "year": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "color": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "type": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "user": {
+                                "type": "string",
                                 "format": "iri-reference",
                                 "example": "https://example.com/"
                             }
@@ -10331,7 +13373,11 @@
             }
         }
     },
-    "security": [],
+    "security": [
+        {
+            "JWT": []
+        }
+    ],
     "tags": [
         {
             "name": "Absence",
@@ -10386,8 +13432,16 @@
             "description": "Resource 'Student' operations."
         },
         {
+            "name": "Subscription",
+            "description": "Resource 'Subscription' operations."
+        },
+        {
             "name": "User",
             "description": "Resource 'User' operations."
+        },
+        {
+            "name": "Vehicle",
+            "description": "Resource 'Vehicle' operations."
         }
     ],
     "webhooks": {}
