@@ -47,7 +47,8 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 - **Mercado Pago** — Payment processing (Marketplace + OAuth model)
 
 ### Authentication & Security
-- **JWT (LexikJWTAuthenticationBundle)** — Stateless API authentication
+- **JWT (LexikJWTAuthenticationBundle)** — Stateless API authentication; RSA-256, 2-hour TTL
+- **Refresh Tokens (GesdinetJWTRefreshTokenBundle)** — Single-use rotating refresh tokens; 30-day TTL, stored in MySQL
 - **Custom Security Voter** — `RouteManagementVoter` for runtime driver privilege elevation
 - **RBAC** — Hierarchical role-based access control
 - **Multi-tenant Filtering** — Automatic school-based Doctrine filter
@@ -439,12 +440,44 @@ Content-Type: application/json
 ```
 
 ```json
-{ "token": "eyJ0eXAiOiJKV1QiLCJhbGc...", "refresh_token": "def50200..." }
+{
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "refresh_token": "def50200...",
+  "refresh_token_expiration": 1751000000
+}
 ```
 
 ```http
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 ```
+
+#### Token Refresh
+
+When the JWT expires (TTL: 2 hours), exchange the refresh token for a new JWT + refresh token pair without re-entering credentials. Refresh tokens are **single-use** — each successful refresh issues a new refresh token and invalidates the previous one (rotation). TTL: 30 days.
+
+```http
+POST /api/token/refresh
+Content-Type: application/json
+
+{ "refresh_token": "def50200..." }
+```
+
+```json
+{
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "refresh_token": "ghi80300...",
+  "refresh_token_expiration": 1751000000
+}
+```
+
+| Code | Meaning |
+|------|---------|
+| `200` | New JWT + refresh token returned |
+| `401` | Refresh token missing, expired, or already used |
+
+#### Logout
+
+Refresh tokens are automatically invalidated on logout for the `api_token_refresh` firewall. On the client side, remove both stored tokens.
 
 ### API Resources (RESTful)
 
@@ -1076,10 +1109,60 @@ apiClient.interceptors.request.use(async (config) => {
   return config;
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => (error ? prom.reject(error) : prom.resolve(token)));
+  failedQueue = [];
+};
+
 apiClient.interceptors.response.use(
   (r) => r,
   async (err) => {
-    if (err.response?.status === 401) await AsyncStorage.removeItem('jwt_token');
+    const originalRequest = err.config;
+    if (err.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return apiClient(originalRequest);
+          })
+          .catch(Promise.reject.bind(Promise));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = await AsyncStorage.getItem('refresh_token');
+      if (!refreshToken) {
+        isRefreshing = false;
+        await AsyncStorage.multiRemove(['jwt_token', 'refresh_token']);
+        return Promise.reject(err);
+      }
+
+      try {
+        const { data } = await axios.post('https://your-api.com/api/token/refresh', {
+          refresh_token: refreshToken,
+        });
+        await AsyncStorage.multiSet([
+          ['jwt_token', data.token],
+          ['refresh_token', data.refresh_token],
+        ]);
+        apiClient.defaults.headers.common.Authorization = `Bearer ${data.token}`;
+        processQueue(null, data.token);
+        originalRequest.headers.Authorization = `Bearer ${data.token}`;
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        await AsyncStorage.multiRemove(['jwt_token', 'refresh_token']);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
     return Promise.reject(err);
   }
 );
@@ -1096,11 +1179,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const login = async (email, password) => {
   const { data } = await apiClient.post('/login', { email, password });
-  await AsyncStorage.setItem('jwt_token', data.token);
+  await AsyncStorage.multiSet([
+    ['jwt_token', data.token],
+    ['refresh_token', data.refresh_token],
+  ]);
   return data;
 };
 
-export const logout = () => AsyncStorage.removeItem('jwt_token');
+export const logout = () =>
+  AsyncStorage.multiRemove(['jwt_token', 'refresh_token']);
 ```
 
 ### Real-time GPS Tracking (Driver App)
