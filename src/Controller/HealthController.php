@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use DateTimeImmutable;
+use DateTimeInterface;
 use Doctrine\DBAL\Connection;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[AsController]
@@ -32,7 +36,7 @@ class HealthController extends AbstractController
                 'status' => 'healthy',
                 'message' => 'Database connection successful',
             ];
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $status = 'unhealthy';
             $httpStatus = 503;
             $checks['database'] = [
@@ -74,12 +78,12 @@ class HealthController extends AbstractController
             'environment' => $this->getParameter('kernel.environment'),
             'debug' => $this->getParameter('kernel.debug'),
             'php_version' => PHP_VERSION,
-            'symfony_version' => \Symfony\Component\HttpKernel\Kernel::VERSION,
+            'symfony_version' => Kernel::VERSION,
         ];
 
         return $this->json([
             'status' => $status,
-            'timestamp' => new \DateTimeImmutable()->format(\DateTimeInterface::RFC3339),
+            'timestamp' => new DateTimeImmutable()->format(DateTimeInterface::RFC3339),
             'checks' => $checks,
         ], $httpStatus);
     }
@@ -92,13 +96,13 @@ class HealthController extends AbstractController
             $this->connection->executeQuery('SELECT 1');
             return $this->json([
                 'status' => 'ready',
-                'timestamp' => new \DateTimeImmutable()->format(\DateTimeInterface::RFC3339),
+                'timestamp' => new DateTimeImmutable()->format(DateTimeInterface::RFC3339),
             ]);
-        } catch (\Exception) {
+        } catch (Exception) {
             return $this->json([
                 'status' => 'not_ready',
                 'reason' => 'Database not available',
-                'timestamp' => new \DateTimeImmutable()->format(\DateTimeInterface::RFC3339),
+                'timestamp' => new DateTimeImmutable()->format(DateTimeInterface::RFC3339),
             ], 503);
         }
     }
@@ -109,7 +113,7 @@ class HealthController extends AbstractController
         // Liveness check - is the app alive?
         return $this->json([
             'status' => 'alive',
-            'timestamp' => new \DateTimeImmutable()->format(\DateTimeInterface::RFC3339),
+            'timestamp' => new DateTimeImmutable()->format(DateTimeInterface::RFC3339),
         ]);
     }
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Service\Payment;
 
+use InvalidArgumentException;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
@@ -28,7 +30,7 @@ class TokenEncryptor
         $decoded = base64_decode($encryptionKey, strict: true);
 
         if ($decoded === false || strlen($decoded) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 sprintf(
                     'TOKEN_ENCRYPTION_KEY must be a base64-encoded %d-byte string.',
                     SODIUM_CRYPTO_SECRETBOX_KEYBYTES
@@ -52,7 +54,7 @@ class TokenEncryptor
         $decoded = base64_decode($encoded, strict: true);
 
         if ($decoded === false || strlen($decoded) <= SODIUM_CRYPTO_SECRETBOX_NONCEBYTES) {
-            throw new \RuntimeException('Encrypted token is malformed.');
+            throw new RuntimeException('Encrypted token is malformed.');
         }
 
         $nonce = substr($decoded, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
@@ -61,7 +63,7 @@ class TokenEncryptor
         $plaintext = sodium_crypto_secretbox_open($ciphertext, $nonce, $this->key);
 
         if ($plaintext === false) {
-            throw new \RuntimeException('Failed to decrypt token — wrong key or corrupted data.');
+            throw new RuntimeException('Failed to decrypt token — wrong key or corrupted data.');
         }
 
         return $plaintext;

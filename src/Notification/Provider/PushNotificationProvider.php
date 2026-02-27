@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Notification\Provider;
 
 use App\Notification\AbstractNotificationProvider;
+use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -71,7 +72,7 @@ class PushNotificationProvider extends AbstractNotificationProvider
             $this->logNotification($recipient, $subject, $success);
 
             return $success;
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logError($recipient, $exception->getMessage());
             return false;
         }

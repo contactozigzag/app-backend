@@ -10,6 +10,8 @@ parameters:
     env(MERCADOPAGO_APP_ID): ''
     env(MERCADOPAGO_APP_SECRET): ''
     env(MERCADOPAGO_OAUTH_REDIRECT_URI): ''
+    app.driver_route_management_enabled: '%env(bool:DRIVER_ROUTE_MANAGEMENT_ENABLED)%'
+    app.distress_proximity_km: '%env(float:DISTRESS_PROXIMITY_KM)%'
 
 services:
     # default configuration for services in *this* file

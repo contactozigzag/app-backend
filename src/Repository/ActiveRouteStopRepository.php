@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Entity\ActiveRoute;
 use App\Entity\ActiveRouteStop;
 use App\Entity\Student;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -58,8 +59,8 @@ class ActiveRouteStopRepository extends ServiceEntityRepository
      */
     public function findByStudentAndDateRange(
         Student $student,
-        \DateTimeImmutable $start,
-        \DateTimeImmutable $end
+        DateTimeImmutable $start,
+        DateTimeImmutable $end
     ): array {
         return $this->createQueryBuilder('ars')
             ->join('ars.activeRoute', 'ar')
@@ -82,7 +83,7 @@ class ActiveRouteStopRepository extends ServiceEntityRepository
      */
     public function findActiveStopsByStudentAndDate(
         Student $student,
-        \DateTimeImmutable $date
+        DateTimeImmutable $date
     ): array {
         return $this->createQueryBuilder('ars')
             ->join('ars.activeRoute', 'ar')

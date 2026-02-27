@@ -6,11 +6,13 @@ namespace App\Controller;
 
 use App\Dto\ChildStatusDto;
 use App\Dto\ParentDashboardDto;
+use App\Entity\LocationUpdate;
 use App\Entity\User;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\ActiveRouteStopRepository;
 use App\Repository\AttendanceRepository;
 use App\Repository\LocationUpdateRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -42,7 +44,7 @@ class ParentDashboardController extends AbstractController
         $todayAttendance = [];
         $upcomingRoutes = [];
 
-        $today = new \DateTimeImmutable('today');
+        $today = new DateTimeImmutable('today');
 
         // Get all children of the parent
         foreach ($user->getStudents() as $student) {
@@ -74,7 +76,7 @@ class ParentDashboardController extends AbstractController
 
                     // Get the latest location update timestamp
                     $latestLocation = $this->locationUpdateRepository->findLatestByActiveRoute($activeRoute);
-                    if ($latestLocation instanceof \App\Entity\LocationUpdate) {
+                    if ($latestLocation instanceof LocationUpdate) {
                         $lastUpdate = $latestLocation->getTimestamp()->format('c');
                     }
                 }

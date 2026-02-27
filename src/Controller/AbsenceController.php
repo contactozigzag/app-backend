@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Absence;
+use App\Entity\Student;
 use App\Repository\AbsenceRepository;
 use App\Repository\StudentRepository;
 use App\Service\RouteRecalculationService;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,15 +46,15 @@ class AbsenceController extends AbstractController
         }
 
         $student = $this->studentRepository->find($data['student_id']);
-        if (! $student instanceof \App\Entity\Student) {
+        if (! $student instanceof Student) {
             return $this->json([
                 'error' => 'Student not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
         try {
-            $date = new \DateTimeImmutable($data['date']);
-        } catch (\Exception) {
+            $date = new DateTimeImmutable($data['date']);
+        } catch (Exception) {
             return $this->json([
                 'error' => 'Invalid date format',
             ], Response::HTTP_BAD_REQUEST);
@@ -99,7 +102,7 @@ class AbsenceController extends AbstractController
     public function getStudentAbsences(int $studentId, Request $request): JsonResponse
     {
         $student = $this->studentRepository->find($studentId);
-        if (! $student instanceof \App\Entity\Student) {
+        if (! $student instanceof Student) {
             return $this->json([
                 'error' => 'Student not found',
             ], Response::HTTP_NOT_FOUND);
@@ -110,9 +113,9 @@ class AbsenceController extends AbstractController
 
         if ($start && $end) {
             try {
-                $startDate = new \DateTimeImmutable($start);
-                $endDate = new \DateTimeImmutable($end);
-            } catch (\Exception) {
+                $startDate = new DateTimeImmutable($start);
+                $endDate = new DateTimeImmutable($end);
+            } catch (Exception) {
                 return $this->json([
                     'error' => 'Invalid date format',
                 ], Response::HTTP_BAD_REQUEST);
@@ -159,12 +162,12 @@ class AbsenceController extends AbstractController
      * Get absences for a specific date
      */
     #[Route('/api/absences/date/{date}', name: 'api_absences_by_date', methods: ['GET'])]
-    #[IsGranted('ROLE_SCHOOL_ADMIN')]
+    #[IsGranted('ROUTE_MANAGE')]
     public function getAbsencesByDate(string $date): JsonResponse
     {
         try {
-            $dateObj = new \DateTimeImmutable($date);
-        } catch (\Exception) {
+            $dateObj = new DateTimeImmutable($date);
+        } catch (Exception) {
             return $this->json([
                 'error' => 'Invalid date format',
             ], Response::HTTP_BAD_REQUEST);
@@ -193,7 +196,7 @@ class AbsenceController extends AbstractController
      * Trigger manual recalculation for pending absences
      */
     #[Route('/api/absences/recalculate-pending', name: 'api_absences_recalculate_pending', methods: ['POST'])]
-    #[IsGranted('ROLE_SCHOOL_ADMIN')]
+    #[IsGranted('ROUTE_MANAGE')]
     public function recalculatePending(): JsonResponse
     {
         $results = $this->recalculationService->processPendingRecalculations();
@@ -214,14 +217,14 @@ class AbsenceController extends AbstractController
     {
         $absence = $this->absenceRepository->find($id);
 
-        if (! $absence instanceof \App\Entity\Absence) {
+        if (! $absence instanceof Absence) {
             return $this->json([
                 'error' => 'Absence not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
         // Check if absence is in the future
-        if ($absence->getDate() < new \DateTimeImmutable('today')) {
+        if ($absence->getDate() < new DateTimeImmutable('today')) {
             return $this->json([
                 'error' => 'Cannot cancel past absences',
             ], Response::HTTP_BAD_REQUEST);

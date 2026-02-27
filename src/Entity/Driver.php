@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\QueryParameter;
 use App\Repository\DriverRepository;
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -76,7 +77,7 @@ class Driver
      * When the current access token expires (MP tokens last ~180 days).
      */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $mpTokenExpiresAt = null;
+    private ?DateTimeImmutable $mpTokenExpiresAt = null;
 
     public function getId(): ?int
     {
@@ -155,12 +156,12 @@ class Driver
         return $this;
     }
 
-    public function getMpTokenExpiresAt(): ?\DateTimeImmutable
+    public function getMpTokenExpiresAt(): ?DateTimeImmutable
     {
         return $this->mpTokenExpiresAt;
     }
 
-    public function setMpTokenExpiresAt(?\DateTimeImmutable $mpTokenExpiresAt): static
+    public function setMpTokenExpiresAt(?DateTimeImmutable $mpTokenExpiresAt): static
     {
         $this->mpTokenExpiresAt = $mpTokenExpiresAt;
 

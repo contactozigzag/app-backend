@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Service\PerformanceMetricsService;
+use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,9 +41,9 @@ class PerformanceReportController extends AbstractController
         $endDate = $request->query->get('end_date');
 
         // Default to last 30 days if not provided
-        $startDate = $startDate ? new \DateTimeImmutable($startDate) : new \DateTimeImmutable('-30 days');
+        $startDate = $startDate ? new DateTimeImmutable($startDate) : new DateTimeImmutable('-30 days');
 
-        $endDate = $endDate ? new \DateTimeImmutable($endDate) : new \DateTimeImmutable('today');
+        $endDate = $endDate ? new DateTimeImmutable($endDate) : new DateTimeImmutable('today');
 
         $report = $this->metricsService->generatePerformanceReport($school, $startDate, $endDate);
 
@@ -65,9 +66,9 @@ class PerformanceReportController extends AbstractController
         $startDate = $request->query->get('start_date');
         $endDate = $request->query->get('end_date');
 
-        $startDate = $startDate ? new \DateTimeImmutable($startDate) : new \DateTimeImmutable('-30 days');
+        $startDate = $startDate ? new DateTimeImmutable($startDate) : new DateTimeImmutable('-30 days');
 
-        $endDate = $endDate ? new \DateTimeImmutable($endDate) : new \DateTimeImmutable('today');
+        $endDate = $endDate ? new DateTimeImmutable($endDate) : new DateTimeImmutable('today');
 
         $metrics = $this->metricsService->calculateEfficiencyMetrics($school, $startDate, $endDate);
 
@@ -91,9 +92,9 @@ class PerformanceReportController extends AbstractController
         $endDate = $request->query->get('end_date');
         $limit = (int) ($request->query->get('limit', 10));
 
-        $startDate = $startDate ? new \DateTimeImmutable($startDate) : new \DateTimeImmutable('-30 days');
+        $startDate = $startDate ? new DateTimeImmutable($startDate) : new DateTimeImmutable('-30 days');
 
-        $endDate = $endDate ? new \DateTimeImmutable($endDate) : new \DateTimeImmutable('today');
+        $endDate = $endDate ? new DateTimeImmutable($endDate) : new DateTimeImmutable('today');
 
         $routes = $this->metricsService->getTopPerformingRoutes($school, $startDate, $endDate, $limit);
 
@@ -122,9 +123,9 @@ class PerformanceReportController extends AbstractController
         $startDate = $request->query->get('start_date');
         $endDate = $request->query->get('end_date');
 
-        $startDate = $startDate ? new \DateTimeImmutable($startDate) : new \DateTimeImmutable('-30 days');
+        $startDate = $startDate ? new DateTimeImmutable($startDate) : new DateTimeImmutable('-30 days');
 
-        $endDate = $endDate ? new \DateTimeImmutable($endDate) : new \DateTimeImmutable('today');
+        $endDate = $endDate ? new DateTimeImmutable($endDate) : new DateTimeImmutable('today');
 
         $comparison = $this->metricsService->getComparativeMetrics($school, $startDate, $endDate);
 

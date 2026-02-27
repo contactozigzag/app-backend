@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Route;
+use App\Entity\RouteStop;
 use App\Repository\RouteRepository;
 use App\Service\RouteOptimizationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,7 +35,7 @@ class RouteController extends AbstractController
     {
         $route = $this->routeRepository->find($id);
 
-        if (! $route instanceof \App\Entity\Route) {
+        if (! $route instanceof Route) {
             return $this->json([
                 'error' => 'Route not found',
             ], Response::HTTP_NOT_FOUND);
@@ -127,7 +128,7 @@ class RouteController extends AbstractController
     {
         $route = $this->routeRepository->find($id);
 
-        if (! $route instanceof \App\Entity\Route) {
+        if (! $route instanceof Route) {
             return $this->json([
                 'error' => 'Route not found',
             ], Response::HTTP_NOT_FOUND);
@@ -199,7 +200,7 @@ class RouteController extends AbstractController
     {
         $route = $this->routeRepository->find($id);
 
-        if (! $route instanceof \App\Entity\Route) {
+        if (! $route instanceof Route) {
             return $this->json([
                 'error' => 'Route not found',
             ], Response::HTTP_NOT_FOUND);
@@ -224,7 +225,7 @@ class RouteController extends AbstractController
 
         // Clone stops
         foreach ($route->getStops() as $stop) {
-            $newStop = new \App\Entity\RouteStop();
+            $newStop = new RouteStop();
             $newStop->setStudent($stop->getStudent());
             $newStop->setAddress($stop->getAddress());
             $newStop->setStopOrder($stop->getStopOrder());

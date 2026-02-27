@@ -7,6 +7,7 @@ namespace App\Tests;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
@@ -58,7 +59,7 @@ abstract class AbstractApiTestCase extends WebTestCase
      */
     protected function postJson(KernelBrowser $client, string $uri, array $data): array
     {
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, $uri, [], [], [
+        $client->request(Request::METHOD_POST, $uri, [], [], [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_ACCEPT' => 'application/json',
         ], json_encode($data));
@@ -71,7 +72,7 @@ abstract class AbstractApiTestCase extends WebTestCase
      */
     protected function getJson(KernelBrowser $client, string $uri): array
     {
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $uri, [], [], [
+        $client->request(Request::METHOD_GET, $uri, [], [], [
             'HTTP_ACCEPT' => 'application/json',
         ]);
 

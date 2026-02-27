@@ -8,7 +8,10 @@ use App\Entity\ActiveRoute;
 use App\Entity\ArchivedRoute;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\AttendanceRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 
 class RouteArchivingService
@@ -27,7 +30,7 @@ class RouteArchivingService
     public function archiveRoute(ActiveRoute $route): ArchivedRoute
     {
         if ($route->getStatus() !== 'completed') {
-            throw new \InvalidArgumentException('Only completed routes can be archived');
+            throw new InvalidArgumentException('Only completed routes can be archived');
         }
 
         $archivedRoute = new ArchivedRoute();
@@ -97,7 +100,7 @@ class RouteArchivingService
      */
     public function archiveCompletedRoutes(int $olderThanDays = 7): int
     {
-        $cutoffDate = new \DateTimeImmutable(sprintf('-%d days', $olderThanDays));
+        $cutoffDate = new DateTimeImmutable(sprintf('-%d days', $olderThanDays));
 
         $completedRoutes = $this->activeRouteRepository->createQueryBuilder('ar')
             ->andWhere('ar.status = :status')
@@ -117,7 +120,7 @@ class RouteArchivingService
                 // $this->entityManager->remove($route);
 
                 $archivedCount++;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->error(sprintf(
                     'Failed to archive route #%d: %s',
                     $route->getId(),

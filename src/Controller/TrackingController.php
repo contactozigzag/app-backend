@@ -4,15 +4,24 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\ActiveRoute;
+use App\Entity\Driver;
 use App\Entity\LocationUpdate;
+use App\Message\DriverLocationUpdatedMessage;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\DriverRepository;
 use App\Repository\LocationUpdateRepository;
+use App\Service\DriverLocationCacheService;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -23,7 +32,11 @@ class TrackingController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly LocationUpdateRepository $locationRepository,
         private readonly DriverRepository $driverRepository,
-        private readonly ActiveRouteRepository $activeRouteRepository
+        private readonly ActiveRouteRepository $activeRouteRepository,
+        private readonly MessageBusInterface $bus,
+        #[Autowire(service: 'limiter.gps_ingestion')]
+        private readonly RateLimiterFactoryInterface $gpsIngestionLimiter,
+        private readonly DriverLocationCacheService $locationCache,
     ) {
     }
 
@@ -43,26 +56,34 @@ class TrackingController extends AbstractController
         }
 
         $driver = $this->driverRepository->find($data['driver_id']);
-        if (! $driver instanceof \App\Entity\Driver) {
+        if (! $driver instanceof Driver) {
             return $this->json([
                 'error' => 'Driver not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
+        // Rate-limit per driver (1 update per 3 seconds)
+        $limiter = $this->gpsIngestionLimiter->create(sprintf('driver_%d', $driver->getId()));
+        if (! $limiter->consume(1)->isAccepted()) {
+            return $this->json([
+                'error' => 'Too many GPS updates. Please wait before sending another.',
+            ], Response::HTTP_TOO_MANY_REQUESTS);
+        }
+
         // Check if driver has an active route today
-        $today = new \DateTimeImmutable('today');
+        $today = new DateTimeImmutable('today');
         $activeRoute = $this->activeRouteRepository->findActiveByDriverAndDate($driver, $today);
 
-        // Create location update
+        $recordedAt = isset($data['timestamp'])
+            ? new DateTimeImmutable($data['timestamp'])
+            : new DateTimeImmutable();
+
+        // Persist LocationUpdate to DB (kept for history/audit)
         $location = new LocationUpdate();
         $location->setDriver($driver);
         $location->setLatitude((string) $data['latitude']);
         $location->setLongitude((string) $data['longitude']);
-        $location->setTimestamp(
-            isset($data['timestamp'])
-                ? new \DateTimeImmutable($data['timestamp'])
-                : new \DateTimeImmutable()
-        );
+        $location->setTimestamp($recordedAt);
 
         if (isset($data['speed'])) {
             $location->setSpeed((string) $data['speed']);
@@ -76,7 +97,7 @@ class TrackingController extends AbstractController
             $location->setAccuracy((string) $data['accuracy']);
         }
 
-        if ($activeRoute instanceof \App\Entity\ActiveRoute) {
+        if ($activeRoute instanceof ActiveRoute) {
             $location->setActiveRoute($activeRoute);
 
             // Update active route current position
@@ -87,10 +108,36 @@ class TrackingController extends AbstractController
         $this->entityManager->persist($location);
         $this->entityManager->flush();
 
+        $lat = (float) $data['latitude'];
+        $lng = (float) $data['longitude'];
+        $speed = isset($data['speed']) ? (float) $data['speed'] : null;
+        $heading = isset($data['heading']) ? (float) $data['heading'] : null;
+        $activeRouteId = $activeRoute?->getId();
+
+        // Cache latest position in Redis (15s TTL)
+        $this->locationCache->cacheLocation($driver->getId(), $lat, $lng, $speed, $heading, $activeRouteId);
+
+        // Build correlation ID
+        $correlationId = $activeRouteId !== null
+            ? (string) $activeRouteId
+            : sprintf('driver-%d-%d', $driver->getId(), $recordedAt->getTimestamp());
+
+        // Dispatch async tracking pipeline
+        $this->bus->dispatch(new DriverLocationUpdatedMessage(
+            driverId: $driver->getId(),
+            activeRouteId: $activeRouteId,
+            latitude: $lat,
+            longitude: $lng,
+            speed: $speed,
+            heading: $heading,
+            correlationId: $correlationId,
+            recordedAt: $recordedAt,
+        ));
+
         return $this->json([
             'success' => true,
             'location_id' => $location->getId(),
-            'has_active_route' => $activeRoute instanceof \App\Entity\ActiveRoute,
+            'has_active_route' => $activeRoute instanceof ActiveRoute,
         ], Response::HTTP_CREATED);
     }
 
@@ -110,7 +157,7 @@ class TrackingController extends AbstractController
         }
 
         $driver = $this->driverRepository->find($data['driver_id']);
-        if (! $driver instanceof \App\Entity\Driver) {
+        if (! $driver instanceof Driver) {
             return $this->json([
                 'error' => 'Driver not found',
             ], Response::HTTP_NOT_FOUND);
@@ -132,8 +179,8 @@ class TrackingController extends AbstractController
                 $location->setLongitude((string) $locationData['longitude']);
                 $location->setTimestamp(
                     isset($locationData['timestamp'])
-                        ? new \DateTimeImmutable($locationData['timestamp'])
-                        : new \DateTimeImmutable()
+                        ? new DateTimeImmutable($locationData['timestamp'])
+                        : new DateTimeImmutable()
                 );
 
                 if (isset($locationData['speed'])) {
@@ -150,7 +197,7 @@ class TrackingController extends AbstractController
 
                 $this->entityManager->persist($location);
                 $processedCount++;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $errors[] = sprintf('Error processing location at index %s: ', $index) . $e->getMessage();
             }
         }
@@ -166,22 +213,38 @@ class TrackingController extends AbstractController
     }
 
     /**
-     * Get latest location for a driver
+     * Get latest location for a driver (Redis-first, DB fallback)
      */
     #[Route('/api/tracking/location/driver/{driverId}', name: 'api_tracking_driver_location', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function getDriverLocation(int $driverId): JsonResponse
     {
         $driver = $this->driverRepository->find($driverId);
-        if (! $driver instanceof \App\Entity\Driver) {
+        if (! $driver instanceof Driver) {
             return $this->json([
                 'error' => 'Driver not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
+        // Try Redis cache first
+        $cached = $this->locationCache->getLocation($driverId);
+        if ($cached !== null) {
+            return $this->json([
+                'driver_id' => $driverId,
+                'latitude' => $cached['lat'],
+                'longitude' => $cached['lng'],
+                'speed' => $cached['speed'],
+                'heading' => $cached['heading'],
+                'accuracy' => null,
+                'timestamp' => $cached['cachedAt'],
+                'source' => 'cache',
+            ]);
+        }
+
+        // Fall back to DB
         $location = $this->locationRepository->findLatestByDriver($driver);
 
-        if (! $location instanceof \App\Entity\LocationUpdate) {
+        if (! $location instanceof LocationUpdate) {
             return $this->json([
                 'error' => 'No location data available',
             ], Response::HTTP_NOT_FOUND);
@@ -195,6 +258,7 @@ class TrackingController extends AbstractController
             'heading' => $location->getHeading(),
             'accuracy' => $location->getAccuracy(),
             'timestamp' => $location->getTimestamp()->format('c'),
+            'source' => 'db',
         ]);
     }
 
@@ -202,11 +266,11 @@ class TrackingController extends AbstractController
      * Get location history for a driver
      */
     #[Route('/api/tracking/location/driver/{driverId}/history', name: 'api_tracking_driver_location_history', methods: ['GET'])]
-    #[IsGranted('ROLE_SCHOOL_ADMIN')]
+    #[IsGranted('ROUTE_MANAGE')]
     public function getDriverLocationHistory(int $driverId, Request $request): JsonResponse
     {
         $driver = $this->driverRepository->find($driverId);
-        if (! $driver instanceof \App\Entity\Driver) {
+        if (! $driver instanceof Driver) {
             return $this->json([
                 'error' => 'Driver not found',
             ], Response::HTTP_NOT_FOUND);
@@ -222,9 +286,9 @@ class TrackingController extends AbstractController
         }
 
         try {
-            $startDate = new \DateTimeImmutable($start);
-            $endDate = new \DateTimeImmutable($end);
-        } catch (\Exception) {
+            $startDate = new DateTimeImmutable($start);
+            $endDate = new DateTimeImmutable($end);
+        } catch (Exception) {
             return $this->json([
                 'error' => 'Invalid date format. Use ISO 8601 format.',
             ], Response::HTTP_BAD_REQUEST);
@@ -232,7 +296,7 @@ class TrackingController extends AbstractController
 
         $locations = $this->locationRepository->findByDriverAndDateRange($driver, $startDate, $endDate);
 
-        $result = array_map(fn (\App\Entity\LocationUpdate $location): array => [
+        $result = array_map(fn (LocationUpdate $location): array => [
             'latitude' => $location->getLatitude(),
             'longitude' => $location->getLongitude(),
             'speed' => $location->getSpeed(),

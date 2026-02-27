@@ -8,6 +8,8 @@ use App\Service\Payment\MercadoPagoOAuthService;
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\DriverFactory;
 use App\Tests\Factory\UserFactory;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * The /oauth/mercadopago/* routes are under the "main" (form-login) firewall,
@@ -23,7 +25,7 @@ final class OAuthControllerTest extends AbstractApiTestCase
     public function testConnectRequiresAuthentication(): void
     {
         $client = $this->createApiClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/oauth/mercadopago/connect');
+        $client->request(Request::METHOD_GET, '/oauth/mercadopago/connect');
 
         // main firewall redirects unauthenticated users to /login
         self::assertResponseRedirects('http://localhost/login');
@@ -37,7 +39,7 @@ final class OAuthControllerTest extends AbstractApiTestCase
         ]);
         $client->loginUser($user);
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/oauth/mercadopago/connect');
+        $client->request(Request::METHOD_GET, '/oauth/mercadopago/connect');
 
         self::assertResponseStatusCodeSame(403);
     }
@@ -55,7 +57,7 @@ final class OAuthControllerTest extends AbstractApiTestCase
         self::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
 
         $client->loginUser($driver->getUser());
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/oauth/mercadopago/connect');
+        $client->request(Request::METHOD_GET, '/oauth/mercadopago/connect');
 
         self::assertResponseRedirects('https://auth.mercadopago.com/authorization?client_id=123&state=abc');
     }
@@ -86,7 +88,7 @@ final class OAuthControllerTest extends AbstractApiTestCase
         $oauthMock = $this->createStub(MercadoPagoOAuthService::class);
         $oauthMock
             ->method('handleCallback')
-            ->willThrowException(new \RuntimeException('Invalid or expired OAuth state parameter.'));
+            ->willThrowException(new RuntimeException('Invalid or expired OAuth state parameter.'));
         self::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
 
         $this->getJson($client, '/oauth/mercadopago/callback?code=auth-code&state=invalid-state');
@@ -115,7 +117,7 @@ final class OAuthControllerTest extends AbstractApiTestCase
     public function testStatusRequiresAuthentication(): void
     {
         $client = $this->createApiClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/oauth/mercadopago/status');
+        $client->request(Request::METHOD_GET, '/oauth/mercadopago/status');
 
         self::assertResponseRedirects('http://localhost/login');
     }
@@ -128,7 +130,7 @@ final class OAuthControllerTest extends AbstractApiTestCase
         ]);
         $client->loginUser($user);
 
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/oauth/mercadopago/status');
+        $client->request(Request::METHOD_GET, '/oauth/mercadopago/status');
 
         self::assertResponseStatusCodeSame(403);
     }

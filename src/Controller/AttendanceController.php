@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\ActiveRouteStop;
 use App\Entity\Attendance;
+use App\Entity\Driver;
+use App\Entity\Student;
 use App\Repository\ActiveRouteStopRepository;
 use App\Repository\AttendanceRepository;
 use App\Repository\DriverRepository;
 use App\Repository\StudentRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -45,7 +50,7 @@ class AttendanceController extends AbstractController
         }
 
         $stop = $this->stopRepository->find($data['stop_id']);
-        if (! $stop instanceof \App\Entity\ActiveRouteStop) {
+        if (! $stop instanceof ActiveRouteStop) {
             return $this->json([
                 'error' => 'Stop not found',
             ], Response::HTTP_NOT_FOUND);
@@ -63,7 +68,7 @@ class AttendanceController extends AbstractController
             ], Response::HTTP_CONFLICT);
         }
 
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
 
         // Create or update attendance record
         if ($existingAttendance !== []) {
@@ -85,7 +90,7 @@ class AttendanceController extends AbstractController
 
         if (isset($data['driver_id'])) {
             $driver = $this->driverRepository->find($data['driver_id']);
-            if ($driver instanceof \App\Entity\Driver) {
+            if ($driver instanceof Driver) {
                 $attendance->setRecordedBy($driver);
             }
         }
@@ -128,7 +133,7 @@ class AttendanceController extends AbstractController
         }
 
         $stop = $this->stopRepository->find($data['stop_id']);
-        if (! $stop instanceof \App\Entity\ActiveRouteStop) {
+        if (! $stop instanceof ActiveRouteStop) {
             return $this->json([
                 'error' => 'Stop not found',
             ], Response::HTTP_NOT_FOUND);
@@ -152,7 +157,7 @@ class AttendanceController extends AbstractController
             ], Response::HTTP_CONFLICT);
         }
 
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
 
         $attendance->setStatus('dropped_off');
         $attendance->setDroppedOffAt($now);
@@ -196,7 +201,7 @@ class AttendanceController extends AbstractController
         }
 
         $stop = $this->stopRepository->find($data['stop_id']);
-        if (! $stop instanceof \App\Entity\ActiveRouteStop) {
+        if (! $stop instanceof ActiveRouteStop) {
             return $this->json([
                 'error' => 'Stop not found',
             ], Response::HTTP_NOT_FOUND);
@@ -210,7 +215,7 @@ class AttendanceController extends AbstractController
 
         if (isset($data['driver_id'])) {
             $driver = $this->driverRepository->find($data['driver_id']);
-            if ($driver instanceof \App\Entity\Driver) {
+            if ($driver instanceof Driver) {
                 $attendance->setRecordedBy($driver);
             }
         }
@@ -286,7 +291,7 @@ class AttendanceController extends AbstractController
     public function getStudentHistory(int $studentId, Request $request): JsonResponse
     {
         $student = $this->studentRepository->find($studentId);
-        if (! $student instanceof \App\Entity\Student) {
+        if (! $student instanceof Student) {
             return $this->json([
                 'error' => 'Student not found',
             ], Response::HTTP_NOT_FOUND);
@@ -297,13 +302,13 @@ class AttendanceController extends AbstractController
 
         if (! $start || ! $end) {
             // Default to last 30 days
-            $end = new \DateTimeImmutable('today');
+            $end = new DateTimeImmutable('today');
             $start = $end->modify('-30 days');
         } else {
             try {
-                $start = new \DateTimeImmutable($start);
-                $end = new \DateTimeImmutable($end);
-            } catch (\Exception) {
+                $start = new DateTimeImmutable($start);
+                $end = new DateTimeImmutable($end);
+            } catch (Exception) {
                 return $this->json([
                     'error' => 'Invalid date format',
                 ], Response::HTTP_BAD_REQUEST);
@@ -312,7 +317,7 @@ class AttendanceController extends AbstractController
 
         $attendanceRecords = $this->attendanceRepository->findByStudentAndDateRange($student, $start, $end);
 
-        $history = array_map(fn (\App\Entity\Attendance $attendance): array => [
+        $history = array_map(fn (Attendance $attendance): array => [
             'id' => $attendance->getId(),
             'date' => $attendance->getDate()->format('Y-m-d'),
             'status' => $attendance->getStatus(),
@@ -346,9 +351,9 @@ class AttendanceController extends AbstractController
         }
 
         try {
-            $startDate = new \DateTimeImmutable($start);
-            $endDate = new \DateTimeImmutable($end);
-        } catch (\Exception) {
+            $startDate = new DateTimeImmutable($start);
+            $endDate = new DateTimeImmutable($end);
+        } catch (Exception) {
             return $this->json([
                 'error' => 'Invalid date format',
             ], Response::HTTP_BAD_REQUEST);

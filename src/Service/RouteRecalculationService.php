@@ -9,6 +9,7 @@ use App\Entity\ActiveRoute;
 use App\Entity\ActiveRouteStop;
 use App\Repository\ActiveRouteStopRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Psr\Log\LoggerInterface;
 
 class RouteRecalculationService
@@ -205,7 +206,7 @@ class RouteRecalculationService
                     'student_id' => $absence->getStudent()->getId(),
                     'result' => $result,
                 ];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->error('Failed to process absence', [
                     'absence_id' => $absence->getId(),
                     'error' => $e->getMessage(),

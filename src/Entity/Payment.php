@@ -7,6 +7,7 @@ namespace App\Entity;
 use App\Enum\PaymentMethod;
 use App\Enum\PaymentStatus;
 use App\Repository\PaymentRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -92,18 +93,18 @@ class Payment
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['payment:read', 'payment:list'])]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $updatedAt;
+    private DateTimeImmutable $updatedAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['payment:read', 'payment:detail'])]
-    private ?\DateTimeImmutable $paidAt = null;
+    private ?DateTimeImmutable $paidAt = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['payment:read', 'payment:detail'])]
-    private ?\DateTimeImmutable $expiresAt = null;
+    private ?DateTimeImmutable $expiresAt = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, options: [
         'default' => '0.00',
@@ -121,8 +122,8 @@ class Payment
     {
         $this->students = new ArrayCollection();
         $this->transactions = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -210,7 +211,7 @@ class Payment
     public function setStatus(PaymentStatus $status): static
     {
         $this->status = $status;
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
 
         return $this;
     }
@@ -281,34 +282,34 @@ class Payment
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function getPaidAt(): ?\DateTimeImmutable
+    public function getPaidAt(): ?DateTimeImmutable
     {
         return $this->paidAt;
     }
 
-    public function setPaidAt(?\DateTimeImmutable $paidAt): static
+    public function setPaidAt(?DateTimeImmutable $paidAt): static
     {
         $this->paidAt = $paidAt;
 
         return $this;
     }
 
-    public function getExpiresAt(): ?\DateTimeImmutable
+    public function getExpiresAt(): ?DateTimeImmutable
     {
         return $this->expiresAt;
     }
 
-    public function setExpiresAt(?\DateTimeImmutable $expiresAt): static
+    public function setExpiresAt(?DateTimeImmutable $expiresAt): static
     {
         $this->expiresAt = $expiresAt;
 
@@ -368,7 +369,7 @@ class Payment
 
     public function isExpired(): bool
     {
-        return $this->expiresAt instanceof \DateTimeImmutable && $this->expiresAt < new \DateTimeImmutable();
+        return $this->expiresAt instanceof DateTimeImmutable && $this->expiresAt < new DateTimeImmutable();
     }
 
     public function isRefundable(): bool

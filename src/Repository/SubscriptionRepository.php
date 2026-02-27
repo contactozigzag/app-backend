@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Entity\Subscription;
 use App\Entity\User;
 use App\Enum\SubscriptionStatus;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -38,7 +39,7 @@ class SubscriptionRepository extends ServiceEntityRepository
             ->where('s.status = :status')
             ->andWhere('s.nextBillingDate <= :today')
             ->setParameter('status', SubscriptionStatus::ACTIVE)
-            ->setParameter('today', new \DateTimeImmutable())
+            ->setParameter('today', new DateTimeImmutable())
             ->getQuery()
             ->getResult();
     }
@@ -63,7 +64,7 @@ class SubscriptionRepository extends ServiceEntityRepository
      */
     public function findFailedPaymentRetries(): array
     {
-        $twentyFourHoursAgo = new \DateTimeImmutable('-24 hours');
+        $twentyFourHoursAgo = new DateTimeImmutable('-24 hours');
 
         return $this->createQueryBuilder('s')
             ->where('s.status = :status')

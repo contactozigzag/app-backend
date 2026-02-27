@@ -8,6 +8,7 @@ use App\Event\Payment\PaymentApprovedEvent;
 use App\Event\Payment\PaymentCreatedEvent;
 use App\Event\Payment\PaymentFailedEvent;
 use App\Event\Payment\PaymentRefundedEvent;
+use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Mercure\HubInterface;
@@ -128,7 +129,7 @@ readonly class PaymentEventSubscriber implements EventSubscriberInterface
                 'payment_id' => $paymentId,
                 'event' => $data['event'],
             ]);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->error('Failed to publish Mercure update', [
                 'payment_id' => $paymentId,
                 'error' => $exception->getMessage(),

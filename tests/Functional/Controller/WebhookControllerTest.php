@@ -8,6 +8,7 @@ use App\Message\ProcessWebhookMessage;
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\PaymentFactory;
 use App\Tests\Factory\UserFactory;
+use Symfony\Component\HttpFoundation\Request;
 use Zenstruck\Messenger\Test\InteractsWithMessenger;
 
 final class WebhookControllerTest extends AbstractApiTestCase
@@ -35,7 +36,7 @@ final class WebhookControllerTest extends AbstractApiTestCase
     public function testHandleWebhookReturns401OnInvalidSignature(): void
     {
         $client = $this->createApiClient();
-        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_POST, '/api/webhooks/mercadopago', [], [], [
+        $client->request(Request::METHOD_POST, '/api/webhooks/mercadopago', [], [], [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_X_SIGNATURE' => 'ts=1234,v1=badsig',
             'HTTP_X_REQUEST_ID' => 'req-test',
@@ -59,7 +60,7 @@ final class WebhookControllerTest extends AbstractApiTestCase
         ];
 
         $client->request(
-            \Symfony\Component\HttpFoundation\Request::METHOD_POST,
+            Request::METHOD_POST,
             '/api/webhooks/mercadopago',
             [],
             [],
@@ -89,7 +90,7 @@ final class WebhookControllerTest extends AbstractApiTestCase
         ];
 
         $client->request(
-            \Symfony\Component\HttpFoundation\Request::METHOD_POST,
+            Request::METHOD_POST,
             '/api/webhooks/mercadopago?id=' . $dataId,
             [],
             [],
@@ -125,7 +126,7 @@ final class WebhookControllerTest extends AbstractApiTestCase
         ];
 
         $client->request(
-            \Symfony\Component\HttpFoundation\Request::METHOD_POST,
+            Request::METHOD_POST,
             '/api/webhooks/mercadopago?id=' . $dataId,
             [],
             [],
@@ -156,7 +157,7 @@ final class WebhookControllerTest extends AbstractApiTestCase
         ];
 
         $client->request(
-            \Symfony\Component\HttpFoundation\Request::METHOD_POST,
+            Request::METHOD_POST,
             '/api/webhooks/mercadopago',
             [],
             [],

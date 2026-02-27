@@ -7,6 +7,7 @@ namespace App\Tests;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class LoginControllerTest extends WebTestCase
@@ -46,7 +47,7 @@ final class LoginControllerTest extends WebTestCase
     public function testLogin(): void
     {
         // Denied - Can't login with invalid email address.
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/login');
+        $this->client->request(Request::METHOD_GET, '/login');
         self::assertResponseIsSuccessful();
 
         $this->client->submitForm('Sign in', [
@@ -61,7 +62,7 @@ final class LoginControllerTest extends WebTestCase
         self::assertSelectorTextContains('.alert-danger', 'Invalid credentials.');
 
         // Denied - Can't login with invalid password.
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/login');
+        $this->client->request(Request::METHOD_GET, '/login');
         self::assertResponseIsSuccessful();
 
         $this->client->submitForm('Sign in', [

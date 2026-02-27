@@ -8,7 +8,9 @@ use App\Enum\SubscriptionStatus;
 use App\Message\ProcessSubscriptionsMessage;
 use App\Repository\SubscriptionRepository;
 use App\Service\Payment\PaymentProcessor;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -68,7 +70,7 @@ class ProcessSubscriptionsMessageHandler
 
                     // Update subscription
                     $subscription->setNextBillingDate($subscription->calculateNextBillingDate());
-                    $subscription->setLastPaymentAttemptAt(new \DateTimeImmutable());
+                    $subscription->setLastPaymentAttemptAt(new DateTimeImmutable());
                     $subscription->resetFailedPaymentCount();
 
                     $this->entityManager->flush();
@@ -80,12 +82,12 @@ class ProcessSubscriptionsMessageHandler
                     ]);
 
                     $processed++;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $failed++;
 
                     // Increment failed payment count
                     $subscription->incrementFailedPaymentCount();
-                    $subscription->setLastPaymentAttemptAt(new \DateTimeImmutable());
+                    $subscription->setLastPaymentAttemptAt(new DateTimeImmutable());
 
                     // Mark as failed if exceeded max retries
                     if ($subscription->getFailedPaymentCount() >= 3) {
@@ -140,7 +142,7 @@ class ProcessSubscriptionsMessageHandler
                             currency: $subscription->getCurrency()
                         );
 
-                        $subscription->setLastPaymentAttemptAt(new \DateTimeImmutable());
+                        $subscription->setLastPaymentAttemptAt(new DateTimeImmutable());
                         $this->entityManager->flush();
 
                         $this->logger->info('Retry payment processed', [
@@ -150,7 +152,7 @@ class ProcessSubscriptionsMessageHandler
                         ]);
 
                         $processed++;
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $failed++;
                         $subscription->incrementFailedPaymentCount();
                         $this->entityManager->flush();
@@ -167,7 +169,7 @@ class ProcessSubscriptionsMessageHandler
                 'processed' => $processed,
                 'failed' => $failed,
             ]);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->critical('Subscription processing failed with critical error', [
                 'error' => $exception->getMessage(),
                 'trace' => $exception->getTraceAsString(),

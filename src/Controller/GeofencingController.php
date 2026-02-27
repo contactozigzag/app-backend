@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\ActiveRoute;
 use App\Repository\ActiveRouteRepository;
 use App\Service\GeofencingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,7 +31,7 @@ class GeofencingController extends AbstractController
     {
         $activeRoute = $this->activeRouteRepository->find($routeId);
 
-        if (! $activeRoute instanceof \App\Entity\ActiveRoute) {
+        if (! $activeRoute instanceof ActiveRoute) {
             return $this->json([
                 'error' => 'Active route not found',
             ], Response::HTTP_NOT_FOUND);
@@ -51,7 +52,7 @@ class GeofencingController extends AbstractController
      * Check all in-progress routes
      */
     #[Route('/api/geofencing/check-all', name: 'api_geofencing_check_all', methods: ['POST'])]
-    #[IsGranted('ROLE_SCHOOL_ADMIN')]
+    #[IsGranted('ROUTE_MANAGE')]
     public function checkAllRoutes(): JsonResponse
     {
         $activeRoutes = $this->activeRouteRepository->findInProgress();
@@ -84,7 +85,7 @@ class GeofencingController extends AbstractController
     {
         $activeRoute = $this->activeRouteRepository->find($routeId);
 
-        if (! $activeRoute instanceof \App\Entity\ActiveRoute) {
+        if (! $activeRoute instanceof ActiveRoute) {
             return $this->json([
                 'error' => 'Active route not found',
             ], Response::HTTP_NOT_FOUND);

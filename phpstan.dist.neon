@@ -173,6 +173,7 @@ parameters:
                 - src/Service/RouteOptimizationService.php
                 - src/Controller/RouteController.php
                 - src/Service/RouteRecalculationService.php
+                - src/MessageHandler/StudentReadyForPickupHandler.php
 
         # ——————————————————————————————————————————————————————————————————————
         # RouteArchivingService calculatePerformance: loose array return.
@@ -250,7 +251,7 @@ parameters:
         # validation via Symfony Validator covers the actual shape.
         # ——————————————————————————————————————————————————————————————————————
         -
-            message: '#(Cannot cast mixed to (string|int)|Parameter .+ expects .+, mixed given|Parameter .+ expects .+\|null, mixed given|Parameter \#[12] \$datetime of class DateTimeImmutable)#'
+            message: '#(Cannot cast mixed to (string|int|float)|Parameter .+ expects .+, mixed given|Parameter .+ expects .+\|null, mixed given|Parameter \#[12] \$datetime of class DateTimeImmutable)#'
             paths:
                 - src/Controller/TrackingController.php
                 - src/Controller/PaymentController.php
@@ -260,6 +261,7 @@ parameters:
                 - src/Controller/AttendanceController.php
                 - src/Controller/RouteController.php
                 - src/Controller/RouteStopController.php
+                - src/Controller/SpecialEventRouteController.php
                 - src/Command/CreateUserCommand.php
                 - src/Command/ProcessSubscriptionsCommand.php
                 - src/Command/ArchiveRoutesCommand.php
@@ -280,6 +282,7 @@ parameters:
                 - src/Controller/AbsenceController.php
                 - src/Controller/RouteStopController.php
                 - src/Controller/TrackingController.php
+                - src/Controller/SpecialEventRouteController.php
                 - src/EventSubscriber/RouteNotificationSubscriber.php
                 - src/Service/RouteArchivingService.php
                 - src/Service/RouteRecalculationService.php

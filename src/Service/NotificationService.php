@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\NotificationPreference;
 use App\Entity\User;
 use App\Notification\NotificationInterface;
 use App\Repository\NotificationPreferenceRepository;
@@ -44,7 +45,7 @@ class NotificationService
         $preferences = $this->preferenceRepository->findByUser($user);
 
         // If no preferences exist, use all channels by default
-        if (! $preferences instanceof \App\Entity\NotificationPreference) {
+        if (! $preferences instanceof NotificationPreference) {
             $channels ??= array_keys($this->providers);
         } else {
             // Use preference-based channels if not explicitly specified
@@ -129,7 +130,7 @@ class NotificationService
         return null;
     }
 
-    private function getEnabledChannels(\App\Entity\NotificationPreference $preferences): array
+    private function getEnabledChannels(NotificationPreference $preferences): array
     {
         $channels = [];
 

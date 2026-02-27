@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\ActiveRoute;
 use App\Entity\Driver;
 use App\Entity\LocationUpdate;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,8 +42,8 @@ class LocationUpdateRepository extends ServiceEntityRepository
      */
     public function findByDriverAndDateRange(
         Driver $driver,
-        \DateTimeImmutable $start,
-        \DateTimeImmutable $end
+        DateTimeImmutable $start,
+        DateTimeImmutable $end
     ): array {
         return $this->createQueryBuilder('l')
             ->andWhere('l.driver = :driver')
@@ -58,7 +60,7 @@ class LocationUpdateRepository extends ServiceEntityRepository
     /**
      * Delete old location updates (for cleanup)
      */
-    public function deleteOlderThan(\DateTimeImmutable $date): int
+    public function deleteOlderThan(DateTimeImmutable $date): int
     {
         return $this->createQueryBuilder('l')
             ->delete()
@@ -71,7 +73,7 @@ class LocationUpdateRepository extends ServiceEntityRepository
     /**
      * Get the latest location for an active route
      */
-    public function findLatestByActiveRoute(\App\Entity\ActiveRoute $activeRoute): ?LocationUpdate
+    public function findLatestByActiveRoute(ActiveRoute $activeRoute): ?LocationUpdate
     {
         return $this->createQueryBuilder('l')
             ->andWhere('l.activeRoute = :activeRoute')

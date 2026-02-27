@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -69,7 +70,7 @@ class CreateUserCommand extends Command
                 'email' => $email,
             ]);
 
-        if ($existingUser instanceof \App\Entity\User) {
+        if ($existingUser instanceof User) {
             $io->error(sprintf('User with email "%s" already exists.', $email));
             return Command::FAILURE;
         }
@@ -80,7 +81,7 @@ class CreateUserCommand extends Command
                 'identificationNumber' => $identificationNumber,
             ]);
 
-        if ($existingUserByIdNumber instanceof \App\Entity\User) {
+        if ($existingUserByIdNumber instanceof User) {
             $io->error(sprintf('User with identification number "%s" already exists.', $identificationNumber));
             return Command::FAILURE;
         }
@@ -128,7 +129,7 @@ class CreateUserCommand extends Command
             );
 
             return Command::SUCCESS;
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $io->error(sprintf('Failed to create user: %s', $exception->getMessage()));
             return Command::FAILURE;
         }

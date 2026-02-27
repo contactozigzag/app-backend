@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\IdempotencyRecord;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -24,7 +25,7 @@ class IdempotencyRecordRepository extends ServiceEntityRepository
             ->where('r.idempotencyKey = :key')
             ->andWhere('r.expiresAt > :now')
             ->setParameter('key', $idempotencyKey)
-            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('now', new DateTimeImmutable())
             ->getQuery()
             ->getOneOrNullResult();
     }

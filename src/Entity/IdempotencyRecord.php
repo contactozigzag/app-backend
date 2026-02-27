@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\IdempotencyRecordRepository;
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -19,7 +20,7 @@ class IdempotencyRecord
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     public function __construct(
         #[ORM\Column(length: 255, unique: true)]
@@ -27,9 +28,9 @@ class IdempotencyRecord
         #[ORM\Column(type: Types::TEXT)]
         private string $result,
         #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-        private \DateTimeImmutable $expiresAt
+        private DateTimeImmutable $expiresAt
     ) {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -54,25 +55,25 @@ class IdempotencyRecord
         return $this;
     }
 
-    public function getExpiresAt(): \DateTimeImmutable
+    public function getExpiresAt(): DateTimeImmutable
     {
         return $this->expiresAt;
     }
 
-    public function setExpiresAt(\DateTimeImmutable $expiresAt): static
+    public function setExpiresAt(DateTimeImmutable $expiresAt): static
     {
         $this->expiresAt = $expiresAt;
 
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
     public function isExpired(): bool
     {
-        return $this->expiresAt < new \DateTimeImmutable();
+        return $this->expiresAt < new DateTimeImmutable();
     }
 }

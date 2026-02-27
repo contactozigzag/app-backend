@@ -38,7 +38,7 @@ final class WebhookValidatorTest extends TestCase
 
     public function testIsValidReturnsFalseWhenXSignatureHeaderMissing(): void
     {
-        $request = Request::create('/api/webhooks/mercadopago', \Symfony\Component\HttpFoundation\Request::METHOD_POST);
+        $request = Request::create('/api/webhooks/mercadopago', Request::METHOD_POST);
         $request->headers->set('x-request-id', 'req-123');
 
         $this->assertFalse($this->validator->isValid($request));
@@ -46,7 +46,7 @@ final class WebhookValidatorTest extends TestCase
 
     public function testIsValidReturnsFalseWhenXRequestIdHeaderMissing(): void
     {
-        $request = Request::create('/api/webhooks/mercadopago', \Symfony\Component\HttpFoundation\Request::METHOD_POST);
+        $request = Request::create('/api/webhooks/mercadopago', Request::METHOD_POST);
         $request->headers->set('x-signature', 'ts=123456,v1=abc');
 
         $this->assertFalse($this->validator->isValid($request));
@@ -54,7 +54,7 @@ final class WebhookValidatorTest extends TestCase
 
     public function testIsValidReturnsFalseOnMalformedSignatureHeader(): void
     {
-        $request = Request::create('/api/webhooks/mercadopago', \Symfony\Component\HttpFoundation\Request::METHOD_POST);
+        $request = Request::create('/api/webhooks/mercadopago', Request::METHOD_POST);
         $request->headers->set('x-signature', 'invalid-format-no-equals');
         $request->headers->set('x-request-id', 'req-123');
 
@@ -165,7 +165,7 @@ final class WebhookValidatorTest extends TestCase
         string $dataId = '',
     ): Request {
         $url = '/api/webhooks/mercadopago' . ($dataId !== '' && $dataId !== '0' ? '?id=' . $dataId : '');
-        $request = Request::create($url, \Symfony\Component\HttpFoundation\Request::METHOD_POST);
+        $request = Request::create($url, Request::METHOD_POST);
         $request->headers->set('x-signature', sprintf('ts=%d,v1=%s', $timestamp, $signature));
         $request->headers->set('x-request-id', $requestId);
 

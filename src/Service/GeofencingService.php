@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\ActiveRoute;
 use App\Entity\ActiveRouteStop;
 use App\Repository\ActiveRouteStopRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -18,7 +19,8 @@ class GeofencingService
         private readonly EntityManagerInterface $entityManager,
         private readonly ActiveRouteStopRepository $stopRepository,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly GeoCalculatorService $geoCalculator,
     ) {
     }
 
@@ -31,7 +33,7 @@ class GeofencingService
      */
     public function isWithinGeofence(array $location, array $geofenceCenter, int $radius): bool
     {
-        $distance = $this->calculateDistance(
+        $distance = $this->geoCalculator->calculateDistance(
             $location['lat'],
             $location['lng'],
             $geofenceCenter['lat'],
@@ -39,27 +41,6 @@ class GeofencingService
         );
 
         return $distance <= $radius;
-    }
-
-    /**
-     * Calculate distance between two coordinates using Haversine formula
-     *
-     * @return float distance in meters
-     */
-    private function calculateDistance(float $lat1, float $lng1, float $lat2, float $lng2): float
-    {
-        $earthRadius = 6371000; // meters
-
-        $dLat = deg2rad($lat2 - $lat1);
-        $dLng = deg2rad($lng2 - $lng1);
-
-        $a = sin($dLat / 2) * sin($dLat / 2) +
-            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-            sin($dLng / 2) * sin($dLng / 2);
-
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-        return $earthRadius * $c;
     }
 
     /**
@@ -106,7 +87,7 @@ class GeofencingService
                 'lng' => (float) $address->getLongitude(),
             ];
 
-            $distance = $this->calculateDistance(
+            $distance = $this->geoCalculator->calculateDistance(
                 $currentLocation['lat'],
                 $currentLocation['lng'],
                 $stopLocation['lat'],
@@ -119,7 +100,7 @@ class GeofencingService
             if ($distance <= $geofenceRadius) {
                 if ($stop->getStatus() !== 'arrived') {
                     $stop->setStatus('arrived');
-                    $stop->setArrivedAt(new \DateTimeImmutable());
+                    $stop->setArrivedAt(new DateTimeImmutable());
                     $arrived[] = $stop;
 
                     $this->logger->info('Stop arrived', [
@@ -159,8 +140,8 @@ class GeofencingService
         }
 
         return [
-            'approaching' => array_map(fn (\App\Entity\ActiveRouteStop $s): ?int => $s->getId(), $approaching),
-            'arrived' => array_map(fn (\App\Entity\ActiveRouteStop $s): ?int => $s->getId(), $arrived),
+            'approaching' => array_map(fn (ActiveRouteStop $s): ?int => $s->getId(), $approaching),
+            'arrived' => array_map(fn (ActiveRouteStop $s): ?int => $s->getId(), $arrived),
         ];
     }
 
@@ -196,7 +177,7 @@ class GeofencingService
 
         $nextStop = $this->stopRepository->findNextPendingStop($activeRoute);
 
-        if (! $nextStop instanceof \App\Entity\ActiveRouteStop) {
+        if (! $nextStop instanceof ActiveRouteStop) {
             return null;
         }
 
@@ -211,7 +192,7 @@ class GeofencingService
             'lng' => (float) $address->getLongitude(),
         ];
 
-        $distance = $this->calculateDistance(
+        $distance = $this->geoCalculator->calculateDistance(
             $currentLocation['lat'],
             $currentLocation['lng'],
             $stopLocation['lat'],

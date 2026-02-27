@@ -19,8 +19,6 @@ framework:
             # RabbitMQ transport — used exclusively for payment webhook processing.
             # Webhooks require fast turnaround (MP retries on slow responses) and
             # higher throughput than the Doctrine transport can provide.
-            # Exchange and queue are both named "webhooks"; RabbitMQ creates them
-            # automatically on first connect (auto_setup defaults to true).
             async_webhooks:
                 dsn: '%env(RABBITMQ_DSN)%'
                 retry_strategy:
@@ -28,6 +26,16 @@ framework:
                     delay: 1000       # 1 s initial delay
                     multiplier: 2     # 1 s → 2 s → 4 s
                     max_delay: 10000  # cap at 10 s
+
+            # RabbitMQ transport — used for real-time GPS tracking events.
+            # Separate queue from webhooks to isolate tracking throughput.
+            async_tracking:
+                dsn: '%env(RABBITMQ_DSN_TRACKING)%'
+                retry_strategy:
+                    max_retries: 2
+                    delay: 500
+                    multiplier: 2
+                    max_delay: 5000
 
             # Dead-letter store for messages that exceed max_retries on any transport.
             # Stored in the DB so ops can inspect and replay them manually.
@@ -50,9 +58,23 @@ framework:
             # Payment webhooks — goes to RabbitMQ for fast, isolated processing
             App\Message\ProcessWebhookMessage: async_webhooks
 
+            # GPS tracking pipeline — goes to RabbitMQ tracking queue
+            App\Message\DriverLocationUpdatedMessage: async_tracking
+
+            # Anomaly detection and distress signals
+            App\Message\DetectGpsAnomalyMessage: async
+            App\Message\DriverDistressMessage: async
+
+            # Emergency chat
+            App\Message\ChatMessageCreatedMessage: async
+
+            # Special event routes
+            App\Message\StudentReadyForPickupMessage: async
+
 when@test:
     framework:
         messenger:
             transports:
                 async: 'test://'
                 async_webhooks: 'test://'
+                async_tracking: 'test://'

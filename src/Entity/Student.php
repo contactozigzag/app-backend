@@ -9,6 +9,7 @@ use App\Enum\EducationalLevel;
 use App\Enum\Gender;
 use App\Enum\Grade;
 use App\Repository\StudentRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -44,7 +45,7 @@ class Student
     private ?Gender $gender = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $birthday = null;
+    private ?DateTimeImmutable $birthday = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $medicalHistory = null;
@@ -143,12 +144,12 @@ class Student
         return $this;
     }
 
-    public function getBirthday(): ?\DateTimeImmutable
+    public function getBirthday(): ?DateTimeImmutable
     {
         return $this->birthday;
     }
 
-    public function setBirthday(?\DateTimeImmutable $birthday): static
+    public function setBirthday(?DateTimeImmutable $birthday): static
     {
         $this->birthday = $birthday;
 
@@ -230,7 +231,7 @@ class Student
     #[Assert\Callback]
     public function validateEducationalLevelAndGrade(ExecutionContextInterface $context): void
     {
-        if (! $this->educationalLevel instanceof \App\Enum\EducationalLevel || ! $this->grade instanceof \App\Enum\Grade) {
+        if (! $this->educationalLevel instanceof EducationalLevel || ! $this->grade instanceof Grade) {
             return;
         }
 

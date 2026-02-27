@@ -30,7 +30,7 @@ class NotificationPreferenceRepository extends ServiceEntityRepository
     {
         $preference = $this->findByUser($user);
 
-        if (! $preference instanceof \App\Entity\NotificationPreference) {
+        if (! $preference instanceof NotificationPreference) {
             $preference = new NotificationPreference();
             $preference->setUser($user);
             $this->getEntityManager()->persist($preference);

@@ -120,7 +120,7 @@ class RouteStopController extends AbstractController
     {
         $driver = $this->getDriver();
 
-        if (! $driver instanceof \App\Entity\Driver) {
+        if (! $driver instanceof Driver) {
             return $this->json([
                 'error' => 'Driver profile not found',
             ], Response::HTTP_NOT_FOUND);
@@ -219,7 +219,7 @@ class RouteStopController extends AbstractController
     {
         $driver = $this->getDriver();
 
-        if (! $driver instanceof \App\Entity\Driver) {
+        if (! $driver instanceof Driver) {
             return $this->json([
                 'error' => 'Driver profile not found',
             ], Response::HTTP_NOT_FOUND);
@@ -227,7 +227,7 @@ class RouteStopController extends AbstractController
 
         $routeStop = $this->routeStopRepository->find($routeStopId);
 
-        if (! $routeStop instanceof \App\Entity\RouteStop) {
+        if (! $routeStop instanceof RouteStop) {
             return $this->json([
                 'error' => 'Route stop not found',
             ], Response::HTTP_NOT_FOUND);

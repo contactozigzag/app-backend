@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\ArchivedRoute;
 use App\Entity\School;
 use App\Repository\ArchivedRouteRepository;
+use DateTimeImmutable;
 
 class PerformanceMetricsService
 {
@@ -19,8 +21,8 @@ class PerformanceMetricsService
      */
     public function generatePerformanceReport(
         School $school,
-        \DateTimeImmutable $startDate,
-        \DateTimeImmutable $endDate
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate
     ): array {
         // Get archived route statistics
         $routeStats = $this->archivedRouteRepository->getPerformanceStats($school, $startDate, $endDate);
@@ -80,8 +82,8 @@ class PerformanceMetricsService
      */
     public function calculateEfficiencyMetrics(
         School $school,
-        \DateTimeImmutable $startDate,
-        \DateTimeImmutable $endDate
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate
     ): array {
         $routes = $this->archivedRouteRepository->findBySchoolAndDateRange(
             $school,
@@ -128,8 +130,8 @@ class PerformanceMetricsService
      */
     public function getTopPerformingRoutes(
         School $school,
-        \DateTimeImmutable $startDate,
-        \DateTimeImmutable $endDate,
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate,
         int $limit = 10
     ): array {
         $routes = $this->archivedRouteRepository->findBySchoolAndDateRange(
@@ -143,7 +145,7 @@ class PerformanceMetricsService
 
         $topRoutes = array_slice($routes, 0, $limit);
 
-        return array_map(fn (\App\Entity\ArchivedRoute $route): array => [
+        return array_map(fn (ArchivedRoute $route): array => [
             'id' => $route->getId(),
             'route_name' => $route->getRouteName(),
             'driver_name' => $route->getDriverName(),
@@ -161,8 +163,8 @@ class PerformanceMetricsService
      */
     public function getComparativeMetrics(
         School $school,
-        \DateTimeImmutable $currentStart,
-        \DateTimeImmutable $currentEnd
+        DateTimeImmutable $currentStart,
+        DateTimeImmutable $currentEnd
     ): array {
         // Calculate previous period of same length
         $periodLength = $currentEnd->diff($currentStart)->days;
