@@ -232,7 +232,6 @@ parameters:
         # PerformanceMetricsService internal array shape calculations.
         # ——————————————————————————————————————————————————————————————————————
         - '#Method App\\Service\\PerformanceMetricsService::[a-zA-Z]+\(\)#'
-        - '#Strict comparison using === between float and 0 will always evaluate to false#'
 
         # ——————————————————————————————————————————————————————————————————————
         # SafetyAuditService return types with mixed arrays — audit data shapes
@@ -379,6 +378,22 @@ parameters:
             message: '#(Parameter \#1 \$user of method Symfony\\Bundle\\FrameworkBundle\\KernelBrowser::loginUser\(\) expects .+, App\\Entity\\User\|null given|Parameter \#1 \$json of function json_decode expects string, string\|false given|Cannot cast mixed to string)#'
             paths:
                 - tests/Functional/Controller/OAuthControllerTest.php
+
+        # ——————————————————————————————————————————————————————————————————————
+        # Functional test helpers — Foundry factory createOne() and getUser() on
+        # Driver return User|null; loginUser() expects non-null User. Tests guard
+        # against null by construction (factory always persists).
+        # json_decode() ?? [] returns mixed; assertArrayHasKey callers in tests
+        # build their own json_decode responses with a safe fallback.
+        # ——————————————————————————————————————————————————————————————————————
+        -
+            message: '#Parameter \#2 \$user of method App\\Tests\\AbstractApiTestCase::loginUser\(\) expects App\\Entity\\User, App\\Entity\\User\|null given#'
+            paths:
+                - tests/
+        -
+            message: '#Parameter \#2 \$array of (static )?method PHPUnit\\Framework\\Assert::assertArrayHasKey\(\) expects array<mixed>\|ArrayAccess.+, mixed given#'
+            paths:
+                - tests/
 
         # ——————————————————————————————————————————————————————————————————————
         # WebhookControllerTest — validSignatureHeaders array type and json_decode
