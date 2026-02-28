@@ -45,7 +45,7 @@ final class DriverAlertControllerTest extends AbstractApiTestCase
         $data = $this->postJson($client, '/api/driver-alerts/non-existent-uuid/respond', []);
 
         self::assertResponseStatusCodeSame(404);
-        $this->assertSame('Alert not found', $data['error']);
+        $this->assertStringContainsString('Alert not found', (string) $data['detail']);
     }
 
     // ── POST /api/driver-alerts/{alertId}/resolve — authentication & authorisation
@@ -81,7 +81,7 @@ final class DriverAlertControllerTest extends AbstractApiTestCase
         $data = $this->postJson($client, '/api/driver-alerts/non-existent-uuid/resolve', []);
 
         self::assertResponseStatusCodeSame(404);
-        $this->assertSame('Alert not found', $data['error']);
+        $this->assertStringContainsString('Alert not found', (string) $data['detail']);
     }
 
     public function testResolveAlreadyResolvedReturns422(): void
@@ -102,6 +102,6 @@ final class DriverAlertControllerTest extends AbstractApiTestCase
         $data = $this->postJson($client, sprintf('/api/driver-alerts/%s/resolve', $alert->getAlertId()), []);
 
         self::assertResponseStatusCodeSame(422);
-        $this->assertSame('Alert is already resolved', $data['error']);
+        $this->assertStringContainsString('Alert is already resolved', (string) $data['detail']);
     }
 }

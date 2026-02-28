@@ -21,7 +21,7 @@ final class PaymentControllerTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        $this->postJson($client, '/api/payments/create-preference', []);
+        $this->postJson($client, '/api/payments/preference', []);
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -37,39 +37,43 @@ final class PaymentControllerTest extends AbstractApiTestCase
 
     // ── createPreference: validation ──────────────────────────────────────────
 
-    public function testCreatePreferenceMissingDriverIdReturns400(): void
+    public function testCreatePreferenceMissingDriverIdReturns422(): void
     {
         $client = $this->createApiClient();
         $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
-        $body = $this->postJson($client, '/api/payments/create-preference', [
-            'student_ids' => [1],
+        $body = $this->postJson($client, '/api/payments/preference', [
+            'studentIds' => [1],
             'amount' => '100',
             'description' => 'Test',
-            'idempotency_key' => 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            'idempotencyKey' => 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         ]);
 
-        self::assertResponseStatusCodeSame(400);
-        $this->assertStringContainsString('driver_id', (string) $body['error']);
+        self::assertResponseStatusCodeSame(422);
+        $this->assertArrayHasKey('violations', $body);
+        $violationPaths = array_column($body['violations'], 'propertyPath');
+        $this->assertContains('driverId', $violationPaths);
     }
 
-    public function testCreatePreferenceInvalidIdempotencyKeyReturns400(): void
+    public function testCreatePreferenceInvalidIdempotencyKeyReturns422(): void
     {
         $client = $this->createApiClient();
         $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
-        $body = $this->postJson($client, '/api/payments/create-preference', [
-            'driver_id' => 1,
-            'student_ids' => [1],
+        $body = $this->postJson($client, '/api/payments/preference', [
+            'driverId' => 1,
+            'studentIds' => [1],
             'amount' => '100',
             'description' => 'Test',
-            'idempotency_key' => 'not-a-uuid',
+            'idempotencyKey' => 'not-a-uuid',
         ]);
 
-        self::assertResponseStatusCodeSame(400);
-        $this->assertStringContainsString('idempotency_key', (string) $body['error']);
+        self::assertResponseStatusCodeSame(422);
+        $this->assertArrayHasKey('violations', $body);
+        $violationPaths = array_column($body['violations'], 'propertyPath');
+        $this->assertContains('idempotencyKey', $violationPaths);
     }
 
     public function testCreatePreferenceDriverNotFoundReturns404(): void
@@ -78,16 +82,16 @@ final class PaymentControllerTest extends AbstractApiTestCase
         $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
-        $body = $this->postJson($client, '/api/payments/create-preference', [
-            'driver_id' => 999999,
-            'student_ids' => [1],
+        $body = $this->postJson($client, '/api/payments/preference', [
+            'driverId' => 999999,
+            'studentIds' => [1],
             'amount' => '100',
             'description' => 'Test',
-            'idempotency_key' => 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            'idempotencyKey' => 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         ]);
 
         self::assertResponseStatusCodeSame(404);
-        $this->assertStringContainsString('not found', (string) $body['error']);
+        $this->assertStringContainsString('not found', (string) $body['detail']);
     }
 
     public function testCreatePreferenceDriverNotConnectedReturns422(): void
@@ -98,16 +102,16 @@ final class PaymentControllerTest extends AbstractApiTestCase
         $driver = DriverFactory::createOne();
         $this->loginUser($client, $user);
 
-        $body = $this->postJson($client, '/api/payments/create-preference', [
-            'driver_id' => $driver->getId(),
-            'student_ids' => [1],
+        $body = $this->postJson($client, '/api/payments/preference', [
+            'driverId' => $driver->getId(),
+            'studentIds' => [1],
             'amount' => '100',
             'description' => 'Test',
-            'idempotency_key' => 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            'idempotencyKey' => 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         ]);
 
         self::assertResponseStatusCodeSame(422);
-        $this->assertStringContainsString('Mercado Pago', (string) $body['error']);
+        $this->assertStringContainsString('Mercado Pago', (string) $body['detail']);
     }
 
     // ── createPreference: success (mocked MP) ─────────────────────────────────
@@ -135,19 +139,19 @@ final class PaymentControllerTest extends AbstractApiTestCase
 
         $this->loginUser($client, $user);
 
-        $body = $this->postJson($client, '/api/payments/create-preference', [
-            'driver_id' => $driver->getId(),
-            'student_ids' => [$student->getId()],
+        $body = $this->postJson($client, '/api/payments/preference', [
+            'driverId' => $driver->getId(),
+            'studentIds' => [$student->getId()],
             'amount' => '150.00',
             'description' => 'School transport fee',
-            'idempotency_key' => 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+            'idempotencyKey' => 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
             'currency' => 'ARS',
         ]);
 
         self::assertResponseStatusCodeSame(201);
-        $this->assertArrayHasKey('payment_id', $body);
-        $this->assertArrayHasKey('preference_id', $body);
-        $this->assertArrayHasKey('init_point', $body);
+        $this->assertArrayHasKey('paymentId', $body);
+        $this->assertArrayHasKey('preferenceId', $body);
+        $this->assertArrayHasKey('initPoint', $body);
         $this->assertSame('pending', $body['status']);
     }
 
@@ -165,7 +169,7 @@ final class PaymentControllerTest extends AbstractApiTestCase
         $body = $this->getJson($client, sprintf('/api/payments/%s/status', $payment->getId()));
 
         self::assertResponseIsSuccessful();
-        $this->assertSame($payment->getId(), $body['payment_id']);
+        $this->assertSame($payment->getId(), $body['paymentId']);
         $this->assertSame(PaymentStatus::PENDING->value, $body['status']);
     }
 
@@ -213,19 +217,23 @@ final class PaymentControllerTest extends AbstractApiTestCase
         $body = $this->getJson($client, '/api/payments');
 
         self::assertResponseIsSuccessful();
-        $this->assertIsArray($body['payments']);
-        $this->assertCount(3, $body['payments']);
+        $this->assertCount(3, $body);
     }
 
-    public function testListPaymentsInvalidStatusReturns400(): void
+    public function testListPaymentsInvalidStatusIsIgnored(): void
     {
         $client = $this->createApiClient();
         $user = UserFactory::createOne();
+        PaymentFactory::createMany(2, [
+            'user' => $user,
+        ]);
         $this->loginUser($client, $user);
 
-        $this->getJson($client, '/api/payments?status=invalid_status');
+        $body = $this->getJson($client, '/api/payments?status=invalid_status');
 
-        self::assertResponseStatusCodeSame(400);
+        // Invalid status is silently ignored — all payments are returned
+        self::assertResponseIsSuccessful();
+        $this->assertCount(2, $body);
     }
 
     public function testListPaymentsFiltersByStatus(): void
@@ -245,8 +253,7 @@ final class PaymentControllerTest extends AbstractApiTestCase
         $body = $this->getJson($client, '/api/payments?status=approved');
 
         self::assertResponseIsSuccessful();
-        $this->assertIsArray($body['payments']);
-        $this->assertCount(2, $body['payments']);
+        $this->assertCount(2, $body);
     }
 
     // ── detail ────────────────────────────────────────────────────────────────
@@ -264,7 +271,7 @@ final class PaymentControllerTest extends AbstractApiTestCase
 
         self::assertResponseIsSuccessful();
         $this->assertArrayHasKey('transactions', $body);
-        $this->assertArrayHasKey('refunded_amount', $body);
+        $this->assertArrayHasKey('refundedAmount', $body);
     }
 
     public function testDetailForbiddenForOtherUser(): void

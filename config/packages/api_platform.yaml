@@ -1,14 +1,26 @@
 api_platform:
     title: Zig Zag Platform
-    version: 1.0.0
+    version: '%env(APP_VERSION)%'
+    description: |
+        School transportation management API.
+        Provides endpoints for GPS tracking, route management, payments (Mercado Pago marketplace),
+        real-time alerts, attendance, and special event routing.
     formats:
         jsonld: ['application/ld+json']
         json: ['application/json']
         html: ['text/html']
+        csv: ['text/csv']
+    error_formats:
+        jsonproblem: ['application/problem+json']
+        jsonld: ['application/ld+json']
+        json: ['application/json']
     defaults:
         stateless: true
         cache_headers:
             vary: ['Content-Type', 'Authorization', 'Origin']
+        pagination_items_per_page: 30
+        pagination_maximum_items_per_page: 100
+        pagination_client_items_per_page: true
     swagger:
         api_keys:
             JWT:

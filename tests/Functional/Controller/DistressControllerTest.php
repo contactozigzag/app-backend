@@ -43,6 +43,6 @@ final class DistressControllerTest extends AbstractApiTestCase
         $data = $this->postJson($client, '/api/routes/sessions/99999/distress', []);
 
         self::assertResponseStatusCodeSame(404);
-        $this->assertSame('Route session not found', $data['error']);
+        $this->assertStringContainsString('Route session not found', (string) $data['detail']);
     }
 }

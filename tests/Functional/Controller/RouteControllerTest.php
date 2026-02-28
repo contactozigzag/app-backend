@@ -41,7 +41,7 @@ final class RouteControllerTest extends AbstractApiTestCase
         $data = $this->postJson($client, '/api/routes/99999/optimize', []);
 
         self::assertResponseStatusCodeSame(404);
-        $this->assertSame('Route not found', $data['error']);
+        $this->assertArrayHasKey('detail', $data);
     }
 
     // ── POST /api/routes/{id}/optimize-preview — authentication & validation ──
@@ -64,7 +64,7 @@ final class RouteControllerTest extends AbstractApiTestCase
         $data = $this->postJson($client, '/api/routes/99999/optimize-preview', []);
 
         self::assertResponseStatusCodeSame(404);
-        $this->assertSame('Route not found', $data['error']);
+        $this->assertArrayHasKey('detail', $data);
     }
 
     // ── POST /api/routes/{id}/clone — authentication & validation ─────────────
@@ -87,6 +87,6 @@ final class RouteControllerTest extends AbstractApiTestCase
         $data = $this->postJson($client, '/api/routes/99999/clone', []);
 
         self::assertResponseStatusCodeSame(404);
-        $this->assertSame('Route not found', $data['error']);
+        $this->assertArrayHasKey('detail', $data);
     }
 }

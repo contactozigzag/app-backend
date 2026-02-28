@@ -5,7 +5,18 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\OpenApi\Model\Operation;
+use ApiPlatform\OpenApi\Model\Response;
+use App\Dto\RouteStop\RouteStopActionOutput;
 use App\Repository\RouteStopRepository;
+use App\State\RouteStop\RouteStopConfirmProcessor;
+use App\State\RouteStop\RouteStopRejectProcessor;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,15 +25,60 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: RouteStopRepository::class)]
 #[ORM\Table(name: 'route_stops')]
-#[ApiResource(
-    normalizationContext: [
-        'groups' => ['route_stop:read'],
-    ],
-    denormalizationContext: [
-        'groups' => ['route_stop:write'],
-    ],
-    security: "is_granted('ROLE_USER')"
-)]
+#[ApiResource(operations: [
+    new GetCollection(uriTemplate: '/route-stops'),
+    new Get(uriTemplate: '/route-stops/{id}'),
+    new Post(uriTemplate: '/route-stops'),
+    new Put(uriTemplate: '/route-stops/{id}'),
+    new Patch(uriTemplate: '/route-stops/{id}'),
+    new Delete(uriTemplate: '/route-stops/{id}'),
+    new Patch(
+        uriTemplate: '/route-stops/{id}/confirm',
+        openapi: new Operation(
+            responses: [
+                '200' => new Response('Route stop confirmed'),
+                '401' => new Response('Unauthenticated'),
+                '403' => new Response('Not the route driver'),
+                '404' => new Response('Route stop not found'),
+            ],
+            summary: 'Confirm a route stop',
+            description: 'Marks the route stop as active and confirmed. The caller must be the driver of the associated route.',
+        ),
+        normalizationContext: [
+            'groups' => ['route_stop:action:read'],
+        ],
+        security: "is_granted('ROLE_DRIVER')",
+        input: false,
+        output: RouteStopActionOutput::class,
+        read: false,
+        processor: RouteStopConfirmProcessor::class,
+    ),
+    new Patch(
+        uriTemplate: '/route-stops/{id}/reject',
+        openapi: new Operation(
+            responses: [
+                '200' => new Response('Route stop rejected'),
+                '401' => new Response('Unauthenticated'),
+                '403' => new Response('Not the route driver'),
+                '404' => new Response('Route stop not found'),
+            ],
+            summary: 'Reject a route stop',
+            description: 'Marks the route stop as inactive and unconfirmed. The caller must be the driver of the associated route.',
+        ),
+        normalizationContext: [
+            'groups' => ['route_stop:action:read'],
+        ],
+        security: "is_granted('ROLE_DRIVER')",
+        input: false,
+        output: RouteStopActionOutput::class,
+        read: false,
+        processor: RouteStopRejectProcessor::class,
+    ),
+], normalizationContext: [
+    'groups' => ['route_stop:read'],
+], denormalizationContext: [
+    'groups' => ['route_stop:write'],
+], security: "is_granted('ROLE_USER')")]
 class RouteStop
 {
     #[ORM\Id]

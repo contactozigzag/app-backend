@@ -13,7 +13,16 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\QueryParameter;
+use ApiPlatform\OpenApi\Model\Operation;
+use ApiPlatform\OpenApi\Model\Response;
+use App\Dto\Route\RouteCloneInput;
+use App\Dto\Route\RouteCloneOutput;
+use App\Dto\Route\RouteOptimizeOutput;
+use App\Dto\Route\RouteOptimizePreviewOutput;
 use App\Repository\RouteRepository;
+use App\State\Route\RouteCloneProcessor;
+use App\State\Route\RouteOptimizePreviewProcessor;
+use App\State\Route\RouteOptimizeProcessor;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -41,6 +50,70 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Put(security: "is_granted('ROLE_DRIVER')"),
         new Patch(security: "is_granted('ROLE_DRIVER')"),
         new Delete(security: "is_granted('ROLE_DRIVER')"),
+        new Post(
+            uriTemplate: '/routes/{id}/optimize',
+            openapi: new Operation(
+                responses: [
+                    '200' => new Response('Route optimized'),
+                    '401' => new Response('Unauthenticated'),
+                    '403' => new Response('Requires ROLE_DRIVER'),
+                    '404' => new Response('Route not found'),
+                ],
+                summary: 'Optimize a route',
+                description: 'Optimizes the stop order and estimated arrival times, then persists the changes.',
+            ),
+            normalizationContext: [
+                'groups' => ['route:optimize:read'],
+            ],
+            security: "is_granted('ROLE_DRIVER')",
+            input: false,
+            output: RouteOptimizeOutput::class,
+            read: false,
+            processor: RouteOptimizeProcessor::class,
+        ),
+        new Post(
+            uriTemplate: '/routes/{id}/optimize-preview',
+            openapi: new Operation(
+                responses: [
+                    '200' => new Response('Optimization preview'),
+                    '401' => new Response('Unauthenticated'),
+                    '403' => new Response('Requires ROLE_DRIVER'),
+                    '404' => new Response('Route not found'),
+                ],
+                summary: 'Preview route optimization',
+                description: 'Returns the optimized stop order and timing data without persisting changes.',
+            ),
+            normalizationContext: [
+                'groups' => ['route:optimize:preview:read'],
+            ],
+            security: "is_granted('ROLE_DRIVER')",
+            input: false,
+            output: RouteOptimizePreviewOutput::class,
+            read: false,
+            processor: RouteOptimizePreviewProcessor::class,
+        ),
+        new Post(
+            uriTemplate: '/routes/{id}/clone',
+            status: 201,
+            openapi: new Operation(
+                responses: [
+                    '201' => new Response('Route cloned'),
+                    '401' => new Response('Unauthenticated'),
+                    '403' => new Response('Requires ROLE_DRIVER'),
+                    '404' => new Response('Route not found'),
+                ],
+                summary: 'Clone a route',
+                description: 'Creates a copy of the route and all its stops.',
+            ),
+            normalizationContext: [
+                'groups' => ['route:clone:read'],
+            ],
+            security: "is_granted('ROLE_DRIVER')",
+            input: RouteCloneInput::class,
+            output: RouteCloneOutput::class,
+            read: false,
+            processor: RouteCloneProcessor::class,
+        ),
     ],
     normalizationContext: [
         'groups' => ['route:read'],
