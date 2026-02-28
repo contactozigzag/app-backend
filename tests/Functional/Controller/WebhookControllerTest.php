@@ -44,12 +44,12 @@ final class WebhookControllerTest extends AbstractApiTestCase
 
         self::assertResponseStatusCodeSame(401);
         $body = json_decode($client->getResponse()->getContent(), true);
-        $this->assertArrayHasKey('error', $body);
+        $this->assertArrayHasKey('detail', $body);
     }
 
-    // ── 200: non-payment event ────────────────────────────────────────────────
+    // ── 202: non-payment event is silently acknowledged ───────────────────────
 
-    public function testHandleNonPaymentEventReturns200Ignored(): void
+    public function testHandleNonPaymentEventReturns202(): void
     {
         $client = $this->createApiClient();
         $requestId = 'req-non-payment';
@@ -70,13 +70,12 @@ final class WebhookControllerTest extends AbstractApiTestCase
             json_encode($payload)
         );
 
-        self::assertResponseIsSuccessful();
-        $this->assertSame('ignored', json_decode($client->getResponse()->getContent(), true)['status']);
+        self::assertResponseStatusCodeSame(202);
     }
 
-    // ── 200: payment not found ────────────────────────────────────────────────
+    // ── 202: payment not found is silently acknowledged ───────────────────────
 
-    public function testHandleWebhookPaymentNotFoundReturns200(): void
+    public function testHandleWebhookPaymentNotFoundReturns202(): void
     {
         $client = $this->createApiClient();
         $requestId = 'req-not-found';
@@ -100,11 +99,10 @@ final class WebhookControllerTest extends AbstractApiTestCase
             json_encode($payload)
         );
 
-        self::assertResponseIsSuccessful();
-        $this->assertSame('payment_not_found', json_decode($client->getResponse()->getContent(), true)['status']);
+        self::assertResponseStatusCodeSame(202);
     }
 
-    // ── 200: valid webhook enqueues message ───────────────────────────────────
+    // ── 202: valid webhook enqueues message ───────────────────────────────────
 
     public function testHandleValidWebhookEnqueuesProcessWebhookMessage(): void
     {
@@ -136,17 +134,16 @@ final class WebhookControllerTest extends AbstractApiTestCase
             json_encode($payload)
         );
 
-        self::assertResponseIsSuccessful();
-        $this->assertSame('received', json_decode($client->getResponse()->getContent(), true)['status']);
+        self::assertResponseStatusCodeSame(202);
 
         $this->transport('async_webhooks')
             ->queue()
             ->assertContains(ProcessWebhookMessage::class, 1);
     }
 
-    // ── 400: missing payment ID in payload ────────────────────────────────────
+    // ── 202: missing payment ID is silently acknowledged ──────────────────────
 
-    public function testHandleWebhookMissingPaymentIdReturns400(): void
+    public function testHandleWebhookMissingPaymentIdReturns202(): void
     {
         $client = $this->createApiClient();
         $requestId = 'req-no-id';
@@ -167,6 +164,6 @@ final class WebhookControllerTest extends AbstractApiTestCase
             json_encode($payload)
         );
 
-        self::assertResponseStatusCodeSame(400);
+        self::assertResponseStatusCodeSame(202);
     }
 }

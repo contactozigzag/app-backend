@@ -22,7 +22,7 @@ final class RouteStopControllerTest extends AbstractApiTestCase
         self::assertResponseStatusCodeSame(401);
     }
 
-    public function testCreateRouteStopMissingFieldsReturnsBadRequest(): void
+    public function testCreateRouteStopMissingFieldsReturns422(): void
     {
         $client = $this->createApiClient();
         $user = UserFactory::createOne();
@@ -32,8 +32,8 @@ final class RouteStopControllerTest extends AbstractApiTestCase
             // missing route, student, address
         ]);
 
-        self::assertResponseStatusCodeSame(400);
-        $this->assertArrayHasKey('error', $data);
+        self::assertResponseStatusCodeSame(422);
+        $this->assertArrayHasKey('violations', $data);
     }
 
     // ── GET /api/route-stops/unconfirmed — authentication & authorisation ─────
@@ -67,7 +67,7 @@ final class RouteStopControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/api/route-stops/unconfirmed');
 
         self::assertResponseIsSuccessful();
-        $this->assertArrayHasKey('unconfirmed_stops', $data);
+        $this->assertArrayHasKey('unconfirmedStops', $data);
         $this->assertSame(0, $data['total']);
     }
 
@@ -112,7 +112,7 @@ final class RouteStopControllerTest extends AbstractApiTestCase
         $data = json_decode((string) $client->getResponse()->getContent(), true) ?? [];
 
         self::assertResponseStatusCodeSame(404);
-        $this->assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('detail', $data);
     }
 
     // ── PATCH /api/route-stops/{id}/reject — authentication & validation ──────
@@ -142,6 +142,6 @@ final class RouteStopControllerTest extends AbstractApiTestCase
         $data = json_decode((string) $client->getResponse()->getContent(), true) ?? [];
 
         self::assertResponseStatusCodeSame(404);
-        $this->assertArrayHasKey('error', $data);
+        $this->assertArrayHasKey('detail', $data);
     }
 }

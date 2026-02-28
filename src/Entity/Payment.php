@@ -4,9 +4,22 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\OpenApi\Model\Operation;
+use ApiPlatform\OpenApi\Model\Parameter;
+use ApiPlatform\OpenApi\Model\Response;
+use App\Dto\Payment\CreatePaymentPreferenceInput;
+use App\Dto\Payment\PaymentPreferenceOutput;
+use App\Dto\Payment\PaymentStatusOutput;
 use App\Enum\PaymentMethod;
 use App\Enum\PaymentStatus;
 use App\Repository\PaymentRepository;
+use App\State\Payment\CreatePaymentPreferenceProcessor;
+use App\State\Payment\PaymentCollectionProvider;
+use App\State\Payment\PaymentStatusProvider;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -21,6 +34,93 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_payments_provider_id', columns: ['payment_provider_id'])]
 #[ORM\Index(name: 'idx_payments_idempotency', columns: ['idempotency_key'])]
 #[ORM\Index(name: 'idx_payments_created_at', columns: ['created_at'])]
+#[ApiResource(
+    description: 'Manages Mercado Pago marketplace payments between parents and drivers.',
+    operations: [
+        new GetCollection(
+            openapi: new Operation(
+                responses: [
+                    '401' => new Response('Unauthenticated'),
+                ],
+                summary: 'List own payments',
+                description: 'Returns all payments belonging to the authenticated user. Supports optional `?status=` filter.',
+                parameters: [
+                    new Parameter(
+                        name: 'status',
+                        in: 'query',
+                        description: 'Filter by payment status (pending, processing, approved, failed, refunded, partially_refunded)',
+                        required: false,
+                        schema: [
+                            'type' => 'string',
+                        ],
+                    ),
+                ],
+            ),
+            paginationEnabled: false,
+            normalizationContext: [
+                'groups' => ['payment:list'],
+            ],
+            security: "is_granted('ROLE_USER')",
+            provider: PaymentCollectionProvider::class,
+        ),
+        new Get(
+            openapi: new Operation(
+                responses: [
+                    '401' => new Response('Unauthenticated'),
+                    '403' => new Response('Forbidden — not the payment owner'),
+                    '404' => new Response('Payment not found'),
+                ],
+                summary: 'Get payment details',
+                description: 'Returns full payment details including driver, students, and transaction history. Only the payment owner or a school admin may access.',
+            ),
+            normalizationContext: [
+                'groups' => ['payment:read', 'payment:detail'],
+            ],
+            security: "is_granted('ROLE_USER') and (object.getUser() == user or is_granted('ROLE_SCHOOL_ADMIN'))",
+        ),
+        new Post(
+            uriTemplate: '/payments/preference',
+            openapi: new Operation(
+                responses: [
+                    '201' => new Response('Preference created — returns preferenceId and checkout URLs'),
+                    '400' => new Response('Validation error'),
+                    '401' => new Response('Unauthenticated'),
+                    '404' => new Response('Driver not found'),
+                    '422' => new Response('Driver has no MP account connected'),
+                    '429' => new Response('Rate limit exceeded (10 req/min)'),
+                    '502' => new Response('Mercado Pago API error'),
+                ],
+                summary: 'Create a Mercado Pago payment preference',
+                description: 'Creates a payment preference on the Mercado Pago marketplace. The driver must have a connected MP account. An idempotency key prevents duplicate charges.',
+            ),
+            normalizationContext: [
+                'groups' => ['payment:preference:read'],
+            ],
+            security: "is_granted('ROLE_USER')",
+            input: CreatePaymentPreferenceInput::class,
+            output: PaymentPreferenceOutput::class,
+            processor: CreatePaymentPreferenceProcessor::class,
+        ),
+        new Get(
+            uriTemplate: '/payments/{id}/status',
+            openapi: new Operation(
+                responses: [
+                    '401' => new Response('Unauthenticated'),
+                    '403' => new Response('Forbidden'),
+                    '404' => new Response('Payment not found'),
+                ],
+                summary: 'Get payment status',
+                description: 'Returns the current payment status. If the payment has a Mercado Pago ID, the status is synchronised in real time before being returned.',
+            ),
+            normalizationContext: [
+                'groups' => ['payment:status:read'],
+            ],
+            security: "is_granted('ROLE_USER')",
+            output: PaymentStatusOutput::class,
+            provider: PaymentStatusProvider::class,
+        ),
+    ],
+)]
 class Payment
 {
     #[ORM\Id]
@@ -116,6 +216,7 @@ class Payment
      * @var Collection<int, PaymentTransaction>
      */
     #[ORM\OneToMany(targetEntity: PaymentTransaction::class, mappedBy: 'payment', cascade: ['persist'], orphanRemoval: true)]
+    #[Groups(['payment:read', 'payment:detail'])]
     private Collection $transactions;
 
     public function __construct()
