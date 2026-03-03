@@ -500,6 +500,8 @@ Refresh tokens are automatically invalidated on logout for the `api_token_refres
 - `DELETE /api/routes/{id}` — Delete (admin only)
 
 #### Route Stops
+- `GET /api/route-stops` — List; supports `?search[student]={id}` to filter by student
+- `GET /api/route-stops/{id}` — Get
 - `POST /api/route-stops` — Create (parent)
 - `GET /api/route-stops/unconfirmed` — Pending review (driver)
 - `PATCH /api/route-stops/{id}/confirm` — Confirm (driver)

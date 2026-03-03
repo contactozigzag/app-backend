@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\ExactFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -11,6 +12,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\Response;
 use App\Dto\RouteStop\RouteStopActionOutput;
@@ -26,7 +28,15 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: RouteStopRepository::class)]
 #[ORM\Table(name: 'route_stops')]
 #[ApiResource(operations: [
-    new GetCollection(uriTemplate: '/route-stops'),
+    new GetCollection(
+        uriTemplate: '/route-stops',
+        parameters: [
+            'search[:property]' => new QueryParameter(
+                filter: new ExactFilter(),
+                properties: ['student']
+            ),
+        ]
+    ),
     new Get(uriTemplate: '/route-stops/{id}'),
     new Post(uriTemplate: '/route-stops'),
     new Put(uriTemplate: '/route-stops/{id}'),

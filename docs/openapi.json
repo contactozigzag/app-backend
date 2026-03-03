@@ -6106,6 +6106,21 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "name": "search[student][]",
+                        "in": "query",
+                        "description": "RouteStop search[student]",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     }
                 ]
             },
