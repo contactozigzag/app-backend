@@ -86,6 +86,7 @@ services:
     # Consumes: async (emails, SMS, chat, billing, anomalies) + scheduler_default.
     # WARNING: keep this service at exactly 1 replica. Running multiple instances
     # will cause the Symfony Scheduler to dispatch duplicate subscription billing jobs.
+    profiles: [workers]
     image: ${IMAGES_PREFIX:-}app-php
     container_name: zigzag_messenger_worker
     restart: unless-stopped
@@ -107,6 +108,7 @@ services:
     # Consumes: async_webhooks (payment webhook processing).
     # Isolated from the general async pipeline to prevent webhook retry storms
     # from starving billing and notification processing.
+    profiles: [workers]
     image: ${IMAGES_PREFIX:-}app-php
     container_name: zigzag_messenger_worker_webhooks
     restart: unless-stopped
@@ -126,6 +128,7 @@ services:
     # Consumes: async_tracking (real-time GPS location events).
     # High-throughput transport is kept isolated so tracking spikes do not affect
     # webhook or billing processing.
+    profiles: [workers]
     image: ${IMAGES_PREFIX:-}app-php
     container_name: zigzag_messenger_worker_tracking
     restart: unless-stopped

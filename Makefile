@@ -38,9 +38,9 @@ endif
 
 up: check-env ## Start the docker hub in detached mode (make up dev|prod)
 ifeq ($(ENV),prod)
-	@$(DOCKER_COMP) -f compose.yaml -f compose.prod.yaml up --wait
+	@$(DOCKER_COMP) --profile workers -f compose.yaml -f compose.prod.yaml up --wait
 else
-	@$(DOCKER_COMP) up --detach
+	@$(DOCKER_COMP) --profile workers up --detach
 endif
 start: check-env build up ## Build and start the containers (make start dev|prod)
 
