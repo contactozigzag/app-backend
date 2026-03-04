@@ -3,6 +3,9 @@
     "info": {
         "title": "Zig Zag Platform",
         "description": "School transportation management API.\nProvides endpoints for GPS tracking, route management, payments (Mercado Pago marketplace),\nreal-time alerts, attendance, and special event routing.",
+        "license": {
+            "name": "Proprietary"
+        },
         "version": "1.0.0"
     },
     "servers": [
@@ -7489,20 +7492,20 @@
                 }
             }
         },
-        "/api/students": {
+        "/api/special-event-routes": {
             "get": {
-                "operationId": "api_students_get_collection",
+                "operationId": "api_special-event-routes_get_collection",
                 "tags": [
-                    "Student"
+                    "SpecialEventRoute"
                 ],
                 "responses": {
                     "200": {
-                        "description": "Student collection",
+                        "description": "SpecialEventRoute collection",
                         "content": {
                             "application/ld+json": {
                                 "schema": {
                                     "type": "object",
-                                    "description": "Student.jsonld collection.",
+                                    "description": "SpecialEventRoute.jsonld-special_event_route.read collection.",
                                     "allOf": [
                                         {
                                             "$ref": "#/components/schemas/HydraCollectionBaseSchema"
@@ -7516,7 +7519,7 @@
                                                 "member": {
                                                     "type": "array",
                                                     "items": {
-                                                        "$ref": "#/components/schemas/Student.jsonld"
+                                                        "$ref": "#/components/schemas/SpecialEventRoute.jsonld-special_event_route.read"
                                                     }
                                                 }
                                             }
@@ -7528,7 +7531,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/Student"
+                                        "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.read"
                                     }
                                 }
                             },
@@ -7536,7 +7539,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/Student.html"
+                                        "$ref": "#/components/schemas/SpecialEventRoute.html-special_event_route.read"
                                     }
                                 }
                             },
@@ -7544,15 +7547,36 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/Student.csv"
+                                        "$ref": "#/components/schemas/SpecialEventRoute.csv-special_event_route.read"
                                     }
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     }
                 },
-                "summary": "Retrieves the collection of Student resources.",
-                "description": "Retrieves the collection of Student resources.",
+                "summary": "Retrieves the collection of SpecialEventRoute resources.",
+                "description": "Retrieves the collection of SpecialEventRoute resources.",
                 "parameters": [
                     {
                         "name": "page",
@@ -7581,36 +7605,96 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "description": "SpecialEventRoute date",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "search[school]",
+                        "in": "query",
+                        "description": "SpecialEventRoute search[school]",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "search[status]",
+                        "in": "query",
+                        "description": "SpecialEventRoute search[status]",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "search[eventType]",
+                        "in": "query",
+                        "description": "SpecialEventRoute search[eventType]",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "search[routeMode]",
+                        "in": "query",
+                        "description": "SpecialEventRoute search[routeMode]",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
                     }
                 ]
             },
             "post": {
-                "operationId": "api_students_post",
+                "operationId": "api_special-event-routes_post",
                 "tags": [
-                    "Student"
+                    "SpecialEventRoute"
                 ],
                 "responses": {
                     "201": {
-                        "description": "Student resource created",
+                        "description": "SpecialEventRoute resource created",
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Student.jsonld"
+                                    "$ref": "#/components/schemas/SpecialEventRoute.jsonld-special_event_route.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Student"
+                                    "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Student.html"
+                                    "$ref": "#/components/schemas/SpecialEventRoute.html-special_event_route.read"
                                 }
                             },
                             "text/csv": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Student.csv"
+                                    "$ref": "#/components/schemas/SpecialEventRoute.csv-special_event_route.read"
                                 }
                             }
                         },
@@ -7657,6 +7741,1207 @@
                             }
                         },
                         "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Creates a SpecialEventRoute resource.",
+                "description": "Creates a SpecialEventRoute resource.",
+                "parameters": [],
+                "requestBody": {
+                    "description": "The new SpecialEventRoute resource",
+                    "content": {
+                        "application/ld+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.write"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.write"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.write"
+                            }
+                        },
+                        "text/csv": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.write"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/api/special-event-routes/{id}": {
+            "get": {
+                "operationId": "api_special-event-routes_id_get",
+                "tags": [
+                    "SpecialEventRoute"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SpecialEventRoute resource",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.jsonld-special_event_route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.html-special_event_route.read"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.csv-special_event_route.read"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a SpecialEventRoute resource.",
+                "description": "Retrieves a SpecialEventRoute resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "SpecialEventRoute identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            },
+            "delete": {
+                "operationId": "api_special-event-routes_id_delete",
+                "tags": [
+                    "SpecialEventRoute"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "SpecialEventRoute resource deleted"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Removes the SpecialEventRoute resource.",
+                "description": "Removes the SpecialEventRoute resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "SpecialEventRoute identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            },
+            "patch": {
+                "operationId": "api_special-event-routes_id_patch",
+                "tags": [
+                    "SpecialEventRoute"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SpecialEventRoute resource updated",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.jsonld-special_event_route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.html-special_event_route.read"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.csv-special_event_route.read"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "422": {
+                        "description": "An error occurred",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Updates the SpecialEventRoute resource.",
+                "description": "Updates the SpecialEventRoute resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "SpecialEventRoute identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "requestBody": {
+                    "description": "The updated SpecialEventRoute resource",
+                    "content": {
+                        "application/merge-patch+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.write.jsonMergePatch"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/api/special-event-routes/{id}/arrive-at-event": {
+            "post": {
+                "operationId": "api_special-event-routes_idarrive-at-event_post",
+                "tags": [
+                    "SpecialEventRoute"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Arrived at event",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.jsonld-special_event_route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.html-special_event_route.read"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.csv-special_event_route.read"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Requires ROUTE_MANAGE"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Invalid state",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Mark arrival at event (ONE_WAY auto-completes)",
+                "description": "Creates a SpecialEventRoute resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "SpecialEventRoute identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
+        "/api/special-event-routes/{id}/complete": {
+            "post": {
+                "operationId": "api_special-event-routes_idcomplete_post",
+                "tags": [
+                    "SpecialEventRoute"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Route completed",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.jsonld-special_event_route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.html-special_event_route.read"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.csv-special_event_route.read"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Requires ROUTE_MANAGE"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Invalid state",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Complete the route (IN_PROGRESS \u2192 COMPLETED)",
+                "description": "Creates a SpecialEventRoute resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "SpecialEventRoute identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
+        "/api/special-event-routes/{id}/publish": {
+            "post": {
+                "operationId": "api_special-event-routes_idpublish_post",
+                "tags": [
+                    "SpecialEventRoute"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Route published",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.jsonld-special_event_route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.html-special_event_route.read"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.csv-special_event_route.read"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Requires ROUTE_MANAGE"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Invalid state or missing required fields",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Publish a special event route (DRAFT \u2192 PUBLISHED)",
+                "description": "Creates a SpecialEventRoute resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "SpecialEventRoute identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
+        "/api/special-event-routes/{id}/start-outbound": {
+            "post": {
+                "operationId": "api_special-event-routes_idstart-outbound_post",
+                "tags": [
+                    "SpecialEventRoute"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Outbound leg started",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.jsonld-special_event_route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.html-special_event_route.read"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.csv-special_event_route.read"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Requires ROUTE_MANAGE"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Invalid state",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Start the outbound leg (PUBLISHED \u2192 IN_PROGRESS)",
+                "description": "Creates a SpecialEventRoute resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "SpecialEventRoute identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
+        "/api/special-event-routes/{id}/start-return": {
+            "post": {
+                "operationId": "api_special-event-routes_idstart-return_post",
+                "tags": [
+                    "SpecialEventRoute"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return leg started",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.jsonld-special_event_route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.html-special_event_route.read"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.csv-special_event_route.read"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Requires ROUTE_MANAGE"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Invalid state or ONE_WAY route",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Start the return leg (not valid for ONE_WAY)",
+                "description": "Creates a SpecialEventRoute resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "SpecialEventRoute identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
+        "/api/special-event-routes/{id}/students/{studentId}/ready": {
+            "post": {
+                "operationId": "api_special-event-routes_idstudents_studentIdready_post",
+                "tags": [
+                    "SpecialEventRoute"
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Student marked as ready",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.jsonld-special_event_route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute-special_event_route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.html-special_event_route.read"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SpecialEventRoute.csv-special_event_route.read"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Requires ROLE_DRIVER"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Invalid state or route mode",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Mark a student as ready for pickup (INDIVIDUAL departure mode)",
+                "description": "Creates a SpecialEventRoute resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "SpecialEventRoute identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    },
+                    {
+                        "name": "studentId",
+                        "in": "path",
+                        "description": "SpecialEventRoute identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
+        "/api/students": {
+            "get": {
+                "operationId": "api_students_get_collection",
+                "tags": [
+                    "Student"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Student collection",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "Student.jsonld-student.read collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchema"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Student.jsonld-student.read"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Student-student.read"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Student.html-student.read"
+                                    }
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Student.csv-student.read"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves the collection of Student resources.",
+                "description": "Retrieves the collection of Student resources.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "The collection page number",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "itemsPerPage",
+                        "in": "query",
+                        "description": "The number of items per page",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 30,
+                            "minimum": 0,
+                            "maximum": 100
+                        },
+                        "style": "form",
+                        "explode": false
+                    }
+                ]
+            },
+            "post": {
+                "operationId": "api_students_post",
+                "tags": [
+                    "Student"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Student resource created",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Student.jsonld-student.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Student-student.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Student.html-student.read"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Student.csv-student.read"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "422": {
+                        "description": "An error occurred",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     }
                 },
                 "summary": "Creates a Student resource.",
@@ -7667,22 +8952,22 @@
                     "content": {
                         "application/ld+json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Student"
+                                "$ref": "#/components/schemas/Student-student.write"
                             }
                         },
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Student"
+                                "$ref": "#/components/schemas/Student-student.write"
                             }
                         },
                         "text/html": {
                             "schema": {
-                                "$ref": "#/components/schemas/Student"
+                                "$ref": "#/components/schemas/Student-student.write"
                             }
                         },
                         "text/csv": {
                             "schema": {
-                                "$ref": "#/components/schemas/Student"
+                                "$ref": "#/components/schemas/Student-student.write"
                             }
                         }
                     },
@@ -7702,25 +8987,46 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Student.jsonld"
+                                    "$ref": "#/components/schemas/Student.jsonld-student.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Student"
+                                    "$ref": "#/components/schemas/Student-student.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Student.html"
+                                    "$ref": "#/components/schemas/Student.html-student.read"
                                 }
                             },
                             "text/csv": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Student.csv"
+                                    "$ref": "#/components/schemas/Student.csv-student.read"
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     },
                     "404": {
                         "description": "Not found",
@@ -7769,6 +9075,27 @@
                 "responses": {
                     "204": {
                         "description": "Student resource deleted"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     },
                     "404": {
                         "description": "Not found",
@@ -7820,22 +9147,22 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Student.jsonld"
+                                    "$ref": "#/components/schemas/Student.jsonld-student.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Student"
+                                    "$ref": "#/components/schemas/Student-student.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Student.html"
+                                    "$ref": "#/components/schemas/Student.html-student.read"
                                 }
                             },
                             "text/csv": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Student.csv"
+                                    "$ref": "#/components/schemas/Student.csv-student.read"
                                 }
                             }
                         },
@@ -7878,6 +9205,27 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
                                 }
                             }
                         },
@@ -7926,7 +9274,7 @@
                     "content": {
                         "application/merge-patch+json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Student.jsonMergePatch"
+                                "$ref": "#/components/schemas/Student-student.write.jsonMergePatch"
                             }
                         }
                     },
@@ -9043,7 +10391,7 @@
                             "application/ld+json": {
                                 "schema": {
                                     "type": "object",
-                                    "description": "Vehicle.jsonld collection.",
+                                    "description": "Vehicle.jsonld-vehicle.read collection.",
                                     "allOf": [
                                         {
                                             "$ref": "#/components/schemas/HydraCollectionBaseSchema"
@@ -9057,7 +10405,7 @@
                                                 "member": {
                                                     "type": "array",
                                                     "items": {
-                                                        "$ref": "#/components/schemas/Vehicle.jsonld"
+                                                        "$ref": "#/components/schemas/Vehicle.jsonld-vehicle.read"
                                                     }
                                                 }
                                             }
@@ -9069,7 +10417,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/Vehicle"
+                                        "$ref": "#/components/schemas/Vehicle-vehicle.read"
                                     }
                                 }
                             },
@@ -9077,7 +10425,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/Vehicle.html"
+                                        "$ref": "#/components/schemas/Vehicle.html-vehicle.read"
                                     }
                                 }
                             },
@@ -9085,11 +10433,32 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/Vehicle.csv"
+                                        "$ref": "#/components/schemas/Vehicle.csv-vehicle.read"
                                     }
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     }
                 },
                 "summary": "Retrieves the collection of Vehicle resources.",
@@ -9136,22 +10505,22 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vehicle.jsonld"
+                                    "$ref": "#/components/schemas/Vehicle.jsonld-vehicle.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vehicle"
+                                    "$ref": "#/components/schemas/Vehicle-vehicle.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vehicle.html"
+                                    "$ref": "#/components/schemas/Vehicle.html-vehicle.read"
                                 }
                             },
                             "text/csv": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vehicle.csv"
+                                    "$ref": "#/components/schemas/Vehicle.csv-vehicle.read"
                                 }
                             }
                         },
@@ -9198,6 +10567,27 @@
                             }
                         },
                         "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     }
                 },
                 "summary": "Creates a Vehicle resource.",
@@ -9208,22 +10598,22 @@
                     "content": {
                         "application/ld+json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Vehicle"
+                                "$ref": "#/components/schemas/Vehicle-vehicle.write"
                             }
                         },
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Vehicle"
+                                "$ref": "#/components/schemas/Vehicle-vehicle.write"
                             }
                         },
                         "text/html": {
                             "schema": {
-                                "$ref": "#/components/schemas/Vehicle"
+                                "$ref": "#/components/schemas/Vehicle-vehicle.write"
                             }
                         },
                         "text/csv": {
                             "schema": {
-                                "$ref": "#/components/schemas/Vehicle"
+                                "$ref": "#/components/schemas/Vehicle-vehicle.write"
                             }
                         }
                     },
@@ -9243,25 +10633,46 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vehicle.jsonld"
+                                    "$ref": "#/components/schemas/Vehicle.jsonld-vehicle.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vehicle"
+                                    "$ref": "#/components/schemas/Vehicle-vehicle.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vehicle.html"
+                                    "$ref": "#/components/schemas/Vehicle.html-vehicle.read"
                                 }
                             },
                             "text/csv": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vehicle.csv"
+                                    "$ref": "#/components/schemas/Vehicle.csv-vehicle.read"
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     },
                     "404": {
                         "description": "Not found",
@@ -9310,6 +10721,27 @@
                 "responses": {
                     "204": {
                         "description": "Vehicle resource deleted"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     },
                     "404": {
                         "description": "Not found",
@@ -9361,22 +10793,22 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vehicle.jsonld"
+                                    "$ref": "#/components/schemas/Vehicle.jsonld-vehicle.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vehicle"
+                                    "$ref": "#/components/schemas/Vehicle-vehicle.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vehicle.html"
+                                    "$ref": "#/components/schemas/Vehicle.html-vehicle.read"
                                 }
                             },
                             "text/csv": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vehicle.csv"
+                                    "$ref": "#/components/schemas/Vehicle.csv-vehicle.read"
                                 }
                             }
                         },
@@ -9419,6 +10851,27 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
                                 }
                             }
                         },
@@ -9467,7 +10920,7 @@
                     "content": {
                         "application/merge-patch+json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Vehicle.jsonMergePatch"
+                                "$ref": "#/components/schemas/Vehicle-vehicle.write.jsonMergePatch"
                             }
                         }
                     },
@@ -17741,20 +19194,37 @@
                     }
                 ]
             },
-            "Student": {
+            "SpecialEventRoute-special_event_route.read": {
                 "type": "object",
                 "properties": {
                     "id": {
                         "readOnly": true,
                         "type": "integer"
                     },
-                    "firstName": {
-                        "type": "string"
-                    },
-                    "lastName": {
-                        "type": "string"
-                    },
                     "school": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "name": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "eventDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "eventType": {
+                        "default": "OTHER",
+                        "type": "string",
+                        "enum": [
+                            "FIELD_TRIP",
+                            "SPORTS_EVENT",
+                            "MUSEUM_VISIT",
+                            "OTHER"
+                        ]
+                    },
+                    "eventLocation": {
                         "type": [
                             "string",
                             "null"
@@ -17762,411 +19232,1420 @@
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     },
-                    "identificationNumber": {
-                        "pattern": "^(\\d{8,10})$",
-                        "type": "string"
+                    "routeMode": {
+                        "default": "ONE_WAY",
+                        "type": "string",
+                        "enum": [
+                            "FULL_DAY_TRIP",
+                            "RETURN_TO_SCHOOL",
+                            "ONE_WAY"
+                        ]
                     },
-                    "gender": {
+                    "departureMode": {
                         "type": [
                             "string",
                             "null"
                         ],
                         "enum": [
-                            "male",
-                            "female",
+                            "GROUPED",
+                            "INDIVIDUAL",
                             null
                         ]
                     },
-                    "birthday": {
+                    "assignedDriver": {
                         "type": [
                             "string",
                             "null"
                         ],
-                        "format": "date-time"
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     },
-                    "medicalHistory": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "additionalInfo": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "emergencyContact": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "emergencyContactNumber": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "educationalLevel": {
+                    "assignedVehicle": {
                         "type": [
                             "string",
                             "null"
                         ],
-                        "enum": [
-                            "kindergarten",
-                            "elementary_school",
-                            "high_school",
-                            null
-                        ]
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     },
-                    "grade": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "enum": [
-                            "1",
-                            "2",
-                            "3",
-                            "4",
-                            "5",
-                            "6",
-                            null
-                        ]
-                    },
-                    "parents": {
+                    "students": {
                         "type": "array",
                         "items": {
                             "type": "string",
                             "format": "iri-reference",
                             "example": "https://example.com/"
                         }
-                    }
-                },
-                "required": [
-                    "identificationNumber"
-                ]
-            },
-            "Student.csv": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "readOnly": true,
-                        "type": "integer"
                     },
-                    "firstName": {
-                        "type": "string"
-                    },
-                    "lastName": {
-                        "type": "string"
-                    },
-                    "school": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "iri-reference",
-                        "example": "https://example.com/"
-                    },
-                    "identificationNumber": {
-                        "pattern": "^(\\d{8,10})$",
-                        "type": "string"
-                    },
-                    "gender": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                    "status": {
+                        "default": "DRAFT",
+                        "type": "string",
                         "enum": [
-                            "male",
-                            "female",
-                            null
+                            "DRAFT",
+                            "PUBLISHED",
+                            "IN_PROGRESS",
+                            "COMPLETED",
+                            "CANCELLED"
                         ]
                     },
-                    "birthday": {
+                    "outboundDepartureTime": {
                         "type": [
                             "string",
                             "null"
                         ],
                         "format": "date-time"
                     },
-                    "medicalHistory": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "additionalInfo": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "emergencyContact": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "emergencyContactNumber": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "educationalLevel": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "enum": [
-                            "kindergarten",
-                            "elementary_school",
-                            "high_school",
-                            null
-                        ]
-                    },
-                    "grade": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "enum": [
-                            "1",
-                            "2",
-                            "3",
-                            "4",
-                            "5",
-                            "6",
-                            null
-                        ]
-                    },
-                    "parents": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "iri-reference",
-                            "example": "https://example.com/"
-                        }
-                    }
-                },
-                "required": [
-                    "identificationNumber"
-                ]
-            },
-            "Student.html": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "readOnly": true,
-                        "type": "integer"
-                    },
-                    "firstName": {
-                        "type": "string"
-                    },
-                    "lastName": {
-                        "type": "string"
-                    },
-                    "school": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "iri-reference",
-                        "example": "https://example.com/"
-                    },
-                    "identificationNumber": {
-                        "pattern": "^(\\d{8,10})$",
-                        "type": "string"
-                    },
-                    "gender": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "enum": [
-                            "male",
-                            "female",
-                            null
-                        ]
-                    },
-                    "birthday": {
+                    "returnDepartureTime": {
                         "type": [
                             "string",
                             "null"
                         ],
                         "format": "date-time"
                     },
-                    "medicalHistory": {
+                    "currentLatitude": {
                         "type": [
                             "string",
                             "null"
                         ]
                     },
-                    "additionalInfo": {
+                    "currentLongitude": {
                         "type": [
                             "string",
                             "null"
                         ]
                     },
-                    "emergencyContact": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "emergencyContactNumber": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "educationalLevel": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "enum": [
-                            "kindergarten",
-                            "elementary_school",
-                            "high_school",
-                            null
-                        ]
-                    },
-                    "grade": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "enum": [
-                            "1",
-                            "2",
-                            "3",
-                            "4",
-                            "5",
-                            "6",
-                            null
-                        ]
-                    },
-                    "parents": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "iri-reference",
-                            "example": "https://example.com/"
-                        }
-                    }
-                },
-                "required": [
-                    "identificationNumber"
-                ]
-            },
-            "Student.jsonMergePatch": {
-                "type": "object",
-                "properties": {
-                    "id": {
+                    "createdAt": {
                         "readOnly": true,
-                        "type": "integer"
-                    },
-                    "firstName": {
-                        "type": "string"
-                    },
-                    "lastName": {
-                        "type": "string"
-                    },
-                    "school": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "iri-reference",
-                        "example": "https://example.com/"
-                    },
-                    "identificationNumber": {
-                        "pattern": "^(\\d{8,10})$",
-                        "type": "string"
-                    },
-                    "gender": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "enum": [
-                            "male",
-                            "female",
-                            null
-                        ]
-                    },
-                    "birthday": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": "string",
                         "format": "date-time"
                     },
-                    "medicalHistory": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
                     },
-                    "additionalInfo": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "emergencyContact": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "emergencyContactNumber": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "educationalLevel": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "enum": [
-                            "kindergarten",
-                            "elementary_school",
-                            "high_school",
-                            null
-                        ]
-                    },
-                    "grade": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "enum": [
-                            "1",
-                            "2",
-                            "3",
-                            "4",
-                            "5",
-                            "6",
-                            null
-                        ]
-                    },
-                    "parents": {
+                    "stops": {
                         "type": "array",
                         "items": {
-                            "type": "string",
-                            "format": "iri-reference",
-                            "example": "https://example.com/"
+                            "$ref": "#/components/schemas/SpecialEventRouteStop-special_event_route.read"
                         }
                     }
                 }
             },
-            "Student.jsonld": {
+            "SpecialEventRoute-special_event_route.write": {
+                "type": "object",
+                "properties": {
+                    "school": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "name": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "eventDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "eventType": {
+                        "default": "OTHER",
+                        "type": "string",
+                        "enum": [
+                            "FIELD_TRIP",
+                            "SPORTS_EVENT",
+                            "MUSEUM_VISIT",
+                            "OTHER"
+                        ]
+                    },
+                    "eventLocation": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "routeMode": {
+                        "default": "ONE_WAY",
+                        "type": "string",
+                        "enum": [
+                            "FULL_DAY_TRIP",
+                            "RETURN_TO_SCHOOL",
+                            "ONE_WAY"
+                        ]
+                    },
+                    "departureMode": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "GROUPED",
+                            "INDIVIDUAL",
+                            null
+                        ]
+                    },
+                    "assignedDriver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "assignedVehicle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "outboundDepartureTime": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "returnDepartureTime": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                }
+            },
+            "SpecialEventRoute-special_event_route.write.jsonMergePatch": {
+                "type": "object",
+                "properties": {
+                    "school": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "name": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "eventDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "eventType": {
+                        "default": "OTHER",
+                        "type": "string",
+                        "enum": [
+                            "FIELD_TRIP",
+                            "SPORTS_EVENT",
+                            "MUSEUM_VISIT",
+                            "OTHER"
+                        ]
+                    },
+                    "eventLocation": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "routeMode": {
+                        "default": "ONE_WAY",
+                        "type": "string",
+                        "enum": [
+                            "FULL_DAY_TRIP",
+                            "RETURN_TO_SCHOOL",
+                            "ONE_WAY"
+                        ]
+                    },
+                    "departureMode": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "GROUPED",
+                            "INDIVIDUAL",
+                            null
+                        ]
+                    },
+                    "assignedDriver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "assignedVehicle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "outboundDepartureTime": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "returnDepartureTime": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                }
+            },
+            "SpecialEventRoute.csv-special_event_route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "school": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "name": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "eventDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "eventType": {
+                        "default": "OTHER",
+                        "type": "string",
+                        "enum": [
+                            "FIELD_TRIP",
+                            "SPORTS_EVENT",
+                            "MUSEUM_VISIT",
+                            "OTHER"
+                        ]
+                    },
+                    "eventLocation": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "routeMode": {
+                        "default": "ONE_WAY",
+                        "type": "string",
+                        "enum": [
+                            "FULL_DAY_TRIP",
+                            "RETURN_TO_SCHOOL",
+                            "ONE_WAY"
+                        ]
+                    },
+                    "departureMode": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "GROUPED",
+                            "INDIVIDUAL",
+                            null
+                        ]
+                    },
+                    "assignedDriver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "assignedVehicle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "status": {
+                        "default": "DRAFT",
+                        "type": "string",
+                        "enum": [
+                            "DRAFT",
+                            "PUBLISHED",
+                            "IN_PROGRESS",
+                            "COMPLETED",
+                            "CANCELLED"
+                        ]
+                    },
+                    "outboundDepartureTime": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "returnDepartureTime": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "currentLatitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currentLongitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "stops": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SpecialEventRouteStop.csv-special_event_route.read"
+                        }
+                    }
+                }
+            },
+            "SpecialEventRoute.html-special_event_route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "school": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "name": {
+                        "default": "",
+                        "type": "string"
+                    },
+                    "eventDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "eventType": {
+                        "default": "OTHER",
+                        "type": "string",
+                        "enum": [
+                            "FIELD_TRIP",
+                            "SPORTS_EVENT",
+                            "MUSEUM_VISIT",
+                            "OTHER"
+                        ]
+                    },
+                    "eventLocation": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "routeMode": {
+                        "default": "ONE_WAY",
+                        "type": "string",
+                        "enum": [
+                            "FULL_DAY_TRIP",
+                            "RETURN_TO_SCHOOL",
+                            "ONE_WAY"
+                        ]
+                    },
+                    "departureMode": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "GROUPED",
+                            "INDIVIDUAL",
+                            null
+                        ]
+                    },
+                    "assignedDriver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "assignedVehicle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "status": {
+                        "default": "DRAFT",
+                        "type": "string",
+                        "enum": [
+                            "DRAFT",
+                            "PUBLISHED",
+                            "IN_PROGRESS",
+                            "COMPLETED",
+                            "CANCELLED"
+                        ]
+                    },
+                    "outboundDepartureTime": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "returnDepartureTime": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "currentLatitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currentLongitude": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "stops": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SpecialEventRouteStop.html-special_event_route.read"
+                        }
+                    }
+                }
+            },
+            "SpecialEventRoute.jsonld-special_event_route.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "school": {
+                                "type": "string",
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "name": {
+                                "default": "",
+                                "type": "string"
+                            },
+                            "eventDate": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "eventType": {
+                                "default": "OTHER",
+                                "type": "string",
+                                "enum": [
+                                    "FIELD_TRIP",
+                                    "SPORTS_EVENT",
+                                    "MUSEUM_VISIT",
+                                    "OTHER"
+                                ]
+                            },
+                            "eventLocation": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "routeMode": {
+                                "default": "ONE_WAY",
+                                "type": "string",
+                                "enum": [
+                                    "FULL_DAY_TRIP",
+                                    "RETURN_TO_SCHOOL",
+                                    "ONE_WAY"
+                                ]
+                            },
+                            "departureMode": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "enum": [
+                                    "GROUPED",
+                                    "INDIVIDUAL",
+                                    null
+                                ]
+                            },
+                            "assignedDriver": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "assignedVehicle": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "students": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "iri-reference",
+                                    "example": "https://example.com/"
+                                }
+                            },
+                            "status": {
+                                "default": "DRAFT",
+                                "type": "string",
+                                "enum": [
+                                    "DRAFT",
+                                    "PUBLISHED",
+                                    "IN_PROGRESS",
+                                    "COMPLETED",
+                                    "CANCELLED"
+                                ]
+                            },
+                            "outboundDepartureTime": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "returnDepartureTime": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "currentLatitude": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "currentLongitude": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "createdAt": {
+                                "readOnly": true,
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updatedAt": {
+                                "readOnly": true,
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "stops": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/SpecialEventRouteStop.jsonld-special_event_route.read"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "SpecialEventRouteStop-special_event_route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "stopOrder": {
+                        "default": 0,
+                        "type": "integer"
+                    },
+                    "estimatedArrivalTime": {
+                        "description": "Seconds from return departure time",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "default": "pending",
+                        "type": "string"
+                    },
+                    "isStudentReady": {
+                        "default": false,
+                        "type": "boolean"
+                    },
+                    "readyAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "geofenceRadius": {
+                        "default": 50,
+                        "type": "integer"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "SpecialEventRouteStop.csv-special_event_route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "stopOrder": {
+                        "default": 0,
+                        "type": "integer"
+                    },
+                    "estimatedArrivalTime": {
+                        "description": "Seconds from return departure time",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "default": "pending",
+                        "type": "string"
+                    },
+                    "isStudentReady": {
+                        "default": false,
+                        "type": "boolean"
+                    },
+                    "readyAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "geofenceRadius": {
+                        "default": 50,
+                        "type": "integer"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "SpecialEventRouteStop.html-special_event_route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "stopOrder": {
+                        "default": 0,
+                        "type": "integer"
+                    },
+                    "estimatedArrivalTime": {
+                        "description": "Seconds from return departure time",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "default": "pending",
+                        "type": "string"
+                    },
+                    "isStudentReady": {
+                        "default": false,
+                        "type": "boolean"
+                    },
+                    "readyAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "geofenceRadius": {
+                        "default": 50,
+                        "type": "integer"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "SpecialEventRouteStop.jsonld-special_event_route.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "student": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "stopOrder": {
+                        "default": 0,
+                        "type": "integer"
+                    },
+                    "estimatedArrivalTime": {
+                        "description": "Seconds from return departure time",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "default": "pending",
+                        "type": "string"
+                    },
+                    "isStudentReady": {
+                        "default": false,
+                        "type": "boolean"
+                    },
+                    "readyAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "geofenceRadius": {
+                        "default": 50,
+                        "type": "integer"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "Student-student.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "school": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "male",
+                            "female",
+                            null
+                        ]
+                    },
+                    "birthday": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "medicalHistory": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "additionalInfo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContact": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContactNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "educationalLevel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "kindergarten",
+                            "elementary_school",
+                            "high_school",
+                            null
+                        ]
+                    },
+                    "grade": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            null
+                        ]
+                    },
+                    "parents": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
+            },
+            "Student-student.write": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "male",
+                            "female",
+                            null
+                        ]
+                    },
+                    "birthday": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "medicalHistory": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "additionalInfo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContact": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContactNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "educationalLevel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "kindergarten",
+                            "elementary_school",
+                            "high_school",
+                            null
+                        ]
+                    },
+                    "grade": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            null
+                        ]
+                    }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
+            },
+            "Student-student.write.jsonMergePatch": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "male",
+                            "female",
+                            null
+                        ]
+                    },
+                    "birthday": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "medicalHistory": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "additionalInfo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContact": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContactNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "educationalLevel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "kindergarten",
+                            "elementary_school",
+                            "high_school",
+                            null
+                        ]
+                    },
+                    "grade": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            null
+                        ]
+                    }
+                }
+            },
+            "Student.csv-student.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "school": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "male",
+                            "female",
+                            null
+                        ]
+                    },
+                    "birthday": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "medicalHistory": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "additionalInfo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContact": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContactNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "educationalLevel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "kindergarten",
+                            "elementary_school",
+                            "high_school",
+                            null
+                        ]
+                    },
+                    "grade": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            null
+                        ]
+                    },
+                    "parents": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
+            },
+            "Student.html-student.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "school": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "male",
+                            "female",
+                            null
+                        ]
+                    },
+                    "birthday": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "medicalHistory": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "additionalInfo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContact": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emergencyContactNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "educationalLevel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "kindergarten",
+                            "elementary_school",
+                            "high_school",
+                            null
+                        ]
+                    },
+                    "grade": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            null
+                        ]
+                    },
+                    "parents": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
+            },
+            "Student.jsonld-student.read": {
                 "allOf": [
                     {
                         "$ref": "#/components/schemas/HydraItemBaseSchema"
@@ -19639,13 +22118,6 @@
                     "email": {
                         "type": "string"
                     },
-                    "roles": {
-                        "description": "The user roles",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
                     "school": {
                         "type": [
                             "string",
@@ -19835,13 +22307,6 @@
                     "email": {
                         "type": "string"
                     },
-                    "roles": {
-                        "description": "The user roles",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
                     "school": {
                         "type": [
                             "string",
@@ -19901,13 +22366,6 @@
                     },
                     "email": {
                         "type": "string"
-                    },
-                    "roles": {
-                        "description": "The user roles",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
                     },
                     "school": {
                         "type": [
@@ -19974,13 +22432,6 @@
                             "email": {
                                 "type": "string"
                             },
-                            "roles": {
-                                "description": "The user roles",
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            },
                             "school": {
                                 "type": [
                                     "string",
@@ -20033,7 +22484,7 @@
                     }
                 ]
             },
-            "Vehicle": {
+            "Vehicle-vehicle.read": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -20077,7 +22528,87 @@
                     }
                 }
             },
-            "Vehicle.csv": {
+            "Vehicle-vehicle.write": {
+                "type": "object",
+                "properties": {
+                    "licensePlate": {
+                        "type": "string"
+                    },
+                    "make": {
+                        "type": "string"
+                    },
+                    "model": {
+                        "type": "string"
+                    },
+                    "capacity": {
+                        "type": "integer"
+                    },
+                    "year": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "color": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    }
+                }
+            },
+            "Vehicle-vehicle.write.jsonMergePatch": {
+                "type": "object",
+                "properties": {
+                    "licensePlate": {
+                        "type": "string"
+                    },
+                    "make": {
+                        "type": "string"
+                    },
+                    "model": {
+                        "type": "string"
+                    },
+                    "capacity": {
+                        "type": "integer"
+                    },
+                    "year": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "color": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "user": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    }
+                }
+            },
+            "Vehicle.csv-vehicle.read": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -20121,7 +22652,7 @@
                     }
                 }
             },
-            "Vehicle.html": {
+            "Vehicle.html-vehicle.read": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -20165,51 +22696,7 @@
                     }
                 }
             },
-            "Vehicle.jsonMergePatch": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "readOnly": true,
-                        "type": "integer"
-                    },
-                    "licensePlate": {
-                        "type": "string"
-                    },
-                    "make": {
-                        "type": "string"
-                    },
-                    "model": {
-                        "type": "string"
-                    },
-                    "capacity": {
-                        "type": "integer"
-                    },
-                    "year": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "color": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "type": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "user": {
-                        "type": "string",
-                        "format": "iri-reference",
-                        "example": "https://example.com/"
-                    }
-                }
-            },
-            "Vehicle.jsonld": {
+            "Vehicle.jsonld-vehicle.read": {
                 "allOf": [
                     {
                         "$ref": "#/components/schemas/HydraItemBaseSchema"
@@ -20355,6 +22842,10 @@
         {
             "name": "School",
             "description": "Resource 'School' operations."
+        },
+        {
+            "name": "SpecialEventRoute",
+            "description": "Resource 'SpecialEventRoute' operations."
         },
         {
             "name": "Student",
