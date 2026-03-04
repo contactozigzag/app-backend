@@ -16,9 +16,6 @@ return RectorConfig::configure()
         __DIR__.'/tests',
     ])
     ->withImportNames(removeUnusedImports: true)
-    ->withRules([
-        ReadOnlyClassRector::class
-    ])
     ->withSkip([
         // Skip Symfony cache and generated files
         __DIR__.'/var',
