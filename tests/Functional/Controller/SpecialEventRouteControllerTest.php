@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller;
 
-use Symfony\Component\HttpFoundation\Response;
 use App\Enum\RouteMode;
 use App\Enum\SpecialEventRouteStatus;
 use App\Tests\AbstractApiTestCase;
@@ -13,6 +12,7 @@ use App\Tests\Factory\SchoolFactory;
 use App\Tests\Factory\SpecialEventRouteFactory;
 use App\Tests\Factory\UserFactory;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 final class SpecialEventRouteControllerTest extends AbstractApiTestCase
 {
