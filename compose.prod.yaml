@@ -60,3 +60,60 @@ services:
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
       APP_ENV: prod
     restart: unless-stopped
+
+  # Messenger worker services — production overrides
+  #
+  # Workers use the same prod image target as the php service.
+  # Logging mirrors the php service configuration: fluentd-async ensures
+  # worker logs are buffered and not lost if fluent-bit restarts briefly.
+  # fluentd-retry-wait and fluentd-max-retries are included because workers
+  # are long-running processes that need the same delivery guarantees as php.
+
+  messenger_worker:
+    build:
+      context: .
+      target: frankenphp_prod
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      APP_ENV: prod
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        fluentd-retry-wait: "1s"
+        fluentd-max-retries: "30"
+        tag: "docker.{{.Name}}"
+
+  messenger_worker_webhooks:
+    build:
+      context: .
+      target: frankenphp_prod
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      APP_ENV: prod
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        fluentd-retry-wait: "1s"
+        fluentd-max-retries: "30"
+        tag: "docker.{{.Name}}"
+
+  messenger_worker_tracking:
+    build:
+      context: .
+      target: frankenphp_prod
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      APP_ENV: prod
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        fluentd-retry-wait: "1s"
+        fluentd-max-retries: "30"
+        tag: "docker.{{.Name}}"
+

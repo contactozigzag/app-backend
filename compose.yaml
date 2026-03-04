@@ -76,6 +76,71 @@ services:
     volumes:
       - redis_data:/data
 
+  # Messenger worker services
+  #
+  # Each worker consumes a single transport — phpamqplib uses a blocking consumer
+  # that prevents consuming multiple transports in one process safely.
+  # See: https://github.com/jwage/phpamqplib-messenger
+
+  messenger_worker:
+    # Consumes: async (emails, SMS, chat, billing, anomalies) + scheduler_default.
+    # WARNING: keep this service at exactly 1 replica. Running multiple instances
+    # will cause the Symfony Scheduler to dispatch duplicate subscription billing jobs.
+    image: ${IMAGES_PREFIX:-}app-php
+    container_name: zigzag_messenger_worker
+    restart: unless-stopped
+    command: [ "php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv" ]
+    healthcheck:
+      disable: true
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  messenger_worker_webhooks:
+    # Consumes: async_webhooks (payment webhook processing).
+    # Isolated from the general async pipeline to prevent webhook retry storms
+    # from starving billing and notification processing.
+    image: ${IMAGES_PREFIX:-}app-php
+    container_name: zigzag_messenger_worker_webhooks
+    restart: unless-stopped
+    command: [ "php", "bin/console", "messenger:consume", "async_webhooks", "--time-limit=3600", "--memory-limit=64M", "-vv" ]
+    healthcheck:
+      disable: true
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  messenger_worker_tracking:
+    # Consumes: async_tracking (real-time GPS location events).
+    # High-throughput transport is kept isolated so tracking spikes do not affect
+    # webhook or billing processing.
+    image: ${IMAGES_PREFIX:-}app-php
+    container_name: zigzag_messenger_worker_tracking
+    restart: unless-stopped
+    command: [ "php", "bin/console", "messenger:consume", "async_tracking", "--time-limit=3600", "--memory-limit=64M", "-vv" ]
+    healthcheck:
+      disable: true
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+
 # Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
