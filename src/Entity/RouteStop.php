@@ -39,9 +39,9 @@ use Symfony\Component\Validator\Constraints as Assert;
     ),
     new Get(uriTemplate: '/route-stops/{id}'),
     new Post(uriTemplate: '/route-stops'),
-    new Put(uriTemplate: '/route-stops/{id}'),
-    new Patch(uriTemplate: '/route-stops/{id}'),
-    new Delete(uriTemplate: '/route-stops/{id}'),
+    new Put(uriTemplate: '/route-stops/{id}', security: "is_granted('ROUTE_MANAGE')"),
+    new Patch(uriTemplate: '/route-stops/{id}', security: "is_granted('ROUTE_MANAGE')"),
+    new Delete(uriTemplate: '/route-stops/{id}', security: "is_granted('ROUTE_MANAGE')"),
     new Patch(
         uriTemplate: '/route-stops/{id}/confirm',
         openapi: new Operation(

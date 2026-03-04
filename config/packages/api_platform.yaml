@@ -5,6 +5,12 @@ api_platform:
         School transportation management API.
         Provides endpoints for GPS tracking, route management, payments (Mercado Pago marketplace),
         real-time alerts, attendance, and special event routing.
+    openapi:
+        contact:
+            name: ZigZag Support
+            email: support@zigzag.com
+        license:
+            name: Proprietary
     formats:
         jsonld: ['application/ld+json']
         json: ['application/json']

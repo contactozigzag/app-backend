@@ -5,64 +5,111 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Enum\EducationalLevel;
 use App\Enum\Gender;
 use App\Enum\Grade;
 use App\Repository\StudentRepository;
+use App\State\Student\StudentCollectionProvider;
+use App\State\Student\StudentCreateProcessor;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: StudentRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            security: "is_granted('ROLE_USER')",
+            provider: StudentCollectionProvider::class,
+        ),
+        new Get(
+            security: "is_granted('ROLE_USER') and (object.getParents().contains(user) or is_granted('ROLE_SCHOOL_ADMIN'))",
+        ),
+        new Post(
+            security: "is_granted('ROLE_PARENT')",
+            processor: StudentCreateProcessor::class,
+        ),
+        new Patch(
+            security: "is_granted('ROLE_PARENT') and object.getParents().contains(user) or is_granted('ROLE_SCHOOL_ADMIN')",
+        ),
+        new Delete(
+            security: "is_granted('ROLE_PARENT') and object.getParents().contains(user) or is_granted('ROLE_SCHOOL_ADMIN')",
+        ),
+    ],
+    normalizationContext: [
+        'groups' => ['student:read'],
+    ],
+    denormalizationContext: [
+        'groups' => ['student:write'],
+    ],
+)]
 class Student
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['student:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['student:read', 'student:write'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['student:read', 'student:write'])]
     private ?string $lastName = null;
 
     #[ORM\ManyToOne(inversedBy: 'students')]
     #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['student:read'])]
     private ?School $school = null;
 
     #[ORM\Column(length: 10, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Regex(pattern: '/^\d{8,10}$/', message: 'Identification number must be 8 to 10 digits.')]
+    #[Groups(['student:read', 'student:write'])]
     private ?string $identificationNumber = null;
 
     #[ORM\Column(nullable: true, enumType: Gender::class)]
+    #[Groups(['student:read', 'student:write'])]
     private ?Gender $gender = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    #[Groups(['student:read', 'student:write'])]
     private ?DateTimeImmutable $birthday = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['student:read', 'student:write'])]
     private ?string $medicalHistory = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['student:read', 'student:write'])]
     private ?string $additionalInfo = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['student:read', 'student:write'])]
     private ?string $emergencyContact = null;
 
     #[ORM\Column(length: 30, nullable: true)]
+    #[Groups(['student:read', 'student:write'])]
     private ?string $emergencyContactNumber = null;
 
     #[ORM\Column(nullable: true, enumType: EducationalLevel::class)]
+    #[Groups(['student:read', 'student:write'])]
     private ?EducationalLevel $educationalLevel = null;
 
     #[ORM\Column(nullable: true, enumType: Grade::class)]
+    #[Groups(['student:read', 'student:write'])]
     private ?Grade $grade = null;
 
     /**
@@ -72,6 +119,7 @@ class Student
     #[ORM\JoinTable(name: 'student_parent')]
     #[ORM\JoinColumn(name: 'student_id', referencedColumnName: 'id')]
     #[ORM\InverseJoinColumn(name: 'parent_id', referencedColumnName: 'id')]
+    #[Groups(['student:read'])]
     private Collection $parents;
 
     public function __construct()

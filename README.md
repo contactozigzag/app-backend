@@ -237,6 +237,15 @@ grants drivers the same route management capabilities without any code changes.
 | `POST /api/absences/recalculate-pending` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
 | `POST /api/geofencing/check-all` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
 | `GET /api/tracking/location/driver/{id}/history` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `GET/POST /api/special-event-routes` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `GET/PATCH/DELETE /api/special-event-routes/{id}` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `POST /api/special-event-routes/{id}/publish` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `POST /api/special-event-routes/{id}/start-outbound` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `POST /api/special-event-routes/{id}/arrive-at-event` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `POST /api/special-event-routes/{id}/start-return` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `POST /api/special-event-routes/{id}/complete` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `PATCH /api/route-stops/{id}` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `DELETE /api/route-stops/{id}` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
 
 School CRUD, billing, audit, and dashboard endpoints remain admin-only regardless of the flag.
 
@@ -403,12 +412,21 @@ Manage field trips, sports events, and other out-of-school-day transport.
 
 **Enums:** `EventType`, `RouteMode`, `DepartureMode`, `SpecialEventRouteStatus`
 
-**New Files:**
-- `src/Entity/SpecialEventRoute.php`
+**Key Files:**
+- `src/Entity/SpecialEventRoute.php` — `#[ApiResource]` with `ROUTE_MANAGE` security
 - `src/Entity/SpecialEventRouteStop.php`
 - `src/Repository/SpecialEventRouteRepository.php`
 - `src/Repository/SpecialEventRouteStopRepository.php`
-- `src/Controller/SpecialEventRouteController.php`
+- `src/State/SpecialEventRoute/SpecialEventRouteCollectionProvider.php`
+- `src/State/SpecialEventRoute/SpecialEventRouteCreateProcessor.php`
+- `src/State/SpecialEventRoute/SpecialEventRouteUpdateProcessor.php`
+- `src/State/SpecialEventRoute/SpecialEventRouteDeleteProcessor.php`
+- `src/State/SpecialEventRoute/PublishProcessor.php`
+- `src/State/SpecialEventRoute/StartOutboundProcessor.php`
+- `src/State/SpecialEventRoute/ArriveAtEventProcessor.php`
+- `src/State/SpecialEventRoute/StartReturnProcessor.php`
+- `src/State/SpecialEventRoute/CompleteProcessor.php`
+- `src/State/SpecialEventRoute/StudentReadyProcessor.php`
 - `src/Message/StudentReadyForPickupMessage.php`
 - `src/MessageHandler/StudentReadyForPickupHandler.php`
 

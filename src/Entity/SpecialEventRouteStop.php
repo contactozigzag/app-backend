@@ -8,6 +8,7 @@ use App\Repository\SpecialEventRouteStopRepository;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: SpecialEventRouteStopRepository::class)]
 #[ORM\Table(name: 'special_event_route_stops')]
@@ -16,42 +17,53 @@ class SpecialEventRouteStop
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['special_event_route_stop:read', 'special_event_route:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: SpecialEventRoute::class, inversedBy: 'stops')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['special_event_route_stop:read'])]
     private ?SpecialEventRoute $specialEventRoute = null;
 
     #[ORM\ManyToOne(targetEntity: Student::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['special_event_route_stop:read', 'special_event_route:read'])]
     private ?Student $student = null;
 
     #[ORM\ManyToOne(targetEntity: Address::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['special_event_route_stop:read', 'special_event_route:read'])]
     private ?Address $address = null;
 
     #[ORM\Column]
+    #[Groups(['special_event_route_stop:read', 'special_event_route:read'])]
     private int $stopOrder = 0;
 
     /**
      * Seconds from return departure time
      */
     #[ORM\Column(nullable: true)]
+    #[Groups(['special_event_route_stop:read', 'special_event_route:read'])]
     private ?int $estimatedArrivalTime = null;
 
     #[ORM\Column(length: 20)]
+    #[Groups(['special_event_route_stop:read', 'special_event_route:read'])]
     private string $status = 'pending';
 
     #[ORM\Column]
+    #[Groups(['special_event_route_stop:read', 'special_event_route:read'])]
     private bool $isStudentReady = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[Groups(['special_event_route_stop:read', 'special_event_route:read'])]
     private ?DateTimeImmutable $readyAt = null;
 
     #[ORM\Column]
+    #[Groups(['special_event_route_stop:read', 'special_event_route:read'])]
     private int $geofenceRadius = 50;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    #[Groups(['special_event_route_stop:read', 'special_event_route:read'])]
     private DateTimeImmutable $createdAt;
 
     public function __construct()
