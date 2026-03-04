@@ -49,3 +49,36 @@ services:
   redis:
     ports:
       - "6379:6379"
+
+  # Messenger worker services — development overrides
+  #
+  # Source is bind-mounted so code changes are reflected immediately
+  # without rebuilding the image, consistent with the php service behaviour.
+
+  messenger_worker:
+    build:
+      context: .
+      target: frankenphp_dev
+    volumes:
+      - ./:/app
+    environment:
+      APP_ENV: "${APP_ENV:-dev}"
+
+  messenger_worker_webhooks:
+    build:
+      context: .
+      target: frankenphp_dev
+    volumes:
+      - ./:/app
+    environment:
+      APP_ENV: "${APP_ENV:-dev}"
+
+  messenger_worker_tracking:
+    build:
+      context: .
+      target: frankenphp_dev
+    volumes:
+      - ./:/app
+    environment:
+      APP_ENV: "${APP_ENV:-dev}"
+

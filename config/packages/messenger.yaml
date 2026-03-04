@@ -3,42 +3,70 @@ framework:
         failure_transport: failed
 
         transports:
-            # Doctrine transport — used for email, SMS, chat, and scheduled subscriptions.
-            # Doctrine NOTIFY (use_notify: true) gives push-based consumption on PostgreSQL.
-            # Kept on Doctrine deliberately: these messages tolerate higher latency and
-            # benefit from transactional guarantees (e.g. subscription billing).
+            # RabbitMQ transport (jwage/phpamqplib-messenger) — general async pipeline.
+            # Handles email, SMS, chat, scheduled billing, anomaly detection, distress
+            # signals, and emergency chat. Moved from Doctrine to RabbitMQ to make queue
+            # handling uniform across all transports and leverage phpamqplib's streaming
+            # consumer instead of MySQL polling.
+            #
+            # Exchange and queue topology is declared here in options — the DSN carries
+            # only connection credentials. All three transports share the same DSN
+            # (same broker) but use distinct exchanges and queues for isolation.
+            #
+            # NOTE: jwage/phpamqplib-messenger uses a blocking consumer — you must NOT
+            # pass multiple phpamqplib transports to a single messenger:consume process.
+            # Each transport requires its own dedicated worker (see compose files).
             async:
-                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                dsn: '%env(RABBITMQ_DSN)%'
                 options:
-                    use_notify: true
-                    check_delayed_interval: 60000
+                    exchange:
+                        name: async_exchange
+                        type: direct
+                    queues:
+                        async_messages: ~
                 retry_strategy:
                     max_retries: 3
+                    delay: 1000
                     multiplier: 2
+                    max_delay: 10000
 
-            # RabbitMQ transport — used exclusively for payment webhook processing.
-            # Webhooks require fast turnaround (MP retries on slow responses) and
-            # higher throughput than the Doctrine transport can provide.
+            # RabbitMQ transport (jwage/phpamqplib-messenger) — payment webhook processing.
+            # Separate exchange/queue from async to fully isolate webhook throughput and
+            # retry storms from the general async pipeline.
             async_webhooks:
                 dsn: '%env(RABBITMQ_DSN)%'
+                options:
+                    exchange:
+                        name: async_webhooks_exchange
+                        type: direct
+                    queues:
+                        async_webhooks_messages: ~
                 retry_strategy:
                     max_retries: 3
                     delay: 1000       # 1 s initial delay
                     multiplier: 2     # 1 s → 2 s → 4 s
                     max_delay: 10000  # cap at 10 s
 
-            # RabbitMQ transport — used for real-time GPS tracking events.
-            # Separate queue from webhooks to isolate tracking throughput.
+            # RabbitMQ transport (jwage/phpamqplib-messenger) — real-time GPS tracking.
+            # Separate exchange/queue from webhooks to isolate tracking throughput spikes.
+            # Tighter retry ceiling (2) because stale location data loses value quickly.
             async_tracking:
-                dsn: '%env(RABBITMQ_DSN_TRACKING)%'
+                dsn: '%env(RABBITMQ_DSN)%'
+                options:
+                    exchange:
+                        name: async_tracking_exchange
+                        type: direct
+                    queues:
+                        async_tracking_messages: ~
                 retry_strategy:
                     max_retries: 2
                     delay: 500
                     multiplier: 2
                     max_delay: 5000
 
-            # Dead-letter store for messages that exceed max_retries on any transport.
-            # Stored in the DB so ops can inspect and replay them manually.
+            # Dead-letter store for messages that exhaust max_retries on any transport.
+            # Stored in MySQL via Doctrine so ops can inspect and replay them manually.
+            # No worker consumes this transport — replay is always intentional.
             failed: 'doctrine://default?queue_name=failed'
 
         default_bus: messenger.bus.default
@@ -55,10 +83,10 @@ framework:
             # Scheduled billing
             App\Message\ProcessSubscriptionsMessage: async
 
-            # Payment webhooks — goes to RabbitMQ for fast, isolated processing
+            # Payment webhooks — isolated RabbitMQ queue via phpamqplib
             App\Message\ProcessWebhookMessage: async_webhooks
 
-            # GPS tracking pipeline — goes to RabbitMQ tracking queue
+            # GPS tracking pipeline — isolated RabbitMQ tracking queue via phpamqplib
             App\Message\DriverLocationUpdatedMessage: async_tracking
 
             # Anomaly detection and distress signals
