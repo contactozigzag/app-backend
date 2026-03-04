@@ -26,10 +26,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new Post(security: 'is_granted("PUBLIC_ACCESS")'),
-        new Get(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
-        new GetCollection(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
-        new Patch(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
-        new Delete(security: 'is_granted("IS_AUTHENTICATED_FULLY")'),
+        new Get(security: 'is_granted("IS_AUTHENTICATED_FULLY") and (object == user or is_granted("ROLE_SCHOOL_ADMIN"))'),
+        new GetCollection(security: 'is_granted("ROLE_SCHOOL_ADMIN")'),
+        new Patch(security: 'is_granted("IS_AUTHENTICATED_FULLY") and (object == user or is_granted("ROLE_SCHOOL_ADMIN"))'),
+        new Delete(security: 'is_granted("IS_AUTHENTICATED_FULLY") and (object == user or is_granted("ROLE_SCHOOL_ADMIN"))'),
     ],
     normalizationContext: [
         'groups' => ['user:read'],
@@ -54,7 +54,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var list<string> The user roles
      */
     #[ORM\Column]
-    #[Groups(['user:read', 'user:write'])]
+    #[Groups(['user:write'])]
     private array $roles = [];
 
     /**
