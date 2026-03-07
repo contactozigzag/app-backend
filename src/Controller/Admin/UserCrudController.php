@@ -17,12 +17,15 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Override;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /** @extends AbstractCrudController<User> */
 class UserCrudController extends AbstractCrudController
 {
     public function __construct(
         private readonly AddressGeocoder $addressGeocoder,
+        private readonly UserPasswordHasherInterface $passwordHasher,
     ) {
     }
 
@@ -48,6 +51,19 @@ class UserCrudController extends AbstractCrudController
             ->setChoices(array_combine($roles, $roles))
             ->allowMultipleChoices()
             ->renderExpanded();
+
+        yield TextField::new('newPassword', 'Password')
+            ->setFormType(PasswordType::class)
+            ->setFormTypeOption('mapped', false)
+            ->setRequired($pageName === Crud::PAGE_NEW)
+            ->onlyOnForms()
+            ->setHelp($pageName === Crud::PAGE_EDIT ? 'Leave blank to keep the current password.' : '');
+
+        yield TextField::new('newPasswordConfirm', 'Confirm Password')
+            ->setFormType(PasswordType::class)
+            ->setFormTypeOption('mapped', false)
+            ->setRequired($pageName === Crud::PAGE_NEW)
+            ->onlyOnForms();
 
         yield FormField::addFieldset('Address Information');
 
@@ -101,6 +117,10 @@ class UserCrudController extends AbstractCrudController
             return;
         }
 
+        if (! $this->applyPassword($entityInstance, true)) {
+            return;
+        }
+
         if (! $this->applyAddress($entityInstance)) {
             return;
         }
@@ -123,12 +143,53 @@ class UserCrudController extends AbstractCrudController
             return;
         }
 
+        if (! $this->applyPassword($entityInstance, false)) {
+            return;
+        }
+
         if (! $this->applyAddress($entityInstance)) {
             return;
         }
 
         /** @phpstan-ignore argument.type, argument.type */
         parent::updateEntity($entityManager, $entityInstance);
+    }
+
+    /**
+     * Validates and hashes the password from the request.
+     * Returns false if validation failed (caller should abort persistence).
+     */
+    private function applyPassword(User $user, bool $passwordRequired): bool
+    {
+        $request = $this->getContext()?->getRequest();
+        $userData = $request?->request->all('User');
+
+        if (! is_array($userData)) {
+            return ! $passwordRequired;
+        }
+
+        $plain = is_string($userData['newPassword'] ?? null) ? $userData['newPassword'] : '';
+        $confirm = is_string($userData['newPasswordConfirm'] ?? null) ? $userData['newPasswordConfirm'] : '';
+
+        if ($plain === '' && $confirm === '') {
+            if ($passwordRequired) {
+                $this->addFlash('danger', 'Password is required when creating a new user.');
+
+                return false;
+            }
+
+            return true;
+        }
+
+        if ($plain !== $confirm) {
+            $this->addFlash('danger', 'Passwords do not match.');
+
+            return false;
+        }
+
+        $user->setPassword($this->passwordHasher->hashPassword($user, $plain));
+
+        return true;
     }
 
     /**
