@@ -363,4 +363,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // Clear the plain password after hashing
         $this->plainPassword = null;
     }
+
+    public function __toString(): string
+    {
+        return $this->getFullName();
+
+    }
 }
