@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller\Admin;
 
-use Symfony\Component\HttpFoundation\Request;
 use App\Tests\Factory\UserFactory;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 

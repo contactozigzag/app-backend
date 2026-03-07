@@ -78,7 +78,7 @@ final readonly class AlertRespondProcessor implements ProcessorInterface
                         'alertId' => $alert->getAlertId(),
                         'type' => 'responder_assigned',
                         'responderDriverId' => $driver->getId(),
-                        'responderName' => $user->getfullName(),
+                        'responderName' => $user->getFullName(),
                     ], JSON_THROW_ON_ERROR),
                 ));
             } catch (Throwable) {
