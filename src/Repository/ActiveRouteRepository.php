@@ -96,6 +96,40 @@ class ActiveRouteRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function countInProgressToday(): int
+    {
+        $today = new DateTimeImmutable('today');
+
+        return (int) $this->createQueryBuilder('ar')
+            ->select('COUNT(ar.id)')
+            ->andWhere('ar.status = :status')
+            ->andWhere('ar.date = :today')
+            ->setParameter('status', 'in_progress')
+            ->setParameter('today', $today)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function findWeeklyStats(): array
+    {
+        $start = new DateTimeImmutable('-6 days midnight');
+        $today = new DateTimeImmutable('today');
+
+        return $this->createQueryBuilder('ar')
+            ->select('ar.date, ar.status, COUNT(ar.id) as cnt')
+            ->andWhere('ar.date >= :start')
+            ->andWhere('ar.date <= :today')
+            ->setParameter('start', $start)
+            ->setParameter('today', $today)
+            ->groupBy('ar.date, ar.status')
+            ->orderBy('ar.date', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
     /**
      * Find active routes by school for today
      *

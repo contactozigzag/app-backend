@@ -3,7 +3,6 @@ services:
   php:
     image: ${IMAGES_PREFIX:-}app-php
     container_name: zigzag_php
-    restart: unless-stopped
     environment:
       SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
       DEFAULT_URI: https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}
@@ -95,7 +94,6 @@ services:
     profiles: [workers]
     image: ${IMAGES_PREFIX:-}app-php
     container_name: zigzag_messenger_worker
-    restart: unless-stopped
     command: [ "php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv" ]
     healthcheck:
       disable: true
@@ -117,7 +115,6 @@ services:
     profiles: [workers]
     image: ${IMAGES_PREFIX:-}app-php
     container_name: zigzag_messenger_worker_webhooks
-    restart: unless-stopped
     command: [ "php", "bin/console", "messenger:consume", "async_webhooks", "--time-limit=3600", "--memory-limit=64M", "-vv" ]
     healthcheck:
       disable: true
@@ -137,7 +134,6 @@ services:
     profiles: [workers]
     image: ${IMAGES_PREFIX:-}app-php
     container_name: zigzag_messenger_worker_tracking
-    restart: unless-stopped
     command: [ "php", "bin/console", "messenger:consume", "async_tracking", "--time-limit=3600", "--memory-limit=64M", "-vv" ]
     healthcheck:
       disable: true

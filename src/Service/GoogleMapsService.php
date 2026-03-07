@@ -70,6 +70,144 @@ class GoogleMapsService
     }
 
     /**
+     * Parse address components from Google Geocoding API response
+     *
+     * @param string $address The address to parse
+     * @param string|null $language Language code (e.g., 'en', 'es') for API response
+     * @param string $addressFormat Address format: 'number_first' (e.g., "123 Main St") or 'street_first' (e.g., "Calle Principal 123")
+     * @return array{street_address: string, city: string, state: string, country: string, postal_code: string, lat: float, lng: float, place_id: string, country_code: string}|null
+     */
+    public function parseAddressComponents(string $address, ?string $language = null, string $addressFormat = 'number_first'): ?array
+    {
+        try {
+            $queryParams = [
+                'address' => $address,
+                'key' => $this->apiKey,
+            ];
+
+            // Add language parameter if specified
+            if ($language !== null) {
+                $queryParams['language'] = $language;
+            }
+
+            $response = $this->client->get('geocode/json', [
+                'query' => $queryParams,
+            ]);
+
+            $data = json_decode($response->getBody()->getContents(), true);
+
+            if ($data['status'] !== 'OK' || empty($data['results'])) {
+                $this->logger->warning('Geocoding failed for address components', [
+                    'address' => $address,
+                    'language' => $language,
+                    'status' => $data['status'],
+                ]);
+
+                return null;
+            }
+
+            $result = $data['results'][0];
+            $components = $result['address_components'];
+
+            // Initialize with empty values
+            $parsed = [
+                'street_number' => '',
+                'route' => '',
+                'city' => '',
+                'state' => '',
+                'country' => '',
+                'country_code' => '',
+                'postal_code' => '',
+            ];
+
+            // Extract address components
+            foreach ($components as $component) {
+                if (! is_array($component)) {
+                    continue;
+                }
+
+                if (! isset($component['types'])) {
+                    continue;
+                }
+
+                if (! is_array($component['types'])) {
+                    continue;
+                }
+
+                $types = $component['types'];
+
+                if (in_array('street_number', $types, true) && isset($component['long_name']) && is_scalar($component['long_name'])) {
+                    $parsed['street_number'] = (string) $component['long_name'];
+                } elseif (in_array('route', $types, true) && isset($component['long_name']) && is_scalar($component['long_name'])) {
+                    $parsed['route'] = (string) $component['long_name'];
+                } elseif (in_array('locality', $types, true) && isset($component['long_name']) && is_scalar($component['long_name'])) {
+                    $parsed['city'] = (string) $component['long_name'];
+                } elseif (in_array('administrative_area_level_1', $types, true) && isset($component['long_name']) && is_scalar($component['long_name'])) {
+                    $parsed['state'] = (string) $component['long_name'];
+                } elseif (in_array('country', $types, true)) {
+                    if (isset($component['long_name']) && is_scalar($component['long_name'])) {
+                        $parsed['country'] = (string) $component['long_name'];
+                    }
+
+                    if (isset($component['short_name']) && is_scalar($component['short_name'])) {
+                        $parsed['country_code'] = (string) $component['short_name'];
+                    }
+                } elseif (in_array('postal_code', $types, true) && isset($component['long_name']) && is_scalar($component['long_name'])) {
+                    $parsed['postal_code'] = (string) $component['long_name'];
+                }
+            }
+
+            // Construct street address based on format
+            $streetAddress = $this->formatStreetAddress(
+                $parsed['street_number'],
+                $parsed['route'],
+                $addressFormat
+            );
+
+            return [
+                'street_address' => $streetAddress,
+                'city' => $parsed['city'],
+                'state' => $parsed['state'],
+                'country' => $parsed['country'],
+                'country_code' => $parsed['country_code'],
+                'postal_code' => $parsed['postal_code'],
+                'lat' => $result['geometry']['location']['lat'],
+                'lng' => $result['geometry']['location']['lng'],
+                'place_id' => $result['place_id'],
+            ];
+        } catch (GuzzleException $guzzleException) {
+            $this->logger->error('Geocoding API error for address components', [
+                'address' => $address,
+                'language' => $language,
+                'error' => $guzzleException->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Format street address based on locale conventions
+     *
+     * @param string $streetNumber The street number
+     * @param string $route The street name
+     * @param string $format Format type: 'number_first' or 'street_first'
+     * @return string Formatted street address
+     */
+    private function formatStreetAddress(string $streetNumber, string $route, string $format): string
+    {
+        if ($streetNumber === '' || $route === '') {
+            return trim(sprintf('%s %s', $streetNumber, $route));
+        }
+
+        return match ($format) {
+            'street_first' => trim(sprintf('%s %s', $route, $streetNumber)), // Spanish: "Avenida Benavídez 1632"
+            'number_first' => trim(sprintf('%s %s', $streetNumber, $route)), // English: "1632 Benavídez Avenue"
+            default => trim(sprintf('%s %s', $streetNumber, $route)),
+        };
+    }
+
+    /**
      * Get distance and duration between two points using Distance Matrix API
      *
      * @param array{lat: float, lng: float} $origin

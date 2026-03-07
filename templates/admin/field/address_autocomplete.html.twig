@@ -1,0 +1,10 @@
+{# Custom field template for Google Places Autocomplete #}
+{% extends '@EasyAdmin/crud/field/text.html.twig' %}
+
+{% block form_widget %}
+    <div {{ stimulus_controller('google-address-autocomplete', {
+        apiKey: field.customOptions.get('googleApiKey')
+    }) }}>
+        {{ parent() }}
+    </div>
+{% endblock %}

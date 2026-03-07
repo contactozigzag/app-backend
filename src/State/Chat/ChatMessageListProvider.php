@@ -63,7 +63,7 @@ final readonly class ChatMessageListProvider implements ProviderInterface
                 'id' => $m->getId(),
                 'sender' => [
                     'id' => $sender?->getId(),
-                    'name' => $sender?->getfullName() ?? '',
+                    'name' => $sender?->getFullName() ?? '',
                 ],
                 'content' => $this->tokenEncryptor->decrypt($m->getContent()),
                 'sentAt' => $m->getSentAt()->format('c'),

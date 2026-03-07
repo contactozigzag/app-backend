@@ -82,7 +82,7 @@ final class LoginControllerTest extends WebTestCase
             '_password' => 'password',
         ]);
 
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/admin');
         $this->client->followRedirect();
 
         self::assertSelectorNotExists('.alert-danger');

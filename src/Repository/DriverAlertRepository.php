@@ -43,6 +43,51 @@ class DriverAlertRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function countOpenAlerts(): int
+    {
+        return (int) $this->createQueryBuilder('da')
+            ->select('COUNT(da.id)')
+            ->andWhere('da.status IN (:statuses)')
+            ->setParameter('statuses', [AlertStatus::PENDING, AlertStatus::RESPONDED])
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @return DriverAlert[]
+     */
+    public function findOpen(int $limit = 10): array
+    {
+        return $this->createQueryBuilder('da')
+            ->andWhere('da.status IN (:statuses)')
+            ->setParameter('statuses', [AlertStatus::PENDING, AlertStatus::RESPONDED])
+            ->orderBy('da.triggeredAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public function countAllByStatus(): array
+    {
+        $rows = $this->createQueryBuilder('da')
+            ->select('da.status, COUNT(da.id) as cnt')
+            ->groupBy('da.status')
+            ->getQuery()
+            ->getResult();
+
+        $result = [];
+        foreach ($rows as $row) {
+            /** @var AlertStatus $status */
+            $status = $row['status'];
+            $result[$status->value] = (int) $row['cnt'];
+        }
+
+        return $result;
+    }
+
     /**
      * Find open alerts where $driver is listed in nearbyDriverIds.
      *

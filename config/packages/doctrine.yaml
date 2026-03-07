@@ -39,6 +39,12 @@ when@test:
             # "TEST_TOKEN" is typically set by ParaTest
             dbname_suffix: '_test%env(default::TEST_TOKEN)%'
 
+when@panther:
+    doctrine:
+        dbal:
+            # Panther web server must use the same database as the test process
+            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+
 when@prod:
     doctrine:
         orm:

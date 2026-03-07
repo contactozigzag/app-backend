@@ -39,7 +39,7 @@ class ChatMessagePublishHandler
         $decryptedContent = $this->tokenEncryptor->decrypt($chatMessage->getContent());
 
         $sender = $chatMessage->getSender();
-        $senderName = $sender !== null ? $sender->getfullName() : 'Unknown';
+        $senderName = $sender !== null ? $sender->getFullName() : 'Unknown';
 
         $payload = json_encode([
             'messageId' => $chatMessage->getId(),

@@ -2,6 +2,7 @@
 # Production environment override
 services:
   php:
+    restart: unless-stopped
     build:
       context: .
       target: frankenphp_prod
@@ -22,6 +23,7 @@ services:
         tag: "docker.{{.Name}}"
 
   database:
+    restart: unless-stopped
     command:
       - --transaction-isolation=READ-COMMITTED
       - --innodb_rollback_on_timeout=ON
@@ -33,6 +35,7 @@ services:
         tag: "docker.{{.Name}}"
 
   rabbitmq:
+    restart: unless-stopped
     logging:
       driver: fluentd
       options:
@@ -41,6 +44,7 @@ services:
         tag: "docker.{{.Name}}"
 
   redis:
+    restart: unless-stopped
     logging:
       driver: fluentd
       options:
@@ -70,6 +74,7 @@ services:
   # are long-running processes that need the same delivery guarantees as php.
 
   messenger_worker:
+    restart: unless-stopped
     build:
       context: .
       target: frankenphp_prod
@@ -86,6 +91,7 @@ services:
         tag: "docker.{{.Name}}"
 
   messenger_worker_webhooks:
+    restart: unless-stopped
     build:
       context: .
       target: frankenphp_prod
@@ -102,6 +108,7 @@ services:
         tag: "docker.{{.Name}}"
 
   messenger_worker_tracking:
+    restart: unless-stopped
     build:
       context: .
       target: frankenphp_prod
