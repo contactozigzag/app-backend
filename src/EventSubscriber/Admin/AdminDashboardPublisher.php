@@ -13,6 +13,7 @@ use App\Entity\User;
 use App\Enum\AlertStatus;
 use App\Service\Admin\DashboardStatsService;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
+use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PostPersistEventArgs;
 use Doctrine\ORM\Event\PostUpdateEventArgs;
 use Doctrine\ORM\Events;
@@ -23,8 +24,21 @@ use Symfony\Component\Mercure\Update;
 
 #[AsDoctrineListener(event: Events::postPersist)]
 #[AsDoctrineListener(event: Events::postUpdate)]
+#[AsDoctrineListener(event: Events::postFlush)]
 class AdminDashboardPublisher
 {
+    private bool $pendingStatsPublish = false;
+
+    /**
+     * @var list<DriverAlert>
+     */
+    private array $pendingAlerts = [];
+
+    /**
+     * @var list<ActiveRoute>
+     */
+    private array $pendingRoutes = [];
+
     public function __construct(
         private readonly HubInterface $hub,
         private readonly DashboardStatsService $statsService,
@@ -37,11 +51,11 @@ class AdminDashboardPublisher
         $entity = $args->getObject();
 
         if ($entity instanceof User || $entity instanceof Student || $entity instanceof Driver || $entity instanceof School) {
-            $this->publishStats();
+            $this->pendingStatsPublish = true;
         }
 
         if ($entity instanceof DriverAlert) {
-            $this->publishAlert($entity);
+            $this->pendingAlerts[] = $entity;
         }
     }
 
@@ -50,17 +64,30 @@ class AdminDashboardPublisher
         $entity = $args->getObject();
 
         if ($entity instanceof DriverAlert) {
-            $this->publishAlert($entity);
+            $this->pendingAlerts[] = $entity;
         }
 
         if ($entity instanceof ActiveRoute) {
-            $this->publishRoute($entity);
+            $this->pendingRoutes[] = $entity;
         }
     }
 
-    private function publishStats(): void
+    public function postFlush(PostFlushEventArgs $args): void
     {
-        $this->publish('admin/dashboard/stats', $this->statsService->getStatsAsJson());
+        if ($this->pendingStatsPublish) {
+            $this->pendingStatsPublish = false;
+            $this->publish('admin/dashboard/stats', $this->statsService->getStatsAsJson());
+        }
+
+        foreach ($this->pendingAlerts as $alert) {
+            $this->publishAlert($alert);
+        }
+        $this->pendingAlerts = [];
+
+        foreach ($this->pendingRoutes as $route) {
+            $this->publishRoute($route);
+        }
+        $this->pendingRoutes = [];
     }
 
     private function publishAlert(DriverAlert $alert): void
