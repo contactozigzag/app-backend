@@ -82,11 +82,13 @@ class AdminDashboardPublisher
         foreach ($this->pendingAlerts as $alert) {
             $this->publishAlert($alert);
         }
+
         $this->pendingAlerts = [];
 
         foreach ($this->pendingRoutes as $route) {
             $this->publishRoute($route);
         }
+
         $this->pendingRoutes = [];
     }
 
