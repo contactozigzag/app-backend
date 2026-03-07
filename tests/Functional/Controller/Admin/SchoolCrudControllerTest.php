@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller\Admin;
 
-use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Address;
 use App\Entity\School;
-use App\Tests\Factory\UserFactory;
 use App\Service\AddressGeocoder;
+use App\Tests\Factory\UserFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
@@ -74,7 +74,9 @@ final class SchoolCrudControllerTest extends WebTestCase
         $this->client->followRedirect();
 
         // Verify school was created
-        $school = $this->entityManager->getRepository(School::class)->findOneBy(['name' => 'Test Elementary School']);
+        $school = $this->entityManager->getRepository(School::class)->findOneBy([
+            'name' => 'Test Elementary School',
+        ]);
 
         $this->assertInstanceOf(School::class, $school, 'School should be created');
         $this->assertInstanceOf(Address::class, $school->getAddress(), 'School should have an address');
@@ -113,7 +115,9 @@ final class SchoolCrudControllerTest extends WebTestCase
         self::assertSelectorExists('.alert-danger, .flash-danger');
 
         // Verify school was NOT created
-        $school = $this->entityManager->getRepository(School::class)->findOneBy(['name' => 'Test School']);
+        $school = $this->entityManager->getRepository(School::class)->findOneBy([
+            'name' => 'Test School',
+        ]);
         $this->assertNotInstanceOf(School::class, $school, 'School should not be created with invalid address');
     }
 
