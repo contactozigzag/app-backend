@@ -4,40 +4,70 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Service\Admin\DashboardStatsService;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Override;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+use Symfony\UX\Chartjs\Model\Chart;
 
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {
+    public function __construct(
+        private readonly DashboardStatsService $statsService,
+        private readonly ChartBuilderInterface $chartBuilder,
+        #[Autowire(env: 'MERCURE_PUBLIC_URL')]
+        private readonly string $mercurePublicUrl,
+    ) {
+    }
+
     #[Override]
     public function index(): Response
     {
-        return parent::index();
+        $weeklyChart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
+        $weeklyChart->setData($this->statsService->getWeeklyRouteChartData());
+        $weeklyChart->setOptions([
+            'responsive' => true,
+            'plugins' => [
+                'legend' => [
+                    'position' => 'top',
+                ],
+            ],
+            'scales' => [
+                'x' => [
+                    'stacked' => true,
+                ],
+                'y' => [
+                    'stacked' => true,
+                    'beginAtZero' => true,
+                ],
+            ],
+        ]);
 
-        // Option 1. You can make your dashboard redirect to some common page of your backend
-        //
-        // 1.1) If you have enabled the "pretty URLs" feature:
-        // return $this->redirectToRoute('admin_user_index');
-        //
-        // 1.2) Same example but using the "ugly URLs" that were used in previous EasyAdmin versions:
-        // $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
-        // return $this->redirect($adminUrlGenerator->setController(OneOfYourCrudController::class)->generateUrl());
+        $alertChart = $this->chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
+        $alertChart->setData($this->statsService->getAlertChartData());
+        $alertChart->setOptions([
+            'responsive' => true,
+            'plugins' => [
+                'legend' => [
+                    'position' => 'right',
+                ],
+            ],
+        ]);
 
-        // Option 2. You can make your dashboard redirect to different pages depending on the user
-        //
-        // if ('jane' === $this->getUser()->getUsername()) {
-        //     return $this->redirectToRoute('...');
-        // }
-
-        // Option 3. You can render some custom template to display a proper dashboard with widgets, etc.
-        // (tip: it's easier if your template extends from @EasyAdmin/page/content.html.twig)
-        //
-        // return $this->render('some/path/my-dashboard.html.twig');
+        return $this->render('admin/dashboard/index.html.twig', [
+            'kpis' => $this->statsService->getPlatformKpis(),
+            'activeRoutes' => $this->statsService->getActiveRoutesNow(),
+            'openAlerts' => $this->statsService->getOpenAlerts(),
+            'weeklyChart' => $weeklyChart,
+            'alertChart' => $alertChart,
+            'mercurePublicUrl' => $this->mercurePublicUrl,
+        ]);
     }
 
     #[Override]
@@ -51,7 +81,6 @@ class DashboardController extends AbstractDashboardController
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
-        yield MenuItem::linkTo(AddressCrudController::class, 'Address', 'fas fa-address-book');
         yield MenuItem::linkTo(SchoolCrudController::class, 'School', 'fas fa-school');
         yield MenuItem::linkTo(UserCrudController::class, 'User', 'fas fa-user');
         yield MenuItem::linkTo(StudentCrudController::class, 'Student', 'fas fa-user-graduate');
