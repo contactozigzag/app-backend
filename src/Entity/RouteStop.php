@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Doctrine\Orm\Filter\ExactFilter;
+use ApiPlatform\Doctrine\Orm\Filter\IriFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -31,9 +31,9 @@ use Symfony\Component\Validator\Constraints as Assert;
     new GetCollection(
         uriTemplate: '/route-stops',
         parameters: [
-            'search[:property]' => new QueryParameter(
-                filter: new ExactFilter(),
-                properties: ['student']
+            'student' => new QueryParameter(
+                filter: new IriFilter(),
+                property: 'student',
             ),
         ]
     ),

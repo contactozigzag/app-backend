@@ -6,11 +6,35 @@ namespace App\Tests\Functional\Controller;
 
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\DriverFactory;
+use App\Tests\Factory\RouteStopFactory;
+use App\Tests\Factory\StudentFactory;
 use App\Tests\Factory\UserFactory;
 use Symfony\Component\HttpFoundation\Request;
 
 final class RouteStopControllerTest extends AbstractApiTestCase
 {
+    // ── GET /api/route-stops?student= — filter by student IRI ────────────────
+
+    public function testGetCollectionFilteredByStudent(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::createOne();
+        $student1 = StudentFactory::createOne();
+        $student2 = StudentFactory::createOne();
+        RouteStopFactory::new()->withStudent($student1)->create();
+        RouteStopFactory::new()->withStudent($student1)->create();
+        RouteStopFactory::new()->withStudent($student2)->create();
+        $this->loginUser($client, $driver->getUser());
+
+        $data = $this->getJson($client, '/api/route-stops?student=/api/students/' . $student1->getId());
+
+        self::assertResponseIsSuccessful();
+        $this->assertCount(2, $data);
+        foreach ($data as $stop) {
+            $this->assertSame('/api/students/' . $student1->getId(), $stop['student']);
+        }
+    }
+
     // ── POST /api/route-stops — authentication & validation ───────────────────
 
     public function testCreateRouteStopRequiresAuthentication(): void

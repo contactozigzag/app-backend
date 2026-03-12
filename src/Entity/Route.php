@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Doctrine\Orm\Filter\ExactFilter;
+use ApiPlatform\Doctrine\Orm\Filter\IriFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -40,9 +40,13 @@ use Symfony\Component\Validator\Constraints as Assert;
         new GetCollection(
             security: "is_granted('ROLE_USER')",
             parameters: [
-                'search[:property]' => new QueryParameter(
-                    filter: new ExactFilter(),
-                    properties: ['driver', 'school']
+                'driver' => new QueryParameter(
+                    filter: new IriFilter(),
+                    property: 'driver',
+                ),
+                'school' => new QueryParameter(
+                    filter: new IriFilter(),
+                    property: 'school',
                 ),
             ]
         ),
