@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use Deprecated;
-use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\IriFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Repository\VehicleRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -20,7 +19,15 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: VehicleRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(security: "is_granted('ROLE_SCHOOL_ADMIN') or is_granted('ROLE_DRIVER')"),
+        new GetCollection(
+            security: "is_granted('ROLE_SCHOOL_ADMIN') or is_granted('ROLE_DRIVER')",
+            parameters: [
+                'driver' => new QueryParameter(
+                    filter: new IriFilter(),
+                    property: 'driver',
+                ),
+            ],
+        ),
         new Get(security: "is_granted('ROLE_SCHOOL_ADMIN') or is_granted('ROLE_DRIVER')"),
         new Post(security: "is_granted('ROLE_SCHOOL_ADMIN') or is_granted('ROLE_DRIVER')"),
         new Patch(security: "is_granted('ROLE_SCHOOL_ADMIN') or is_granted('ROLE_DRIVER')"),
@@ -33,9 +40,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'groups' => ['vehicle:write'],
     ],
 )]
-#[ApiFilter(SearchFilter::class, properties: [
-    'driver' => 'exact',
-])]
 class Vehicle
 {
     #[ORM\Id]
@@ -186,13 +190,13 @@ class Vehicle
         return $this;
     }
 
-    #[Deprecated(message: 'Use getDriver() instead.')]
+    #[\Deprecated(message: 'Use getDriver() instead.')]
     public function getUser(): ?User
     {
         return $this->user;
     }
 
-    #[Deprecated(message: 'Use setDriver() instead.')]
+    #[\Deprecated(message: 'Use setDriver() instead.')]
     public function setUser(?User $user): static
     {
         $this->user = $user;

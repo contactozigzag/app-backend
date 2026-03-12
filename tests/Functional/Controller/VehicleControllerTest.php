@@ -47,7 +47,7 @@ final class VehicleControllerTest extends AbstractApiTestCase
         $this->assertArrayHasKey('driver', $data[0]);
     }
 
-    // ── GET /api/vehicles?driver=/api/drivers/{id} — filter by driver ────────
+    // ── GET /api/vehicles?driver=/api/drivers/{id} — filter by driver IRI ────
 
     public function testGetCollectionFilteredByDriver(): void
     {
