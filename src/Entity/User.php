@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use Stringable;
+use Deprecated;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -15,6 +15,7 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -110,6 +111,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
 
     /**
      * @var Collection<int, Vehicle>
+     * @deprecated Use Driver::$vehicles instead.
      */
     #[ORM\OneToMany(targetEntity: Vehicle::class, mappedBy: 'user')]
     private Collection $vehicles;
@@ -329,11 +331,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
     /**
      * @return Collection<int, Vehicle>
      */
+    #[Deprecated(message: 'Use Driver::getVehicles() instead.')]
     public function getVehicles(): Collection
     {
         return $this->vehicles;
     }
 
+    #[Deprecated(message: 'Use Driver::addVehicle() instead.')]
     public function addVehicle(Vehicle $vehicle): static
     {
         if (! $this->vehicles->contains($vehicle)) {
@@ -344,6 +348,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
         return $this;
     }
 
+    #[Deprecated(message: 'Use Driver::removeVehicle() instead.')]
     public function removeVehicle(Vehicle $vehicle): static
     {
         // set the owning side to null (unless already changed)

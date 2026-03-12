@@ -14,6 +14,8 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\QueryParameter;
 use App\Repository\DriverRepository;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -63,6 +65,13 @@ class Driver
     private ?string $nickname = null;
 
     /**
+     * @var Collection<int, Vehicle>
+     */
+    #[ORM\OneToMany(targetEntity: Vehicle::class, mappedBy: 'driver')]
+    #[Groups(['driver:read'])]
+    private Collection $vehicles;
+
+    /**
      * Encrypted MP access token (XSalsa20-Poly1305 via TokenEncryptor).
      */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -85,6 +94,11 @@ class Driver
      */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $mpTokenExpiresAt = null;
+
+    public function __construct()
+    {
+        $this->vehicles = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -171,6 +185,33 @@ class Driver
     public function setMpTokenExpiresAt(?DateTimeImmutable $mpTokenExpiresAt): static
     {
         $this->mpTokenExpiresAt = $mpTokenExpiresAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vehicle>
+     */
+    public function getVehicles(): Collection
+    {
+        return $this->vehicles;
+    }
+
+    public function addVehicle(Vehicle $vehicle): static
+    {
+        if (! $this->vehicles->contains($vehicle)) {
+            $this->vehicles->add($vehicle);
+            $vehicle->setDriver($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVehicle(Vehicle $vehicle): static
+    {
+        if ($this->vehicles->removeElement($vehicle) && $vehicle->getDriver() === $this) {
+            $vehicle->setDriver(null);
+        }
 
         return $this;
     }

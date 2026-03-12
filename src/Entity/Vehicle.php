@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use Deprecated;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -30,6 +33,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'groups' => ['vehicle:write'],
     ],
 )]
+#[ApiFilter(SearchFilter::class, properties: [
+    'driver' => 'exact',
+])]
 class Vehicle
 {
     #[ORM\Id]
@@ -66,9 +72,17 @@ class Vehicle
     #[Groups(['vehicle:read', 'vehicle:write'])]
     private ?string $type = null;
 
-    #[ORM\ManyToOne(inversedBy: 'vehicles')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Driver::class, inversedBy: 'vehicles')]
+    #[ORM\JoinColumn(nullable: true)]
     #[Groups(['vehicle:read', 'vehicle:write'])]
+    private ?Driver $driver = null;
+
+    /**
+     * @deprecated Use $driver instead. Kept for backward compatibility during migration.
+     */
+    #[ORM\ManyToOne(inversedBy: 'vehicles')]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['vehicle:read'])]
     private ?User $user = null;
 
     public function getId(): ?int
@@ -160,11 +174,25 @@ class Vehicle
         return $this;
     }
 
+    public function getDriver(): ?Driver
+    {
+        return $this->driver;
+    }
+
+    public function setDriver(?Driver $driver): static
+    {
+        $this->driver = $driver;
+
+        return $this;
+    }
+
+    #[Deprecated(message: 'Use getDriver() instead.')]
     public function getUser(): ?User
     {
         return $this->user;
     }
 
+    #[Deprecated(message: 'Use setDriver() instead.')]
     public function setUser(?User $user): static
     {
         $this->user = $user;
