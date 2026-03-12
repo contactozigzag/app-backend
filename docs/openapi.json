@@ -5030,9 +5030,9 @@
                         "explode": false
                     },
                     {
-                        "name": "search[driver][]",
+                        "name": "driver[]",
                         "in": "query",
-                        "description": "Route search[driver]",
+                        "description": "Route driver",
                         "required": false,
                         "deprecated": false,
                         "schema": {
@@ -5045,9 +5045,9 @@
                         "explode": true
                     },
                     {
-                        "name": "search[school][]",
+                        "name": "school[]",
                         "in": "query",
-                        "description": "Route search[school]",
+                        "description": "Route school",
                         "required": false,
                         "deprecated": false,
                         "schema": {
@@ -6111,9 +6111,9 @@
                         "explode": false
                     },
                     {
-                        "name": "search[student][]",
+                        "name": "student[]",
                         "in": "query",
-                        "description": "RouteStop search[student]",
+                        "description": "RouteStop student",
                         "required": false,
                         "deprecated": false,
                         "schema": {
@@ -10491,6 +10491,21 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "name": "driver[]",
+                        "in": "query",
+                        "description": "Vehicle driver",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     }
                 ]
             },
@@ -14404,6 +14419,14 @@
                     "nickname": {
                         "type": "string"
                     },
+                    "vehicles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
                     "mpAccessToken": {
                         "description": "Encrypted MP access token (XSalsa20-Poly1305 via TokenEncryptor).",
                         "type": [
@@ -14458,6 +14481,14 @@
                     },
                     "nickname": {
                         "type": "string"
+                    },
+                    "vehicles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
                     }
                 }
             },
@@ -14495,6 +14526,14 @@
                     },
                     "nickname": {
                         "type": "string"
+                    },
+                    "vehicles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
                     },
                     "mpAccessToken": {
                         "description": "Encrypted MP access token (XSalsa20-Poly1305 via TokenEncryptor).",
@@ -14550,6 +14589,14 @@
                     },
                     "nickname": {
                         "type": "string"
+                    },
+                    "vehicles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
                     }
                 }
             },
@@ -14573,6 +14620,14 @@
                     },
                     "nickname": {
                         "type": "string"
+                    },
+                    "vehicles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
                     },
                     "mpAccessToken": {
                         "description": "Encrypted MP access token (XSalsa20-Poly1305 via TokenEncryptor).",
@@ -14628,6 +14683,14 @@
                     },
                     "nickname": {
                         "type": "string"
+                    },
+                    "vehicles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
                     }
                 }
             },
@@ -14651,6 +14714,14 @@
                     },
                     "nickname": {
                         "type": "string"
+                    },
+                    "vehicles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
                     },
                     "mpAccessToken": {
                         "description": "Encrypted MP access token (XSalsa20-Poly1305 via TokenEncryptor).",
@@ -14714,6 +14785,14 @@
                             "nickname": {
                                 "type": "string"
                             },
+                            "vehicles": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "iri-reference",
+                                    "example": "https://example.com/"
+                                }
+                            },
                             "mpAccessToken": {
                                 "description": "Encrypted MP access token (XSalsa20-Poly1305 via TokenEncryptor).",
                                 "type": [
@@ -14775,6 +14854,14 @@
                             },
                             "nickname": {
                                 "type": "string"
+                            },
+                            "vehicles": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "iri-reference",
+                                    "example": "https://example.com/"
+                                }
                             }
                         }
                     }
@@ -22724,8 +22811,19 @@
                             "null"
                         ]
                     },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
                     "user": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     }
@@ -22764,8 +22862,11 @@
                             "null"
                         ]
                     },
-                    "user": {
-                        "type": "string",
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     }
@@ -22804,8 +22905,11 @@
                             "null"
                         ]
                     },
-                    "user": {
-                        "type": "string",
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     }
@@ -22848,8 +22952,19 @@
                             "null"
                         ]
                     },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
                     "user": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     }
@@ -22892,8 +23007,19 @@
                             "null"
                         ]
                     },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
                     "user": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     }
@@ -22941,8 +23067,19 @@
                                     "null"
                                 ]
                             },
+                            "driver": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
                             "user": {
-                                "type": "string",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
                                 "format": "iri-reference",
                                 "example": "https://example.com/"
                             }
