@@ -20,7 +20,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new GetCollection(
-            security: "is_granted('ROLE_SCHOOL_ADMIN') or is_granted('ROLE_DRIVER')",
+            security: "is_granted('ROLE_SCHOOL_ADMIN') or is_granted('ROLE_DRIVER') or is_granted('ROLE_PARENT')",
             parameters: [
                 'driver' => new QueryParameter(
                     filter: new IriFilter(),

@@ -22,15 +22,30 @@ final class VehicleControllerTest extends AbstractApiTestCase
         self::assertResponseStatusCodeSame(401);
     }
 
-    public function testGetCollectionRequiresDriverOrAdminRole(): void
+    public function testGetCollectionForbiddenForUnprivilegedRole(): void
     {
         $client = $this->createApiClient();
-        $user = UserFactory::createOne(); // ROLE_PARENT — not ROLE_DRIVER
+        // ROLE_USER has no parent/driver/admin privileges
+        $user = UserFactory::new()->with(['roles' => []])->create();
         $this->loginUser($client, $user);
 
         $this->getJson($client, '/api/vehicles');
 
         self::assertResponseStatusCodeSame(403);
+    }
+
+    public function testGetCollectionAsParentReturnsVehicles(): void
+    {
+        $client = $this->createApiClient();
+        $parent = UserFactory::createOne(); // ROLE_PARENT by default
+        $driver = DriverFactory::createOne();
+        VehicleFactory::new()->withDriver($driver)->create();
+        $this->loginUser($client, $parent);
+
+        $data = $this->getJson($client, '/api/vehicles');
+
+        self::assertResponseIsSuccessful();
+        $this->assertNotEmpty($data);
     }
 
     public function testGetCollectionAsDriverReturnsVehicles(): void
