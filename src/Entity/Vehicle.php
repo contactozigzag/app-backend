@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use Deprecated;
 use ApiPlatform\Doctrine\Orm\Filter\IriFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -190,13 +191,13 @@ class Vehicle
         return $this;
     }
 
-    #[\Deprecated(message: 'Use getDriver() instead.')]
+    #[Deprecated(message: 'Use getDriver() instead.')]
     public function getUser(): ?User
     {
         return $this->user;
     }
 
-    #[\Deprecated(message: 'Use setDriver() instead.')]
+    #[Deprecated(message: 'Use setDriver() instead.')]
     public function setUser(?User $user): static
     {
         $this->user = $user;
