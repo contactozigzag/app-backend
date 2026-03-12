@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller;
 
+use App\Entity\User;
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\DriverFactory;
 use App\Tests\Factory\UserFactory;
@@ -39,7 +40,7 @@ final class DriverControllerTest extends AbstractApiTestCase
         $this->assertIsArray($data['user']);
 
         $user = $driver->getUser();
-        self::assertNotNull($user);
+        $this->assertInstanceOf(User::class, $user);
         $this->assertSame($user->getFirstName(), $data['user']['firstName']);
         $this->assertSame($user->getLastName(), $data['user']['lastName']);
         $this->assertSame($user->getIdentificationNumber(), $data['user']['identificationNumber']);

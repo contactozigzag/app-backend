@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Entity\User;
 use App\Service\Admin\DashboardStatsService;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -94,7 +95,7 @@ class DashboardController extends AbstractDashboardController
     #[Override]
     public function configureUserMenu(UserInterface $user): UserMenu
     {
-        /** @var \App\Entity\User $user */
+        /** @var User $user */
         return parent::configureUserMenu($user)
             ->setName($user->getFullName())
             ->setGravatarEmail((string) $user->getEmail())
