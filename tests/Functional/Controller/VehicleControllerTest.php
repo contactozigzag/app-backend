@@ -26,7 +26,9 @@ final class VehicleControllerTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
         // ROLE_USER has no parent/driver/admin privileges
-        $user = UserFactory::new()->with(['roles' => []])->create();
+        $user = UserFactory::new()->with([
+            'roles' => [],
+        ])->create();
         $this->loginUser($client, $user);
 
         $this->getJson($client, '/api/vehicles');
