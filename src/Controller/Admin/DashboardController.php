@@ -91,6 +91,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(RouteStopCrudController::class, 'Route Stop', 'fas fa-location-dot');
     }
 
+    #[Override]
     public function configureUserMenu(UserInterface $user): UserMenu
     {
         return parent::configureUserMenu($user)
@@ -103,5 +104,4 @@ class DashboardController extends AbstractDashboardController
                 MenuItem::linkToLogout('Logout', 'fa fa-sign-out'),
             ])*/;
     }
-
 }

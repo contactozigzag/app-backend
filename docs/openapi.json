@@ -2879,22 +2879,22 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Driver.jsonld"
+                                    "$ref": "#/components/schemas/Driver.jsonld-driver.read_driver.item.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Driver"
+                                    "$ref": "#/components/schemas/Driver-driver.read_driver.item.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Driver.html"
+                                    "$ref": "#/components/schemas/Driver.html-driver.read_driver.item.read"
                                 }
                             },
                             "text/csv": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Driver.csv"
+                                    "$ref": "#/components/schemas/Driver.csv-driver.read_driver.item.read"
                                 }
                             }
                         }
@@ -14435,7 +14435,29 @@
                     },
                     "mpAuthorized": {
                         "readOnly": true,
-                        "description": "Returns true once the driver has completed the OAuth flow."
+                        "description": "Returns true once the driver has completed the OAuth flow.",
+                        "type": "boolean"
+                    }
+                }
+            },
+            "Driver-driver.read_driver.item.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User-driver.read_driver.item.read"
+                    },
+                    "licenseNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "nickname": {
+                        "type": "string"
                     }
                 }
             },
@@ -14505,7 +14527,29 @@
                     },
                     "mpAuthorized": {
                         "readOnly": true,
-                        "description": "Returns true once the driver has completed the OAuth flow."
+                        "description": "Returns true once the driver has completed the OAuth flow.",
+                        "type": "boolean"
+                    }
+                }
+            },
+            "Driver.csv-driver.read_driver.item.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User.csv-driver.read_driver.item.read"
+                    },
+                    "licenseNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "nickname": {
+                        "type": "string"
                     }
                 }
             },
@@ -14561,7 +14605,29 @@
                     },
                     "mpAuthorized": {
                         "readOnly": true,
-                        "description": "Returns true once the driver has completed the OAuth flow."
+                        "description": "Returns true once the driver has completed the OAuth flow.",
+                        "type": "boolean"
+                    }
+                }
+            },
+            "Driver.html-driver.read_driver.item.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User.html-driver.read_driver.item.read"
+                    },
+                    "licenseNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "nickname": {
+                        "type": "string"
                     }
                 }
             },
@@ -14617,7 +14683,8 @@
                     },
                     "mpAuthorized": {
                         "readOnly": true,
-                        "description": "Returns true once the driver has completed the OAuth flow."
+                        "description": "Returns true once the driver has completed the OAuth flow.",
+                        "type": "boolean"
                     }
                 }
             },
@@ -14678,7 +14745,36 @@
                             },
                             "mpAuthorized": {
                                 "readOnly": true,
-                                "description": "Returns true once the driver has completed the OAuth flow."
+                                "description": "Returns true once the driver has completed the OAuth flow.",
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                ]
+            },
+            "Driver.jsonld-driver.read_driver.item.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "user": {
+                                "$ref": "#/components/schemas/User.jsonld-driver.read_driver.item.read"
+                            },
+                            "licenseNumber": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "nickname": {
+                                "type": "string"
                             }
                         }
                     }
@@ -20859,7 +20955,8 @@
                         "format": "date-time"
                     },
                     "dueForBilling": {
-                        "readOnly": true
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -21205,7 +21302,8 @@
                         "format": "date-time"
                     },
                     "dueForBilling": {
-                        "readOnly": true
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -21502,7 +21600,8 @@
                         "format": "date-time"
                     },
                     "dueForBilling": {
-                        "readOnly": true
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -21804,7 +21903,8 @@
                                 "format": "date-time"
                             },
                             "dueForBilling": {
-                                "readOnly": true
+                                "readOnly": true,
+                                "type": "boolean"
                             }
                         },
                         "required": [
@@ -22108,6 +22208,30 @@
                 ],
                 "description": "Virtual resource for listing unconfirmed route stops assigned to a driver.\n\nThe ROLE_DRIVER check is performed inside the provider (before any DB queries)\nbecause AP4 evaluates `security:` after the provider returns for GET operations."
             },
+            "User-driver.read_driver.item.read": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "phoneNumber": {
+                        "type": "string"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
+            },
             "User-user.read": {
                 "type": "object",
                 "properties": {
@@ -22297,6 +22421,30 @@
                     }
                 }
             },
+            "User.csv-driver.read_driver.item.read": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "phoneNumber": {
+                        "type": "string"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
+            },
             "User.csv-user.read": {
                 "type": "object",
                 "properties": {
@@ -22351,6 +22499,30 @@
                         ],
                         "format": "iri-reference",
                         "example": "https://example.com/"
+                    }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
+            },
+            "User.html-driver.read_driver.item.read": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "phoneNumber": {
+                        "type": "string"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
                     }
                 },
                 "required": [
@@ -22415,6 +22587,37 @@
                 },
                 "required": [
                     "identificationNumber"
+                ]
+            },
+            "User.jsonld-driver.read_driver.item.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "email": {
+                                "type": "string"
+                            },
+                            "firstName": {
+                                "type": "string"
+                            },
+                            "lastName": {
+                                "type": "string"
+                            },
+                            "phoneNumber": {
+                                "type": "string"
+                            },
+                            "identificationNumber": {
+                                "pattern": "^(\\d{8,10})$",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "identificationNumber"
+                        ]
+                    }
                 ]
             },
             "User.jsonld-user.read": {

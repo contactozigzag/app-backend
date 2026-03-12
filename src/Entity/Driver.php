@@ -21,7 +21,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: DriverRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(security: "is_granted('ROLE_USER')"),
+        new Get(
+            normalizationContext: [
+                'groups' => ['driver:read', 'driver:item:read'],
+            ],
+            security: "is_granted('ROLE_USER')",
+        ),
         new GetCollection(
             security: "is_granted('ROLE_USER')",
             parameters: [
@@ -41,10 +46,12 @@ class Driver
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['driver:read'])]
     private ?int $id = null;
 
     #[ORM\OneToOne(inversedBy: 'driver', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['driver:item:read'])]
     private ?User $user = null;
 
     #[ORM\Column(length: 50, nullable: true)]

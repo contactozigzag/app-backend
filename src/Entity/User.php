@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use Stringable;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -38,7 +39,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         'groups' => ['user:write'],
     ]
 )]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -47,7 +48,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Groups(['user:read', 'user:write', 'driver:item:read'])]
     private ?string $email = null;
 
     /**
@@ -81,19 +82,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $students;
 
     #[ORM\Column(length: 80)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Groups(['user:read', 'user:write', 'driver:item:read'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 80)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Groups(['user:read', 'user:write', 'driver:item:read'])]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Groups(['user:read', 'user:write', 'driver:item:read'])]
     private ?string $phoneNumber = null;
 
     #[ORM\Column(length: 10, unique: true)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Groups(['user:read', 'user:write', 'driver:item:read'])]
     #[Assert\NotBlank]
     #[Assert\Regex(pattern: '/^\d{8,10}$/', message: 'Identification number must be 8 to 10 digits.')]
     private ?string $identificationNumber = null;
