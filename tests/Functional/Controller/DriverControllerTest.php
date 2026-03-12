@@ -37,11 +37,14 @@ final class DriverControllerTest extends AbstractApiTestCase
 
         $this->assertArrayHasKey('user', $data);
         $this->assertIsArray($data['user']);
-        $this->assertSame($driver->getUser()->getFirstName(), $data['user']['firstName']);
-        $this->assertSame($driver->getUser()->getLastName(), $data['user']['lastName']);
-        $this->assertSame($driver->getUser()->getIdentificationNumber(), $data['user']['identificationNumber']);
-        $this->assertSame($driver->getUser()->getEmail(), $data['user']['email']);
-        $this->assertSame($driver->getUser()->getPhoneNumber(), $data['user']['phoneNumber']);
+
+        $user = $driver->getUser();
+        self::assertNotNull($user);
+        $this->assertSame($user->getFirstName(), $data['user']['firstName']);
+        $this->assertSame($user->getLastName(), $data['user']['lastName']);
+        $this->assertSame($user->getIdentificationNumber(), $data['user']['identificationNumber']);
+        $this->assertSame($user->getEmail(), $data['user']['email']);
+        $this->assertSame($user->getPhoneNumber(), $data['user']['phoneNumber']);
     }
 
     public function testGetDriverUserDoesNotExposeOtherUserFields(): void

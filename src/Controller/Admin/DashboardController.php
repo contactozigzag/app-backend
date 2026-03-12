@@ -94,9 +94,10 @@ class DashboardController extends AbstractDashboardController
     #[Override]
     public function configureUserMenu(UserInterface $user): UserMenu
     {
+        /** @var \App\Entity\User $user */
         return parent::configureUserMenu($user)
             ->setName($user->getFullName())
-            ->setGravatarEmail($user->getEmail())
+            ->setGravatarEmail((string) $user->getEmail())
            /* ->addMenuItems([
                 MenuItem::linkToRoute('My Profile', 'fa fa-id-card', '...', ['...' => '...']),
                 MenuItem::linkToRoute('Settings', 'fa fa-user-cog', '...', ['...' => '...']),
