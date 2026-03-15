@@ -18,7 +18,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
     new Get(
         uriTemplate: '/users/{userId}/addresses',
         uriVariables: [
-            'userId' => new Link(fromClass: User::class, fromProperty: 'address'),
+            'userId' => new Link(fromProperty: 'address', fromClass: User::class),
         ],
         normalizationContext: [
             'groups' => ['address:read'],
