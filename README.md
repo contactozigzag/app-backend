@@ -506,10 +506,11 @@ Refresh tokens are automatically invalidated on logout for the `api_token_refres
 - `DELETE /api/users/{id}` — Delete
 
 #### Students
-- `GET /api/students` — List (filtered by school)
-- `POST /api/students` — Create (admin only)
-- `PATCH /api/students/{id}` — Update
-- `DELETE /api/students/{id}` — Delete (admin only)
+- `GET /api/students` — List; scoped by role: school admin sees all, parent sees own children, driver sees students on their assigned routes
+- `GET /api/students/{id}` — Accessible to: parents of the student, school admins, or drivers whose routes include a stop for that student
+- `POST /api/students` — Create (parent)
+- `PATCH /api/students/{id}` — Update (parent of student or school admin)
+- `DELETE /api/students/{id}` — Delete (parent of student or school admin)
 
 #### Routes
 - `GET /api/routes` — List (filtered by school)

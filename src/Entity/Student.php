@@ -33,7 +33,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
             provider: StudentCollectionProvider::class,
         ),
         new Get(
-            security: "is_granted('ROLE_USER') and (object.getParents().contains(user) or is_granted('ROLE_SCHOOL_ADMIN'))",
+            security: "is_granted('ROLE_USER') and is_granted('STUDENT_VIEW', object)",
         ),
         new Post(
             security: "is_granted('ROLE_PARENT')",
@@ -71,7 +71,7 @@ class Student
 
     #[ORM\ManyToOne(inversedBy: 'students')]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['student:read'])]
+    #[Groups(['student:read', 'student:write'])]
     private ?School $school = null;
 
     #[ORM\Column(length: 10, unique: true)]

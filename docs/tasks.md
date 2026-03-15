@@ -56,6 +56,13 @@
 - Update route optimization to filter by isActive AND isConfirmed.
 - Link: Plan P2.3 | Req 2.4
 
+[x] **Task 2.6.1: Driver Student Access**
+- Grant drivers read access to students that have a route stop on any of their assigned routes.
+- `GET /api/students` — `StudentCollectionProvider` returns driver's route students.
+- `GET /api/students/{id}` — `StudentVoter` (STUDENT_VIEW) allows access when student is on a driver route.
+- `RouteStopRepository::existsForStudentAndDriver()` — single-query existence check.
+- Link: Plan P2.3 | Req 2.4
+
 [x] **Task 2.7: RouteStop Entity Enhancement**
 - Add isConfirmed boolean field to RouteStop entity (default: false).
 - Create database migration for new field.

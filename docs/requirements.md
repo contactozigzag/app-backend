@@ -70,10 +70,14 @@ The School Transportation Management System is designed to streamline and secure
     - WHEN a driver confirms a route stop THEN the system SHALL set isConfirmed to true.
     - WHEN a driver rejects a route stop THEN the system SHALL set isActive to false and isConfirmed to false.
     - WHEN optimization is performed THEN the system SHALL only include stops with isActive=true AND isConfirmed=true.
+    - WHEN a driver requests a student's details THEN the system SHALL grant access if that student has a route stop on any route assigned to the driver.
+    - WHEN a driver lists students THEN the system SHALL return only students with a stop on their assigned routes.
 - **Endpoints**:
     - GET /api/route-stops/unconfirmed
     - PATCH /api/route-stops/{id}/confirm
     - PATCH /api/route-stops/{id}/reject
+    - GET /api/students — returns driver's route students only
+    - GET /api/students/{id} — accessible if student is on driver's route
 
 2.5 **Dynamic Route Adjustments**
 - **User Story**: As a driver, I want to receive updated routes based on real-time traffic or student absences so that I can avoid unnecessary stops.

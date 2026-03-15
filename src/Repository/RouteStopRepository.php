@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Driver;
 use App\Entity\Route;
 use App\Entity\RouteStop;
 use App\Entity\Student;
@@ -72,6 +73,20 @@ class RouteStopRepository extends ServiceEntityRepository
             ->setParameter('active', true)
             ->getQuery()
             ->getResult();
+    }
+
+    public function existsForStudentAndDriver(Student $student, Driver $driver): bool
+    {
+        return (bool) $this->createQueryBuilder('rs')
+            ->select('1')
+            ->join('rs.route', 'r')
+            ->andWhere('rs.student = :student')
+            ->andWhere('r.driver = :driver')
+            ->setParameter('student', $student)
+            ->setParameter('driver', $driver)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     /**

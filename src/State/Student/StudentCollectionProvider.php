@@ -16,7 +16,8 @@ use Symfony\Bundle\SecurityBundle\Security;
  *
  * - ROLE_SCHOOL_ADMIN / ROLE_SUPER_ADMIN: all students (SchoolFilter scopes by school)
  * - ROLE_PARENT: only students where the user is a parent
- * - Others (ROLE_DRIVER, etc.): empty collection
+ * - ROLE_DRIVER: students with a route stop on any of the driver's routes
+ * - Others: empty collection
  *
  * @implements ProviderInterface<Student>
  */
@@ -45,6 +46,25 @@ final readonly class StudentCollectionProvider implements ProviderInterface
                 'SELECT s FROM App\Entity\Student s JOIN s.parents p WHERE p = :user'
             )
                 ->setParameter('user', $user)
+                ->getResult();
+        }
+
+        if ($this->security->isGranted('ROLE_DRIVER')) {
+            /** @var User $user */
+            $user = $this->security->getUser();
+            $driver = $user->getDriver();
+
+            if ($driver === null) {
+                return [];
+            }
+
+            return $this->entityManager->createQuery(
+                'SELECT DISTINCT s FROM App\Entity\Student s
+                 JOIN App\Entity\RouteStop rs WITH rs.student = s
+                 JOIN rs.route r
+                 WHERE r.driver = :driver'
+            )
+                ->setParameter('driver', $driver)
                 ->getResult();
         }
 
