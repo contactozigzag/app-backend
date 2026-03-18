@@ -36,11 +36,11 @@ final class UserControllerTest extends AbstractApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(201);
-        self::assertArrayHasKey('driver', $data);
-        self::assertIsArray($data['driver']);
-        self::assertArrayHasKey('id', $data['driver']);
-        self::assertSame('JohnnyD', $data['driver']['nickname']);
-        self::assertSame('LIC-001', $data['driver']['licenseNumber']);
+        $this->assertArrayHasKey('driver', $data);
+        $this->assertIsArray($data['driver']);
+        $this->assertArrayHasKey('id', $data['driver']);
+        $this->assertSame('JohnnyD', $data['driver']['nickname']);
+        $this->assertSame('LIC-001', $data['driver']['licenseNumber']);
     }
 
     public function testRegisterUserWithoutDriverDoesNotCreateDriverEntity(): void
@@ -60,7 +60,7 @@ final class UserControllerTest extends AbstractApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(201);
-        self::assertNull($data['driver'] ?? null);
+        $this->assertNull($data['driver'] ?? null);
     }
 
     // ── PATCH /api/users/{id} — add driver to existing user ─────────────────
@@ -68,7 +68,9 @@ final class UserControllerTest extends AbstractApiTestCase
     public function testPatchUserAddsNestedDriver(): void
     {
         $client = $this->createApiClient();
-        $user = UserFactory::new()->with(['roles' => ['ROLE_DRIVER']])->create();
+        $user = UserFactory::new()->with([
+            'roles' => ['ROLE_DRIVER'],
+        ])->create();
         $this->loginUser($client, $user);
 
         $client->request(Request::METHOD_PATCH, '/api/users/' . $user->getId(), [], [], [
@@ -85,11 +87,11 @@ final class UserControllerTest extends AbstractApiTestCase
 
         $data = json_decode((string) $client->getResponse()->getContent(), true) ?? [];
 
-        self::assertArrayHasKey('driver', $data);
-        self::assertIsArray($data['driver']);
-        self::assertArrayHasKey('id', $data['driver']);
-        self::assertSame('PatchedNick', $data['driver']['nickname']);
-        self::assertSame('LIC-PATCH', $data['driver']['licenseNumber']);
+        $this->assertArrayHasKey('driver', $data);
+        $this->assertIsArray($data['driver']);
+        $this->assertArrayHasKey('id', $data['driver']);
+        $this->assertSame('PatchedNick', $data['driver']['nickname']);
+        $this->assertSame('LIC-PATCH', $data['driver']['licenseNumber']);
     }
 
     // ── PATCH /api/users/{id} — update existing driver fields ───────────────
@@ -119,7 +121,7 @@ final class UserControllerTest extends AbstractApiTestCase
         $userId = $createData['id'];
 
         // Login as the new user
-        $user = static::getContainer()->get('doctrine')->getRepository(User::class)->find($userId);
+        $user = self::getContainer()->get('doctrine')->getRepository(User::class)->find($userId);
         $this->loginUser($client, $user);
 
         // Patch only the nickname
@@ -136,9 +138,9 @@ final class UserControllerTest extends AbstractApiTestCase
 
         $data = json_decode((string) $client->getResponse()->getContent(), true) ?? [];
 
-        self::assertIsArray($data['driver']);
-        self::assertSame('MikeyUpdated', $data['driver']['nickname']);
-        self::assertSame('LIC-ORIG', $data['driver']['licenseNumber'], 'Unpatched fields should remain unchanged');
+        $this->assertIsArray($data['driver']);
+        $this->assertSame('MikeyUpdated', $data['driver']['nickname']);
+        $this->assertSame('LIC-ORIG', $data['driver']['licenseNumber'], 'Unpatched fields should remain unchanged');
     }
 
     // ── GET /api/users/{id} — driver embedded ───────────────────────────────
@@ -148,16 +150,17 @@ final class UserControllerTest extends AbstractApiTestCase
         $client = $this->createApiClient();
         $driver = DriverFactory::createOne();
         $user = $driver->getUser();
+        $this->assertInstanceOf(User::class, $user);
         $this->loginUser($client, $user);
 
         $data = $this->getJson($client, '/api/users/' . $user->getId());
 
         self::assertResponseIsSuccessful();
-        self::assertArrayHasKey('driver', $data);
-        self::assertIsArray($data['driver']);
-        self::assertSame($driver->getId(), $data['driver']['id']);
-        self::assertSame($driver->getNickname(), $data['driver']['nickname']);
-        self::assertSame($driver->getLicenseNumber(), $data['driver']['licenseNumber']);
+        $this->assertArrayHasKey('driver', $data);
+        $this->assertIsArray($data['driver']);
+        $this->assertSame($driver->getId(), $data['driver']['id']);
+        $this->assertSame($driver->getNickname(), $data['driver']['nickname']);
+        $this->assertSame($driver->getLicenseNumber(), $data['driver']['licenseNumber']);
     }
 
     // ── GET /api/users — driver is IRI in collection ────────────────────────
@@ -166,26 +169,22 @@ final class UserControllerTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
         $driver = DriverFactory::createOne();
-        $admin = UserFactory::new()->with(['roles' => ['ROLE_SCHOOL_ADMIN']])->create();
+        $driverOwner = $driver->getUser();
+        $this->assertInstanceOf(User::class, $driverOwner);
+        $admin = UserFactory::new()->with([
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
+        ])->create();
         $this->loginUser($client, $admin);
 
         $data = $this->getJson($client, '/api/users');
 
         self::assertResponseIsSuccessful();
-        self::assertNotEmpty($data);
+        $this->assertNotEmpty($data);
+        $driverUser = array_find($data, fn ($item): bool => ($item['email'] ?? null) === $driverOwner->getEmail());
 
-        // Find the driver user in the collection
-        $driverUser = null;
-        foreach ($data as $item) {
-            if (($item['email'] ?? null) === $driver->getUser()->getEmail()) {
-                $driverUser = $item;
-                break;
-            }
-        }
-
-        self::assertNotNull($driverUser, 'Driver user should appear in collection');
-        self::assertArrayHasKey('driver', $driverUser);
-        self::assertIsString($driverUser['driver'], 'Driver should be an IRI string in collection');
-        self::assertStringStartsWith('/api/drivers/', $driverUser['driver']);
+        $this->assertNotNull($driverUser, 'Driver user should appear in collection');
+        $this->assertArrayHasKey('driver', $driverUser);
+        $this->assertIsString($driverUser['driver'], 'Driver should be an IRI string in collection');
+        $this->assertStringStartsWith('/api/drivers/', $driverUser['driver']);
     }
 }

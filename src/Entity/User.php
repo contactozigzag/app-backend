@@ -28,16 +28,22 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new Post(
-            normalizationContext: ['groups' => ['user:read', 'user:item:read']],
+            normalizationContext: [
+                'groups' => ['user:read', 'user:item:read'],
+            ],
             security: 'is_granted("PUBLIC_ACCESS")',
         ),
         new Get(
-            normalizationContext: ['groups' => ['user:read', 'user:item:read']],
+            normalizationContext: [
+                'groups' => ['user:read', 'user:item:read'],
+            ],
             security: 'is_granted("IS_AUTHENTICATED_FULLY") and (object == user or is_granted("ROLE_SCHOOL_ADMIN"))',
         ),
         new GetCollection(security: 'is_granted("ROLE_SCHOOL_ADMIN")'),
         new Patch(
-            normalizationContext: ['groups' => ['user:read', 'user:item:read']],
+            normalizationContext: [
+                'groups' => ['user:read', 'user:item:read'],
+            ],
             security: 'is_granted("IS_AUTHENTICATED_FULLY") and (object == user or is_granted("ROLE_SCHOOL_ADMIN"))',
         ),
         new Delete(security: 'is_granted("IS_AUTHENTICATED_FULLY") and (object == user or is_granted("ROLE_SCHOOL_ADMIN"))'),

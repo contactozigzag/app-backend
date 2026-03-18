@@ -109,8 +109,8 @@ final class DriverControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/api/drivers?nickname=Alpha');
 
         self::assertResponseIsSuccessful();
-        self::assertCount(1, $data);
-        self::assertSame('AlphaDriver', $data[0]['nickname']);
+        $this->assertCount(1, $data);
+        $this->assertSame('AlphaDriver', $data[0]['nickname']);
     }
 
     public function testSearchByNicknamePrefixIsCaseInsensitive(): void
@@ -127,8 +127,8 @@ final class DriverControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/api/drivers?nickname=alpha');
 
         self::assertResponseIsSuccessful();
-        self::assertCount(1, $data);
-        self::assertSame('AlphaDriver', $data[0]['nickname']);
+        $this->assertCount(1, $data);
+        $this->assertSame('AlphaDriver', $data[0]['nickname']);
     }
 
     public function testSearchByNicknameNoMatchReturnsEmpty(): void
@@ -142,7 +142,7 @@ final class DriverControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/api/drivers?nickname=Zzzzz');
 
         self::assertResponseIsSuccessful();
-        self::assertCount(0, $data);
+        $this->assertCount(0, $data);
     }
 
     public function testSearchByNicknameSubstringDoesNotMatch(): void
@@ -157,7 +157,7 @@ final class DriverControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/api/drivers?nickname=Driver');
 
         self::assertResponseIsSuccessful();
-        self::assertCount(0, $data);
+        $this->assertCount(0, $data);
     }
 
     public function testSearchByNicknameWithoutFilterReturnsAll(): void
@@ -174,6 +174,6 @@ final class DriverControllerTest extends AbstractApiTestCase
         $data = $this->getJson($client, '/api/drivers');
 
         self::assertResponseIsSuccessful();
-        self::assertCount(2, $data);
+        $this->assertCount(2, $data);
     }
 }
