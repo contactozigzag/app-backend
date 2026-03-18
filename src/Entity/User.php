@@ -122,6 +122,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
 
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     #[Groups(['user:read', 'user:write'])]
+    #[Assert\Valid]
     private ?Driver $driver = null;
 
     /**

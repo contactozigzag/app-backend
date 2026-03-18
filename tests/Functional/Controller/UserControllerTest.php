@@ -63,6 +63,40 @@ final class UserControllerTest extends AbstractApiTestCase
         $this->assertNull($data['driver'] ?? null);
     }
 
+    public function testRegisterDriverWithDuplicateNicknameReturns422(): void
+    {
+        $client = $this->createApiClient();
+        $school = SchoolFactory::createOne();
+
+        // Create a driver with nickname 'JohnnyD'
+        DriverFactory::new()->with([
+            'nickname' => 'JohnnyD',
+        ])->create();
+
+        $data = $this->postJson($client, '/api/users', [
+            'email' => 'driver2@example.com',
+            'plainPassword' => 'P@ssw0rd!',
+            'firstName' => 'John',
+            'lastName' => 'Doe',
+            'phoneNumber' => '1234567890',
+            'identificationNumber' => '12345679',
+            'roles' => ['ROLE_DRIVER'],
+            'school' => '/api/schools/' . $school->getId(),
+            'driver' => [
+                'nickname' => 'JohnnyD',
+                'licenseNumber' => 'LIC-002',
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        $this->assertArrayHasKey('violations', $data);
+        $this->assertNotEmpty($data['violations']);
+        $nicknameViolation = array_find($data['violations'], fn (array $v): bool => ($v['propertyPath'] ?? '') === 'driver.nickname');
+        $this->assertNotNull($nicknameViolation, 'Should have a violation on driver.nickname');
+        $this->assertIsString($nicknameViolation['message']);
+        $this->assertStringContainsString('alias', $nicknameViolation['message']);
+    }
+
     // ── PATCH /api/users/{id} — add driver to existing user ─────────────────
 
     public function testPatchUserAddsNestedDriver(): void
