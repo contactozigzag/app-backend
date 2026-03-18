@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Doctrine\Orm\Filter\IriFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -12,7 +11,6 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\Response;
 use App\Dto\Route\RouteCloneInput;
@@ -21,6 +19,7 @@ use App\Dto\Route\RouteOptimizeOutput;
 use App\Dto\Route\RouteOptimizePreviewOutput;
 use App\Repository\RouteRepository;
 use App\State\Route\RouteCloneProcessor;
+use App\State\Route\RouteCollectionProvider;
 use App\State\Route\RouteOptimizePreviewProcessor;
 use App\State\Route\RouteOptimizeProcessor;
 use DateTimeImmutable;
@@ -39,16 +38,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(security: "is_granted('ROLE_USER')"),
         new GetCollection(
             security: "is_granted('ROLE_USER')",
-            parameters: [
-                'driver' => new QueryParameter(
-                    filter: new IriFilter(),
-                    property: 'driver',
-                ),
-                'school' => new QueryParameter(
-                    filter: new IriFilter(),
-                    property: 'school',
-                ),
-            ]
+            provider: RouteCollectionProvider::class,
         ),
         new Post(security: "is_granted('ROLE_DRIVER')"),
         new Put(security: "is_granted('ROLE_DRIVER')"),

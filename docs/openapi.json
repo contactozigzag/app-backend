@@ -1325,207 +1325,6 @@
                 }
             }
         },
-        "/api/addresses": {
-            "get": {
-                "operationId": "api_addresses_get_collection",
-                "tags": [
-                    "Address"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Address collection",
-                        "content": {
-                            "application/ld+json": {
-                                "schema": {
-                                    "type": "object",
-                                    "description": "Address.jsonld collection.",
-                                    "allOf": [
-                                        {
-                                            "$ref": "#/components/schemas/HydraCollectionBaseSchema"
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "member"
-                                            ],
-                                            "properties": {
-                                                "member": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "$ref": "#/components/schemas/Address.jsonld"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Address"
-                                    }
-                                }
-                            },
-                            "text/html": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Address.html"
-                                    }
-                                }
-                            },
-                            "text/csv": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Address.csv"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "Retrieves the collection of Address resources.",
-                "description": "Retrieves the collection of Address resources.",
-                "parameters": [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "The collection page number",
-                        "required": false,
-                        "deprecated": false,
-                        "schema": {
-                            "type": "integer",
-                            "default": 1
-                        },
-                        "style": "form",
-                        "explode": false
-                    },
-                    {
-                        "name": "itemsPerPage",
-                        "in": "query",
-                        "description": "The number of items per page",
-                        "required": false,
-                        "deprecated": false,
-                        "schema": {
-                            "type": "integer",
-                            "default": 30,
-                            "minimum": 0,
-                            "maximum": 100
-                        },
-                        "style": "form",
-                        "explode": false
-                    }
-                ]
-            },
-            "post": {
-                "operationId": "api_addresses_post",
-                "tags": [
-                    "Address"
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Address resource created",
-                        "content": {
-                            "application/ld+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Address.jsonld"
-                                }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Address"
-                                }
-                            },
-                            "text/html": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Address.html"
-                                }
-                            },
-                            "text/csv": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Address.csv"
-                                }
-                            }
-                        },
-                        "links": {}
-                    },
-                    "400": {
-                        "description": "Invalid input",
-                        "content": {
-                            "application/ld+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error.jsonld"
-                                }
-                            },
-                            "application/problem+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            }
-                        },
-                        "links": {}
-                    },
-                    "422": {
-                        "description": "An error occurred",
-                        "content": {
-                            "application/ld+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
-                                }
-                            },
-                            "application/problem+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ConstraintViolation"
-                                }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ConstraintViolation"
-                                }
-                            }
-                        },
-                        "links": {}
-                    }
-                },
-                "summary": "Creates a Address resource.",
-                "description": "Creates a Address resource.",
-                "parameters": [],
-                "requestBody": {
-                    "description": "The new Address resource",
-                    "content": {
-                        "application/ld+json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Address"
-                            }
-                        },
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Address"
-                            }
-                        },
-                        "text/html": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Address"
-                            }
-                        },
-                        "text/csv": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Address"
-                            }
-                        }
-                    },
-                    "required": true
-                }
-            }
-        },
         "/api/addresses/{id}": {
             "get": {
                 "operationId": "api_addresses_id_get",
@@ -1557,6 +1356,27 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     },
                     "404": {
                         "description": "Not found",
@@ -1596,15 +1416,60 @@
                         "explode": false
                     }
                 ]
-            },
-            "delete": {
-                "operationId": "api_addresses_id_delete",
+            }
+        },
+        "/api/users/{userId}/addresses": {
+            "get": {
+                "operationId": "api_users_userIdaddresses_get",
                 "tags": [
                     "Address"
                 ],
                 "responses": {
-                    "204": {
-                        "description": "Address resource deleted"
+                    "200": {
+                        "description": "Address resource",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Address.jsonld-address.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Address-address.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Address.html-address.read"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Address.csv-address.read"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
                     },
                     "404": {
                         "description": "Not found",
@@ -1628,11 +1493,11 @@
                         "links": {}
                     }
                 },
-                "summary": "Removes the Address resource.",
-                "description": "Removes the Address resource.",
+                "summary": "Retrieves a Address resource.",
+                "description": "Retrieves a Address resource.",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "userId",
                         "in": "path",
                         "description": "Address identifier",
                         "required": true,
@@ -1644,130 +1509,6 @@
                         "explode": false
                     }
                 ]
-            },
-            "patch": {
-                "operationId": "api_addresses_id_patch",
-                "tags": [
-                    "Address"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Address resource updated",
-                        "content": {
-                            "application/ld+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Address.jsonld"
-                                }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Address"
-                                }
-                            },
-                            "text/html": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Address.html"
-                                }
-                            },
-                            "text/csv": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Address.csv"
-                                }
-                            }
-                        },
-                        "links": {}
-                    },
-                    "400": {
-                        "description": "Invalid input",
-                        "content": {
-                            "application/ld+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error.jsonld"
-                                }
-                            },
-                            "application/problem+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            }
-                        },
-                        "links": {}
-                    },
-                    "422": {
-                        "description": "An error occurred",
-                        "content": {
-                            "application/ld+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
-                                }
-                            },
-                            "application/problem+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ConstraintViolation"
-                                }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ConstraintViolation"
-                                }
-                            }
-                        },
-                        "links": {}
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "content": {
-                            "application/ld+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error.jsonld"
-                                }
-                            },
-                            "application/problem+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            }
-                        },
-                        "links": {}
-                    }
-                },
-                "summary": "Updates the Address resource.",
-                "description": "Updates the Address resource.",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Address identifier",
-                        "required": true,
-                        "deprecated": false,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "style": "simple",
-                        "explode": false
-                    }
-                ],
-                "requestBody": {
-                    "description": "The updated Address resource",
-                    "content": {
-                        "application/merge-patch+json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Address.jsonMergePatch"
-                            }
-                        }
-                    },
-                    "required": true
-                }
             }
         },
         "/api/driver-alerts/{alertId}/messages": {
@@ -2724,19 +2465,16 @@
                         "explode": false
                     },
                     {
-                        "name": "search[nickname][]",
+                        "name": "nickname",
                         "in": "query",
-                        "description": "Driver search[nickname]",
+                        "description": "",
                         "required": false,
                         "deprecated": false,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
+                            "type": "string"
                         },
-                        "style": "deepObject",
-                        "explode": true
+                        "style": "form",
+                        "explode": false
                     }
                 ]
             },
@@ -5028,36 +4766,6 @@
                         },
                         "style": "form",
                         "explode": false
-                    },
-                    {
-                        "name": "driver[]",
-                        "in": "query",
-                        "description": "Route driver",
-                        "required": false,
-                        "deprecated": false,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "style": "deepObject",
-                        "explode": true
-                    },
-                    {
-                        "name": "school[]",
-                        "in": "query",
-                        "description": "Route school",
-                        "required": false,
-                        "deprecated": false,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "style": "deepObject",
-                        "explode": true
                     }
                 ]
             },
@@ -6109,21 +5817,6 @@
                         },
                         "style": "form",
                         "explode": false
-                    },
-                    {
-                        "name": "student[]",
-                        "in": "query",
-                        "description": "RouteStop student",
-                        "required": false,
-                        "deprecated": false,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "style": "deepObject",
-                        "explode": true
                     }
                 ]
             },
@@ -9955,22 +9648,22 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User.jsonld-user.read"
+                                    "$ref": "#/components/schemas/User.jsonld-user.read_user.item.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User-user.read"
+                                    "$ref": "#/components/schemas/User-user.read_user.item.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User.html-user.read"
+                                    "$ref": "#/components/schemas/User.html-user.read_user.item.read"
                                 }
                             },
                             "text/csv": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User.csv-user.read"
+                                    "$ref": "#/components/schemas/User.csv-user.read_user.item.read"
                                 }
                             }
                         },
@@ -10083,22 +9776,22 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User.jsonld-user.read"
+                                    "$ref": "#/components/schemas/User.jsonld-user.read_user.item.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User-user.read"
+                                    "$ref": "#/components/schemas/User-user.read_user.item.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User.html-user.read"
+                                    "$ref": "#/components/schemas/User.html-user.read_user.item.read"
                                 }
                             },
                             "text/csv": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User.csv-user.read"
+                                    "$ref": "#/components/schemas/User.csv-user.read_user.item.read"
                                 }
                             }
                         }
@@ -10243,22 +9936,22 @@
                         "content": {
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User.jsonld-user.read"
+                                    "$ref": "#/components/schemas/User.jsonld-user.read_user.item.read"
                                 }
                             },
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User-user.read"
+                                    "$ref": "#/components/schemas/User-user.read_user.item.read"
                                 }
                             },
                             "text/html": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User.html-user.read"
+                                    "$ref": "#/components/schemas/User.html-user.read_user.item.read"
                                 }
                             },
                             "text/csv": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User.csv-user.read"
+                                    "$ref": "#/components/schemas/User.csv-user.read_user.item.read"
                                 }
                             }
                         },
@@ -12559,6 +12252,42 @@
                     }
                 }
             },
+            "Address-address.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "streetAddress": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "postalCode": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "string"
+                    },
+                    "longitude": {
+                        "type": "string"
+                    },
+                    "placeId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
             "Address-school.read_school.address.read": {
                 "type": "object",
                 "properties": {
@@ -12695,6 +12424,42 @@
                     }
                 }
             },
+            "Address.csv-address.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "streetAddress": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "postalCode": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "string"
+                    },
+                    "longitude": {
+                        "type": "string"
+                    },
+                    "placeId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
             "Address.csv-school.read_school.address.read": {
                 "type": "object",
                 "properties": {
@@ -12767,6 +12532,42 @@
                     }
                 }
             },
+            "Address.html-address.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "streetAddress": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "postalCode": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "string"
+                    },
+                    "longitude": {
+                        "type": "string"
+                    },
+                    "placeId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
             "Address.html-school.read_school.address.read": {
                 "type": "object",
                 "properties": {
@@ -12803,43 +12604,50 @@
                     }
                 }
             },
-            "Address.jsonMergePatch": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "readOnly": true,
-                        "type": "integer"
-                    },
-                    "streetAddress": {
-                        "type": "string"
-                    },
-                    "city": {
-                        "type": "string"
-                    },
-                    "state": {
-                        "type": "string"
-                    },
-                    "country": {
-                        "type": "string"
-                    },
-                    "postalCode": {
-                        "type": "string"
-                    },
-                    "latitude": {
-                        "type": "string"
-                    },
-                    "longitude": {
-                        "type": "string"
-                    },
-                    "placeId": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    }
-                }
-            },
             "Address.jsonld": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "streetAddress": {
+                                "type": "string"
+                            },
+                            "city": {
+                                "type": "string"
+                            },
+                            "state": {
+                                "type": "string"
+                            },
+                            "country": {
+                                "type": "string"
+                            },
+                            "postalCode": {
+                                "type": "string"
+                            },
+                            "latitude": {
+                                "type": "string"
+                            },
+                            "longitude": {
+                                "type": "string"
+                            },
+                            "placeId": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
+            "Address.jsonld-address.read": {
                 "allOf": [
                     {
                         "$ref": "#/components/schemas/HydraItemBaseSchema"
@@ -14492,6 +14300,24 @@
                     }
                 }
             },
+            "Driver-user.read_user.item.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "licenseNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "nickname": {
+                        "type": "string"
+                    }
+                }
+            },
             "Driver-user.write": {
                 "type": "object",
                 "properties": {
@@ -14600,6 +14426,24 @@
                     }
                 }
             },
+            "Driver.csv-user.read_user.item.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "licenseNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "nickname": {
+                        "type": "string"
+                    }
+                }
+            },
             "Driver.html": {
                 "type": "object",
                 "properties": {
@@ -14691,6 +14535,24 @@
                             "format": "iri-reference",
                             "example": "https://example.com/"
                         }
+                    }
+                }
+            },
+            "Driver.html-user.read_user.item.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "licenseNumber": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "nickname": {
+                        "type": "string"
                     }
                 }
             },
@@ -14862,6 +14724,31 @@
                                     "format": "iri-reference",
                                     "example": "https://example.com/"
                                 }
+                            }
+                        }
+                    }
+                ]
+            },
+            "Driver.jsonld-user.read_user.item.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "licenseNumber": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "nickname": {
+                                "type": "string"
                             }
                         }
                     }
@@ -20452,6 +20339,14 @@
                     "lastName": {
                         "type": "string"
                     },
+                    "school": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
                     "identificationNumber": {
                         "pattern": "^(\\d{8,10})$",
                         "type": "string"
@@ -20538,6 +20433,14 @@
                     },
                     "lastName": {
                         "type": "string"
+                    },
+                    "school": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     },
                     "identificationNumber": {
                         "pattern": "^(\\d{8,10})$",
@@ -22379,6 +22282,68 @@
                     "identificationNumber"
                 ]
             },
+            "User-user.read_user.item.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "school": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "phoneNumber": {
+                        "type": "string"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "driver": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Driver-user.read_user.item.read"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
+            },
             "User-user.write": {
                 "type": "object",
                 "properties": {
@@ -22592,6 +22557,68 @@
                     "identificationNumber"
                 ]
             },
+            "User.csv-user.read_user.item.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "school": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "phoneNumber": {
+                        "type": "string"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "driver": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Driver.csv-user.read_user.item.read"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
+            },
             "User.html-driver.read_driver.item.read": {
                 "type": "object",
                 "properties": {
@@ -22670,6 +22697,68 @@
                         ],
                         "format": "iri-reference",
                         "example": "https://example.com/"
+                    }
+                },
+                "required": [
+                    "identificationNumber"
+                ]
+            },
+            "User.html-user.read_user.item.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "school": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "students": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "phoneNumber": {
+                        "type": "string"
+                    },
+                    "identificationNumber": {
+                        "pattern": "^(\\d{8,10})$",
+                        "type": "string"
+                    },
+                    "address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "driver": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Driver.html-user.read_user.item.read"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     }
                 },
                 "required": [
@@ -22766,6 +22855,75 @@
                                 ],
                                 "format": "iri-reference",
                                 "example": "https://example.com/"
+                            }
+                        },
+                        "required": [
+                            "identificationNumber"
+                        ]
+                    }
+                ]
+            },
+            "User.jsonld-user.read_user.item.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "email": {
+                                "type": "string"
+                            },
+                            "school": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "students": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "iri-reference",
+                                    "example": "https://example.com/"
+                                }
+                            },
+                            "firstName": {
+                                "type": "string"
+                            },
+                            "lastName": {
+                                "type": "string"
+                            },
+                            "phoneNumber": {
+                                "type": "string"
+                            },
+                            "identificationNumber": {
+                                "pattern": "^(\\d{8,10})$",
+                                "type": "string"
+                            },
+                            "address": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "driver": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/Driver.jsonld-user.read_user.item.read"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
                             }
                         },
                         "required": [

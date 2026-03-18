@@ -12,9 +12,9 @@ use App\Tests\Factory\UserFactory;
 
 final class RouteControllerTest extends AbstractApiTestCase
 {
-    // ── GET /api/routes?driver= — filter by driver IRI ───────────────────────
+    // ── GET /api/routes — driver sees only own routes ──────────────────────────
 
-    public function testGetCollectionFilteredByDriver(): void
+    public function testGetCollectionDriverSeesOnlyOwnRoutes(): void
     {
         $client = $this->createApiClient();
         $driver1 = DriverFactory::createOne();
@@ -24,7 +24,7 @@ final class RouteControllerTest extends AbstractApiTestCase
         RouteFactory::new()->withDriver($driver2)->create();
         $this->loginUser($client, $driver1->getUser());
 
-        $data = $this->getJson($client, '/api/routes?driver=/api/drivers/' . $driver1->getId());
+        $data = $this->getJson($client, '/api/routes');
 
         self::assertResponseIsSuccessful();
         $this->assertCount(2, $data);
@@ -33,26 +33,41 @@ final class RouteControllerTest extends AbstractApiTestCase
         }
     }
 
-    // ── GET /api/routes?school= — filter by school IRI ───────────────────────
+    // ── GET /api/routes — school admin sees all routes ──────────────────────
 
-    public function testGetCollectionFilteredBySchool(): void
+    public function testGetCollectionSchoolAdminSeesAllRoutes(): void
     {
         $client = $this->createApiClient();
-        $driver = DriverFactory::createOne();
+        $admin = UserFactory::new()->with([
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
+        ])->create();
         $school1 = SchoolFactory::createOne();
         $school2 = SchoolFactory::createOne();
         RouteFactory::new()->withSchool($school1)->create();
         RouteFactory::new()->withSchool($school1)->create();
         RouteFactory::new()->withSchool($school2)->create();
-        $this->loginUser($client, $driver->getUser());
+        $this->loginUser($client, $admin);
 
-        $data = $this->getJson($client, '/api/routes?school=/api/schools/' . $school1->getId());
+        $data = $this->getJson($client, '/api/routes');
 
         self::assertResponseIsSuccessful();
-        $this->assertCount(2, $data);
-        foreach ($data as $route) {
-            $this->assertSame('/api/schools/' . $school1->getId(), $route['school']);
-        }
+        $this->assertCount(3, $data);
+    }
+
+    public function testGetCollectionDriverDoesNotSeeOtherDriverRoutes(): void
+    {
+        $client = $this->createApiClient();
+        $driver1 = DriverFactory::createOne();
+        $driver2 = DriverFactory::createOne();
+        RouteFactory::new()->withDriver($driver1)->create();
+        RouteFactory::new()->withDriver($driver2)->create();
+        $this->loginUser($client, $driver2->getUser());
+
+        $data = $this->getJson($client, '/api/routes');
+
+        self::assertResponseIsSuccessful();
+        $this->assertCount(1, $data);
+        $this->assertSame('/api/drivers/' . $driver2->getId(), $data[0]['driver']);
     }
 
     // ── POST /api/routes/{id}/optimize — authentication & authorisation ────────

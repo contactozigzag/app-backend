@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Controller;
 
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\DriverFactory;
+use App\Tests\Factory\RouteFactory;
 use App\Tests\Factory\RouteStopFactory;
 use App\Tests\Factory\StudentFactory;
 use App\Tests\Factory\UserFactory;
@@ -13,26 +14,43 @@ use Symfony\Component\HttpFoundation\Request;
 
 final class RouteStopControllerTest extends AbstractApiTestCase
 {
-    // ── GET /api/route-stops?student= — filter by student IRI ────────────────
+    // ── GET /api/route-stops — driver sees only stops on own routes ─────────
 
-    public function testGetCollectionFilteredByStudent(): void
+    public function testGetCollectionDriverSeesOnlyOwnRouteStops(): void
     {
         $client = $this->createApiClient();
         $driver = DriverFactory::createOne();
+        $otherDriver = DriverFactory::createOne();
+        $route = RouteFactory::new()->withDriver($driver)->create();
+        $otherRoute = RouteFactory::new()->withDriver($otherDriver)->create();
         $student1 = StudentFactory::createOne();
         $student2 = StudentFactory::createOne();
-        RouteStopFactory::new()->withStudent($student1)->create();
-        RouteStopFactory::new()->withStudent($student1)->create();
-        RouteStopFactory::new()->withStudent($student2)->create();
+        RouteStopFactory::new()->withRoute($route)->withStudent($student1)->create();
+        RouteStopFactory::new()->withRoute($route)->withStudent($student1)->create();
+        RouteStopFactory::new()->withRoute($otherRoute)->withStudent($student2)->create();
         $this->loginUser($client, $driver->getUser());
 
-        $data = $this->getJson($client, '/api/route-stops?student=/api/students/' . $student1->getId());
+        $data = $this->getJson($client, '/api/route-stops');
 
         self::assertResponseIsSuccessful();
         $this->assertCount(2, $data);
-        foreach ($data as $stop) {
-            $this->assertSame('/api/students/' . $student1->getId(), $stop['student']);
-        }
+    }
+
+    public function testGetCollectionDriverDoesNotSeeOtherDriverStops(): void
+    {
+        $client = $this->createApiClient();
+        $driver1 = DriverFactory::createOne();
+        $driver2 = DriverFactory::createOne();
+        $route1 = RouteFactory::new()->withDriver($driver1)->create();
+        $route2 = RouteFactory::new()->withDriver($driver2)->create();
+        RouteStopFactory::new()->withRoute($route1)->create();
+        RouteStopFactory::new()->withRoute($route2)->create();
+        $this->loginUser($client, $driver1->getUser());
+
+        $data = $this->getJson($client, '/api/route-stops');
+
+        self::assertResponseIsSuccessful();
+        $this->assertCount(1, $data);
     }
 
     // ── POST /api/route-stops — authentication & validation ───────────────────

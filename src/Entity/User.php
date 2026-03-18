@@ -27,10 +27,19 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity(fields: ['identificationNumber'], message: 'Identification number must be unique.')]
 #[ApiResource(
     operations: [
-        new Post(security: 'is_granted("PUBLIC_ACCESS")'),
-        new Get(security: 'is_granted("IS_AUTHENTICATED_FULLY") and (object == user or is_granted("ROLE_SCHOOL_ADMIN"))'),
+        new Post(
+            normalizationContext: ['groups' => ['user:read', 'user:item:read']],
+            security: 'is_granted("PUBLIC_ACCESS")',
+        ),
+        new Get(
+            normalizationContext: ['groups' => ['user:read', 'user:item:read']],
+            security: 'is_granted("IS_AUTHENTICATED_FULLY") and (object == user or is_granted("ROLE_SCHOOL_ADMIN"))',
+        ),
         new GetCollection(security: 'is_granted("ROLE_SCHOOL_ADMIN")'),
-        new Patch(security: 'is_granted("IS_AUTHENTICATED_FULLY") and (object == user or is_granted("ROLE_SCHOOL_ADMIN"))'),
+        new Patch(
+            normalizationContext: ['groups' => ['user:read', 'user:item:read']],
+            security: 'is_granted("IS_AUTHENTICATED_FULLY") and (object == user or is_granted("ROLE_SCHOOL_ADMIN"))',
+        ),
         new Delete(security: 'is_granted("IS_AUTHENTICATED_FULLY") and (object == user or is_granted("ROLE_SCHOOL_ADMIN"))'),
     ],
     normalizationContext: [

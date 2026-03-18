@@ -92,4 +92,88 @@ final class DriverControllerTest extends AbstractApiTestCase
         $this->assertIsString($first['user'], 'user should be an IRI string in collection');
         $this->assertStringStartsWith('/api/users/', $first['user']);
     }
+
+    // ── GET /api/drivers?nickname= — prefix search ───────────────────────────
+
+    public function testSearchByNicknamePrefix(): void
+    {
+        $client = $this->createApiClient();
+        $target = DriverFactory::new()->with([
+            'nickname' => 'AlphaDriver',
+        ])->create();
+        DriverFactory::new()->with([
+            'nickname' => 'BetaDriver',
+        ])->create();
+        $this->loginUser($client, $target->getUser());
+
+        $data = $this->getJson($client, '/api/drivers?nickname=Alpha');
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(1, $data);
+        self::assertSame('AlphaDriver', $data[0]['nickname']);
+    }
+
+    public function testSearchByNicknamePrefixIsCaseInsensitive(): void
+    {
+        $client = $this->createApiClient();
+        $target = DriverFactory::new()->with([
+            'nickname' => 'AlphaDriver',
+        ])->create();
+        DriverFactory::new()->with([
+            'nickname' => 'BetaDriver',
+        ])->create();
+        $this->loginUser($client, $target->getUser());
+
+        $data = $this->getJson($client, '/api/drivers?nickname=alpha');
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(1, $data);
+        self::assertSame('AlphaDriver', $data[0]['nickname']);
+    }
+
+    public function testSearchByNicknameNoMatchReturnsEmpty(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::new()->with([
+            'nickname' => 'AlphaDriver',
+        ])->create();
+        $this->loginUser($client, $driver->getUser());
+
+        $data = $this->getJson($client, '/api/drivers?nickname=Zzzzz');
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(0, $data);
+    }
+
+    public function testSearchByNicknameSubstringDoesNotMatch(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::new()->with([
+            'nickname' => 'AlphaDriver',
+        ])->create();
+        $this->loginUser($client, $driver->getUser());
+
+        // "Driver" is a substring, not a prefix — should NOT match
+        $data = $this->getJson($client, '/api/drivers?nickname=Driver');
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(0, $data);
+    }
+
+    public function testSearchByNicknameWithoutFilterReturnsAll(): void
+    {
+        $client = $this->createApiClient();
+        DriverFactory::new()->with([
+            'nickname' => 'AlphaDriver',
+        ])->create();
+        $second = DriverFactory::new()->with([
+            'nickname' => 'BetaDriver',
+        ])->create();
+        $this->loginUser($client, $second->getUser());
+
+        $data = $this->getJson($client, '/api/drivers');
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(2, $data);
+    }
 }

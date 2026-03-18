@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Doctrine\Orm\Filter\IriFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -12,11 +11,11 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\Response;
 use App\Dto\RouteStop\RouteStopActionOutput;
 use App\Repository\RouteStopRepository;
+use App\State\Route\RouteStopCollectionProvider;
 use App\State\RouteStop\RouteStopConfirmProcessor;
 use App\State\RouteStop\RouteStopRejectProcessor;
 use DateTimeImmutable;
@@ -30,12 +29,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(operations: [
     new GetCollection(
         uriTemplate: '/route-stops',
-        parameters: [
-            'student' => new QueryParameter(
-                filter: new IriFilter(),
-                property: 'student',
-            ),
-        ]
+        provider: RouteStopCollectionProvider::class,
     ),
     new Get(uriTemplate: '/route-stops/{id}'),
     new Post(uriTemplate: '/route-stops'),

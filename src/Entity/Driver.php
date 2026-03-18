@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\QueryParameter;
 use App\Repository\DriverRepository;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -31,24 +31,21 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
         new GetCollection(
             security: "is_granted('ROLE_USER')",
-            parameters: [
-                'search[:property]' => new QueryParameter(
-                    filter: new PartialSearchFilter(),
-                    properties: ['nickname']
-                ),
-            ]
         ),
         new Post(security: "is_granted('ROLE_USER')"),
         new Patch(security: "is_granted('ROLE_DRIVER')"),
         new Delete(security: "is_granted('ROLE_ADMIN')"),
     ]
 )]
+#[ApiFilter(SearchFilter::class, properties: [
+    'nickname' => 'start',
+])]
 class Driver
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['driver:read'])]
+    #[Groups(['driver:read', 'user:item:read'])]
     private ?int $id = null;
 
     #[ORM\OneToOne(inversedBy: 'driver', cascade: ['persist', 'remove'])]
@@ -57,11 +54,11 @@ class Driver
     private ?User $user = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(['driver:read', 'driver:write', 'user:write'])]
+    #[Groups(['driver:read', 'driver:write', 'user:item:read', 'user:write'])]
     private ?string $licenseNumber = null;
 
     #[ORM\Column(length: 50, unique: true)]
-    #[Groups(['driver:read', 'driver:write', 'user:write'])]
+    #[Groups(['driver:read', 'driver:write', 'user:item:read', 'user:write'])]
     private ?string $nickname = null;
 
     /**

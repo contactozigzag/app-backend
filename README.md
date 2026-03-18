@@ -513,13 +513,13 @@ Refresh tokens are automatically invalidated on logout for the `api_token_refres
 - `DELETE /api/students/{id}` — Delete (parent of student or school admin)
 
 #### Routes
-- `GET /api/routes` — List (filtered by school)
+- `GET /api/routes` — List; scoped by role: school admin sees all, driver sees own routes, parent sees routes with their students' stops
 - `POST /api/routes` — Create (admin only)
 - `PATCH /api/routes/{id}` — Update
 - `DELETE /api/routes/{id}` — Delete (admin only)
 
 #### Route Stops
-- `GET /api/route-stops` — List; supports `?search[student]={id}` to filter by student
+- `GET /api/route-stops` — List; scoped by role: school admin sees all, driver sees stops on own routes, parent sees stops for own students
 - `GET /api/route-stops/{id}` — Get
 - `POST /api/route-stops` — Create (parent)
 - `GET /api/route-stops/unconfirmed` — Pending review (driver)
@@ -527,7 +527,7 @@ Refresh tokens are automatically invalidated on logout for the `api_token_refres
 - `PATCH /api/route-stops/{id}/reject` — Reject (driver)
 
 #### Active Routes
-- `GET /api/active_routes` — List
+- `GET /api/active_routes` — List; scoped by role: school admin sees all, driver sees own active routes, parent sees active routes with their students
 - `POST /api/active_routes` — Create (`ROUTE_MANAGE` — admin, or driver if flag enabled)
 - `PATCH /api/active_routes/{id}` — Update status (driver/admin)
 - `DELETE /api/active_routes/{id}` — Cancel (`ROUTE_MANAGE`)
@@ -1426,7 +1426,8 @@ export const getMercureToken = (paymentId) =>
 - **Redis first** — GPS `getDriverLocation` reads Redis (< 15 s TTL) before hitting MySQL
 - **Async fanout** — GPS side-effects (geofencing, Mercure, proximity) are fully non-blocking
 - **Three RabbitMQ transports** — tracking, webhooks, and general async are independently scalable
-- **Database indexing** — all high-frequency query columns indexed
+- **Database indexing** — all high-frequency query columns indexed; driver nickname search uses `start` strategy (`LIKE 'value%'`) for B-tree index utilization
+- **Role-scoped collections** — Route, RouteStop, and ActiveRoute GetCollection endpoints use custom providers to return only data the authenticated user is authorized to see (driver isolation)
 - **FrankenPHP worker mode** — application boots once, handles thousands of requests in-process
 - **Pagination** — all collection endpoints are paginated (default 20, max 50 per page)
 
