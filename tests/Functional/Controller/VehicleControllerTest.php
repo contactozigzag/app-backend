@@ -8,6 +8,7 @@ use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\DriverFactory;
 use App\Tests\Factory\UserFactory;
 use App\Tests\Factory\VehicleFactory;
+use Symfony\Component\HttpFoundation\Request;
 
 final class VehicleControllerTest extends AbstractApiTestCase
 {
@@ -156,7 +157,7 @@ final class VehicleControllerTest extends AbstractApiTestCase
         $this->assertSame('/api/drivers/' . $driver->getId(), $data['driver']);
     }
 
-    public function testPostCreatesVehicleWithoutDriver(): void
+    public function testPostWithoutDriverReturns422(): void
     {
         $client = $this->createApiClient();
         $driver = DriverFactory::createOne();
@@ -169,8 +170,92 @@ final class VehicleControllerTest extends AbstractApiTestCase
             'capacity' => 20,
         ]);
 
-        self::assertResponseStatusCodeSame(201);
-        $this->assertNull($data['driver']);
+        self::assertResponseStatusCodeSame(422);
+        $this->assertArrayHasKey('violations', $data);
+        $driverViolation = array_find($data['violations'], fn (array $v): bool => ($v['propertyPath'] ?? '') === 'driver');
+        $this->assertNotNull($driverViolation, 'Should have a violation on driver');
+        $this->assertIsString($driverViolation['message']);
+        $this->assertStringContainsString('transportista', $driverViolation['message']);
+    }
+
+    // ── GET /api/vehicles — response no longer includes user field ───────────
+
+    public function testGetItemDoesNotIncludeUserField(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::createOne();
+        $vehicle = VehicleFactory::new()->withDriver($driver)->create();
+        $this->loginUser($client, $driver->getUser());
+
+        $data = $this->getJson($client, '/api/vehicles/' . $vehicle->getId());
+
+        self::assertResponseIsSuccessful();
+        $this->assertArrayNotHasKey('user', $data);
+        $this->assertArrayHasKey('driver', $data);
+    }
+
+    // ── PATCH /api/vehicles/{id} ─────────────────────────────────────────────
+
+    public function testPatchUpdatesVehicleFields(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::createOne();
+        $vehicle = VehicleFactory::new()->withDriver($driver)->create();
+        $this->loginUser($client, $driver->getUser());
+
+        $client->request(Request::METHOD_PATCH, '/api/vehicles/' . $vehicle->getId(), [], [], [
+            'CONTENT_TYPE' => 'application/merge-patch+json',
+            'HTTP_ACCEPT' => 'application/json',
+        ], json_encode([
+            'licensePlate' => 'NEW-PLATE',
+            'color' => 'red',
+        ]));
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true) ?? [];
+        $this->assertSame('NEW-PLATE', $data['licensePlate']);
+        $this->assertSame('red', $data['color']);
+        $this->assertSame('/api/drivers/' . $driver->getId(), $data['driver']);
+    }
+
+    public function testPatchCannotSetDriverToNull(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::createOne();
+        $vehicle = VehicleFactory::new()->withDriver($driver)->create();
+        $this->loginUser($client, $driver->getUser());
+
+        $client->request(Request::METHOD_PATCH, '/api/vehicles/' . $vehicle->getId(), [], [], [
+            'CONTENT_TYPE' => 'application/merge-patch+json',
+            'HTTP_ACCEPT' => 'application/json',
+        ], json_encode([
+            'driver' => null,
+        ]));
+
+        self::assertResponseStatusCodeSame(400);
+    }
+
+    public function testPatchReassignsDriverSuccessfully(): void
+    {
+        $client = $this->createApiClient();
+        $driver1 = DriverFactory::createOne();
+        $driver2 = DriverFactory::createOne();
+        $vehicle = VehicleFactory::new()->withDriver($driver1)->create();
+        $admin = UserFactory::new()->with([
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
+        ])->create();
+        $this->loginUser($client, $admin);
+
+        $client->request(Request::METHOD_PATCH, '/api/vehicles/' . $vehicle->getId(), [], [], [
+            'CONTENT_TYPE' => 'application/merge-patch+json',
+            'HTTP_ACCEPT' => 'application/json',
+        ], json_encode([
+            'driver' => '/api/drivers/' . $driver2->getId(),
+        ]));
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode((string) $client->getResponse()->getContent(), true) ?? [];
+        $this->assertSame('/api/drivers/' . $driver2->getId(), $data['driver']);
     }
 
     // ── Driver.vehicles collection (driver:read group) ───────────────────────

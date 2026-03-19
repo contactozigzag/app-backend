@@ -13,9 +13,9 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\QueryParameter;
 use App\Repository\VehicleRepository;
-use Deprecated;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: VehicleRepository::class)]
 #[ApiResource(
@@ -78,17 +78,10 @@ class Vehicle
     private ?string $type = null;
 
     #[ORM\ManyToOne(targetEntity: Driver::class, inversedBy: 'vehicles')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: false)]
     #[Groups(['vehicle:read', 'vehicle:write'])]
+    #[Assert\NotNull(message: 'El vehículo debe estar asignado a un transportista.')]
     private ?Driver $driver = null;
-
-    /**
-     * @deprecated Use $driver instead. Kept for backward compatibility during migration.
-     */
-    #[ORM\ManyToOne(inversedBy: 'vehicles')]
-    #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['vehicle:read'])]
-    private ?User $user = null;
 
     public function getId(): ?int
     {
@@ -187,20 +180,6 @@ class Vehicle
     public function setDriver(?Driver $driver): static
     {
         $this->driver = $driver;
-
-        return $this;
-    }
-
-    #[Deprecated(message: 'Use getDriver() instead.')]
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
-
-    #[Deprecated(message: 'Use setDriver() instead.')]
-    public function setUser(?User $user): static
-    {
-        $this->user = $user;
 
         return $this;
     }

@@ -11,7 +11,6 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Repository\UserRepository;
-use Deprecated;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -125,17 +124,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
     #[Assert\Valid]
     private ?Driver $driver = null;
 
-    /**
-     * @var Collection<int, Vehicle>
-     * @deprecated Use Driver::$vehicles instead.
-     */
-    #[ORM\OneToMany(targetEntity: Vehicle::class, mappedBy: 'user')]
-    private Collection $vehicles;
-
     public function __construct()
     {
         $this->students = new ArrayCollection();
-        $this->vehicles = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -340,37 +331,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
     public function setPlainPassword(?string $plainPassword): static
     {
         $this->plainPassword = $plainPassword;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Vehicle>
-     */
-    #[Deprecated(message: 'Use Driver::getVehicles() instead.')]
-    public function getVehicles(): Collection
-    {
-        return $this->vehicles;
-    }
-
-    #[Deprecated(message: 'Use Driver::addVehicle() instead.')]
-    public function addVehicle(Vehicle $vehicle): static
-    {
-        if (! $this->vehicles->contains($vehicle)) {
-            $this->vehicles->add($vehicle);
-            $vehicle->setUser($this);
-        }
-
-        return $this;
-    }
-
-    #[Deprecated(message: 'Use Driver::removeVehicle() instead.')]
-    public function removeVehicle(Vehicle $vehicle): static
-    {
-        // set the owning side to null (unless already changed)
-        if ($this->vehicles->removeElement($vehicle) && $vehicle->getUser() === $this) {
-            $vehicle->setUser(null);
-        }
 
         return $this;
     }
