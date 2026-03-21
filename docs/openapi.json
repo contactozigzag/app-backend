@@ -3901,6 +3901,194 @@
                 }
             }
         },
+        "/oauth/mercadopago/callback": {
+            "get": {
+                "operationId": "oauthMercadoPagoCallback",
+                "tags": [
+                    "MercadoPago OAuth"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OAuth completed successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Mercado Pago account connected successfully."
+                                        },
+                                        "driver_id": {
+                                            "type": "integer",
+                                            "example": 42
+                                        },
+                                        "mp_account_id": {
+                                            "type": "string",
+                                            "example": "123456789",
+                                            "nullable": true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Authorization denied or missing parameters.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "MercadoPago OAuth callback",
+                "description": "Handles the redirect back from Mercado Pago with an authorization code. This is a PUBLIC endpoint \u2014 the browser is redirected here by MP without the driver's JWT. The driver is identified via the cryptographic state parameter.",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "query",
+                        "description": "Authorization code from Mercado Pago",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "state",
+                        "in": "query",
+                        "description": "CSRF state token",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "error",
+                        "in": "query",
+                        "description": "Error code if driver denied access",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "error_description",
+                        "in": "query",
+                        "description": "Error description from Mercado Pago",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    }
+                ],
+                "security": []
+            }
+        },
+        "/oauth/mercadopago/connect": {
+            "get": {
+                "operationId": "oauthMercadoPagoConnect",
+                "tags": [
+                    "MercadoPago OAuth"
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirects the driver to Mercado Pago authorization page."
+                    },
+                    "401": {
+                        "description": "Unauthorized \u2014 JWT token missing or invalid."
+                    },
+                    "403": {
+                        "description": "Forbidden \u2014 requires ROLE_DRIVER."
+                    },
+                    "404": {
+                        "description": "No driver profile found for this user."
+                    }
+                },
+                "summary": "Initiate MercadoPago OAuth flow",
+                "description": "Generates a CSRF state, stores it in Redis, then redirects the browser to Mercado Pago's authorization page. Requires ROLE_DRIVER.",
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ]
+            }
+        },
+        "/oauth/mercadopago/status": {
+            "get": {
+                "operationId": "oauthMercadoPagoStatus",
+                "tags": [
+                    "MercadoPago OAuth"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Connection status returned.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "connected": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "mp_account_id": {
+                                            "type": "string",
+                                            "example": "123456789",
+                                            "nullable": true
+                                        },
+                                        "token_expires_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "nullable": true
+                                        },
+                                        "needs_refresh": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized \u2014 JWT token missing or invalid."
+                    },
+                    "403": {
+                        "description": "Forbidden \u2014 requires ROLE_DRIVER."
+                    },
+                    "404": {
+                        "description": "No driver profile found for this user."
+                    }
+                },
+                "summary": "Get MercadoPago OAuth connection status",
+                "description": "Returns the OAuth connection status for the authenticated driver. Useful for the frontend to decide whether to show the \"Connect MercadoPago\" button. Requires ROLE_DRIVER.",
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ]
+            }
+        },
         "/api/webhooks/mercadopago": {
             "post": {
                 "operationId": "api_webhooksmercadopago_post",
@@ -4019,6 +4207,93 @@
                     },
                     "required": false
                 }
+            }
+        },
+        "/api/mercure/token": {
+            "get": {
+                "operationId": "getMercureSubscriberToken",
+                "tags": [
+                    "Mercure"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mercure subscriber JWT returned.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "token": {
+                                            "type": "string",
+                                            "description": "Mercure subscriber JWT (HMAC-SHA256 signed)"
+                                        },
+                                        "hub_url": {
+                                            "type": "string",
+                                            "format": "uri",
+                                            "description": "Public URL of the Mercure hub"
+                                        },
+                                        "topics": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "/payments/42"
+                                            ],
+                                            "description": "Topics the token authorizes subscription to"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid payment_id.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Missing or invalid payment_id query parameter."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized \u2014 JWT token missing or invalid."
+                    },
+                    "403": {
+                        "description": "Access denied \u2014 payment belongs to another user."
+                    },
+                    "404": {
+                        "description": "Payment not found."
+                    }
+                },
+                "summary": "Get a Mercure subscriber JWT for payment updates",
+                "description": "Issues a short-lived (1 hour) Mercure subscriber JWT scoped to a single payment topic (/payments/{id}). The client uses this token to subscribe to real-time payment status updates from the Mercure hub. Requires ROLE_USER.",
+                "parameters": [
+                    {
+                        "name": "payment_id",
+                        "in": "query",
+                        "description": "ID of the payment to subscribe to",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "style": "form",
+                        "explode": false
+                    }
+                ],
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ]
             }
         },
         "/api/notification_preferences": {
