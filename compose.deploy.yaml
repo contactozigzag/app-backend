@@ -24,6 +24,8 @@ services:
       - --providers.file.watch=true
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.forwardedHeaders.insecure=true
+      - --entrypoints.web.forwardedHeaders.insecure=true
       # ACME Let's Encrypt — TLS termination at Traefik
       - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
