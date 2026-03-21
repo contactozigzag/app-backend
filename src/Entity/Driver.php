@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Dto\DriverRate\SetDriverRatesInput;
+use App\Entity\Route;
 use App\Enum\PricingModel;
 use App\Repository\DriverRepository;
 use App\State\DriverRate\SetDriverRatesProcessor;
@@ -108,6 +109,13 @@ class Driver
     private ?PricingModel $pricingModel = null;
 
     /**
+     * @var Collection<int, Route>
+     */
+    #[ORM\OneToMany(targetEntity: Route::class, mappedBy: 'driver')]
+    #[Groups(['driver:item:read'])]
+    private Collection $routes;
+
+    /**
      * @var Collection<int, DriverRate>
      */
     #[ORM\OneToMany(targetEntity: DriverRate::class, mappedBy: 'driver', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -117,6 +125,7 @@ class Driver
     public function __construct()
     {
         $this->vehicles = new ArrayCollection();
+        $this->routes = new ArrayCollection();
         $this->rates = new ArrayCollection();
     }
 
@@ -246,6 +255,14 @@ class Driver
         $this->pricingModel = $pricingModel;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Route>
+     */
+    public function getRoutes(): Collection
+    {
+        return $this->routes;
     }
 
     /**
