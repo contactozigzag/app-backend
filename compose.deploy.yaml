@@ -19,8 +19,6 @@ services:
   traefik:
     profiles: [infra]
     restart: unless-stopped
-    environment:
-      DOCKER_API_VERSION: "1.46"
     command:
       - --providers.file.directory=/etc/traefik/dynamic
       - --providers.file.watch=true
@@ -35,7 +33,6 @@ services:
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
       - traefik_letsencrypt:/letsencrypt
     logging:
@@ -149,6 +146,8 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
       GOOGLE_MAPS_FRONTEND_API_KEY: ${GOOGLE_MAPS_FRONTEND_API_KEY:-}
+      TRUSTED_PROXIES: "REMOTE_ADDR"
+      TRUSTED_HEADERS: "HEADER_X_FORWARDED_FOR,HEADER_X_FORWARDED_HOST,HEADER_X_FORWARDED_PORT,HEADER_X_FORWARDED_PROTO"
     depends_on:
       database:
         condition: service_healthy
@@ -173,6 +172,7 @@ services:
     healthcheck:
       disable: true
     environment:
+      SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
       APP_ENV: prod
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
@@ -202,6 +202,7 @@ services:
     healthcheck:
       disable: true
     environment:
+      SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
       APP_ENV: prod
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
@@ -229,6 +230,7 @@ services:
     healthcheck:
       disable: true
     environment:
+      SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
       APP_ENV: prod
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
@@ -264,7 +266,7 @@ services:
       - caddy_data_green:/data
       - caddy_config_green:/config
     environment:
-      SERVER_NAME: ${SERVER_NAME:-localhost}, php-green:80
+      SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
@@ -274,6 +276,8 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
       GOOGLE_MAPS_FRONTEND_API_KEY: ${GOOGLE_MAPS_FRONTEND_API_KEY:-}
+      TRUSTED_PROXIES: "REMOTE_ADDR"
+      TRUSTED_HEADERS: "HEADER_X_FORWARDED_FOR,HEADER_X_FORWARDED_HOST,HEADER_X_FORWARDED_PORT,HEADER_X_FORWARDED_PROTO"
     depends_on:
       database:
         condition: service_healthy
@@ -297,6 +301,7 @@ services:
     healthcheck:
       disable: true
     environment:
+      SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
       APP_ENV: prod
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
@@ -326,6 +331,7 @@ services:
     healthcheck:
       disable: true
     environment:
+      SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
       APP_ENV: prod
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
@@ -353,6 +359,7 @@ services:
     healthcheck:
       disable: true
     environment:
+      SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
       APP_ENV: prod
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
