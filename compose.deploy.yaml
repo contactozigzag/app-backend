@@ -1,0 +1,394 @@
+---
+# Blue/Green production deployment overlay
+#
+# Usage: docker compose -f compose.yaml -f compose.deploy.yaml --env-file .env.prod --profile infra --profile <blue|green> up -d
+#
+# Profiles:
+#   infra  — shared stateful services (database, rabbitmq, redis, opensearch, traefik, fluent-bit)
+#   blue   — blue slot application services (php-blue, workers)
+#   green  — green slot application services (php-green, workers)
+#
+# Traefik routing is controlled by the file provider watching traefik/dynamic/routing.yaml.
+# The deploy script (scripts/deploy.sh) writes the active slot to that file.
+
+services:
+  # ══════════════════════════════════════════════════════════════════════════
+  # Shared Infrastructure (profile: infra)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  traefik:
+    profiles: [infra]
+    restart: unless-stopped
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --providers.file.watch=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # ACME Let's Encrypt — TLS termination at Traefik
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - traefik_letsencrypt:/letsencrypt
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "docker.{{.Name}}"
+
+  database:
+    profiles: [infra]
+    restart: unless-stopped
+    command:
+      - --transaction-isolation=READ-COMMITTED
+      - --innodb_rollback_on_timeout=ON
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "docker.{{.Name}}"
+
+  rabbitmq:
+    profiles: [infra]
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "docker.{{.Name}}"
+
+  redis:
+    profiles: [infra]
+    restart: unless-stopped
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "docker.{{.Name}}"
+
+  opensearch:
+    profiles: [infra]
+    restart: unless-stopped
+    environment:
+      OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
+    labels:
+      - traefik.enable=false
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "docker.{{.Name}}"
+
+  opensearch-dashboards:
+    profiles: [infra]
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "docker.{{.Name}}"
+
+  fluent-bit:
+    profiles: [infra]
+    image: fluent/fluent-bit:4.0
+    container_name: zigzag_fluent_bit
+    volumes:
+      - ./fluent-bit:/fluent-bit/etc:ro
+    ports:
+      - "127.0.0.1:24224:24224"
+      - "127.0.0.1:2020:2020"
+    environment:
+      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
+      APP_ENV: prod
+    restart: unless-stopped
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Blue Slot (profile: blue)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  php-blue:
+    profiles: [blue]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_php_blue
+    restart: unless-stopped
+    build:
+      context: .
+      target: frankenphp_prod
+    volumes:
+      - ./config/jwt:/app/config/jwt:rw,cached
+      - caddy_data_blue:/data
+      - caddy_config_blue:/config
+    environment:
+      SERVER_NAME: ${SERVER_NAME:-localhost}, php-blue:80
+      APP_SECRET: ${APP_SECRET}
+      MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+      MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+      MERCURE_URL: http://php-blue:80/.well-known/mercure
+      MERCURE_PUBLIC_URL: https://${SERVER_NAME}/.well-known/mercure
+      MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET}
+      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      GOOGLE_MAPS_FRONTEND_API_KEY: ${GOOGLE_MAPS_FRONTEND_API_KEY:-}
+    depends_on:
+      database:
+        condition: service_healthy
+    labels:
+      # Routing is handled by Traefik file provider, not Docker labels
+      - traefik.enable=false
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        fluentd-retry-wait: "1s"
+        fluentd-max-retries: "30"
+        tag: "docker.{{.Name}}"
+
+  messenger_worker-blue:
+    profiles: [blue]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_messenger_worker_blue
+    restart: unless-stopped
+    command: ["php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv"]
+    healthcheck:
+      disable: true
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      APP_ENV: prod
+      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        fluentd-retry-wait: "1s"
+        fluentd-max-retries: "30"
+        tag: "docker.{{.Name}}"
+
+  messenger_worker_webhooks-blue:
+    profiles: [blue]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_messenger_worker_webhooks_blue
+    restart: unless-stopped
+    command: ["php", "bin/console", "messenger:consume", "async_webhooks", "--time-limit=3600", "--memory-limit=64M", "-vv"]
+    healthcheck:
+      disable: true
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      APP_ENV: prod
+      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        fluentd-retry-wait: "1s"
+        fluentd-max-retries: "30"
+        tag: "docker.{{.Name}}"
+
+  messenger_worker_tracking-blue:
+    profiles: [blue]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_messenger_worker_tracking_blue
+    restart: unless-stopped
+    command: ["php", "bin/console", "messenger:consume", "async_tracking", "--time-limit=3600", "--memory-limit=64M", "-vv"]
+    healthcheck:
+      disable: true
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      APP_ENV: prod
+      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        fluentd-retry-wait: "1s"
+        fluentd-max-retries: "30"
+        tag: "docker.{{.Name}}"
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Green Slot (profile: green)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  php-green:
+    profiles: [green]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_php_green
+    restart: unless-stopped
+    build:
+      context: .
+      target: frankenphp_prod
+    volumes:
+      - ./config/jwt:/app/config/jwt:rw,cached
+      - caddy_data_green:/data
+      - caddy_config_green:/config
+    environment:
+      SERVER_NAME: ${SERVER_NAME:-localhost}, php-green:80
+      APP_SECRET: ${APP_SECRET}
+      MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+      MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+      MERCURE_URL: http://php-green:80/.well-known/mercure
+      MERCURE_PUBLIC_URL: https://${SERVER_NAME}/.well-known/mercure
+      MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET}
+      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      GOOGLE_MAPS_FRONTEND_API_KEY: ${GOOGLE_MAPS_FRONTEND_API_KEY:-}
+    depends_on:
+      database:
+        condition: service_healthy
+    labels:
+      - traefik.enable=false
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        fluentd-retry-wait: "1s"
+        fluentd-max-retries: "30"
+        tag: "docker.{{.Name}}"
+
+  messenger_worker-green:
+    profiles: [green]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_messenger_worker_green
+    restart: unless-stopped
+    command: ["php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv"]
+    healthcheck:
+      disable: true
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      APP_ENV: prod
+      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        fluentd-retry-wait: "1s"
+        fluentd-max-retries: "30"
+        tag: "docker.{{.Name}}"
+
+  messenger_worker_webhooks-green:
+    profiles: [green]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_messenger_worker_webhooks_green
+    restart: unless-stopped
+    command: ["php", "bin/console", "messenger:consume", "async_webhooks", "--time-limit=3600", "--memory-limit=64M", "-vv"]
+    healthcheck:
+      disable: true
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      APP_ENV: prod
+      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        fluentd-retry-wait: "1s"
+        fluentd-max-retries: "30"
+        tag: "docker.{{.Name}}"
+
+  messenger_worker_tracking-green:
+    profiles: [green]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_messenger_worker_tracking_green
+    restart: unless-stopped
+    command: ["php", "bin/console", "messenger:consume", "async_tracking", "--time-limit=3600", "--memory-limit=64M", "-vv"]
+    healthcheck:
+      disable: true
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      APP_ENV: prod
+      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        fluentd-retry-wait: "1s"
+        fluentd-max-retries: "30"
+        tag: "docker.{{.Name}}"
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Override base compose.yaml services that are NOT used in deploy mode
+  # ══════════════════════════════════════════════════════════════════════════
+
+  # The base php service from compose.yaml is not used — blue/green slots replace it
+  php:
+    profiles: [disabled]
+
+  # Base worker services from compose.yaml are not used — blue/green slots replace them
+  messenger_worker:
+    profiles: [disabled]
+
+  messenger_worker_webhooks:
+    profiles: [disabled]
+
+  messenger_worker_tracking:
+    profiles: [disabled]
+
+volumes:
+  caddy_data_blue:
+  caddy_config_blue:
+  caddy_data_green:
+  caddy_config_green:

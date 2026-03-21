@@ -27,3 +27,9 @@
 phpstan.neon
 ###< phpstan/phpstan ###
 /drivers/
+
+###> deployment ###
+.env.prod
+.active-slot
+/traefik/dynamic/routing.yaml
+###< deployment ###

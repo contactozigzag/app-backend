@@ -1524,6 +1524,75 @@ export const getMercureToken = (paymentId) =>
 - **FrankenPHP worker mode** — application boots once, handles thousands of requests in-process
 - **Pagination** — all collection endpoints are paginated (default 20, max 50 per page)
 
+## 🚀 Deployment
+
+ZigZag uses a **blue/green deployment strategy** on a single DigitalOcean Droplet for zero-downtime releases.
+
+### How It Works
+
+Two "slots" (blue and green) each run a complete set of application containers (php + workers). Stateful services (database, RabbitMQ, Redis, OpenSearch) are shared. Traefik routes traffic to the active slot via a dynamic file provider.
+
+```
+1. Determine inactive slot (if blue is active → deploy to green)
+2. Build new prod image on the droplet
+3. Start the inactive slot with the new image
+4. Health-check the new slot's php service
+5. Run database migrations
+6. Switch Traefik routing (file provider, ~1s switchover)
+7. Drain old slot (30s grace period) and stop it
+8. If health check fails → automatic rollback (old slot stays active)
+```
+
+### Deploying
+
+```bash
+# Tag a release and push — CI runs quality + tests, then deploys
+git tag v1.2.3
+git push origin v1.2.3
+
+# Or trigger manually from GitHub Actions UI (Actions → Deploy → Run workflow)
+```
+
+### Rollback
+
+Deploy the previous version by creating a new tag pointing to the old commit:
+
+```bash
+git tag v1.2.4 v1.2.2    # Point new tag at the known-good commit
+git push origin v1.2.4
+```
+
+Or use `workflow_dispatch` from the GitHub Actions UI to redeploy.
+
+### Versioning Convention
+
+Use [semver](https://semver.org/) tags: `v1.0.0`, `v1.0.1`, `v1.1.0`, `v2.0.0`.
+
+### Initial Setup
+
+See the implementation guide in `BLUE_GREEN_DEPLOY_PROMPT.md` (Steps 1-8) for:
+- Droplet preparation (deploy user, directories, Docker)
+- SSH key generation for GitHub Actions
+- GitHub Secrets configuration (`SSH_PRIVATE_KEY`, `DROPLET_IP`, `SERVER_NAME`)
+- Production environment file (`.env.prod` on the droplet)
+- JWT key generation
+- First bootstrap deployment
+
+### Environment Variables
+
+All production secrets live in `.env.prod` **on the droplet only** — never in GitHub Secrets or the repository. The deploy script runs `docker compose --env-file .env.prod` to inject them at runtime. See `env.prod.template` for the full list of required variables.
+
+### Key Files
+
+| File | Purpose |
+|---|---|
+| `compose.deploy.yaml` | Blue/green production compose overlay |
+| `scripts/deploy.sh` | Deployment script (runs on droplet) |
+| `.github/workflows/deploy.yaml` | GitHub Actions deploy workflow |
+| `env.prod.template` | Production env template (committed, no secrets) |
+| `traefik/dynamic/routing.yaml` | Traefik routing config (written by deploy script) |
+| `.active-slot` | Tracks which slot is live (on droplet) |
+
 ## 🤝 Contributing
 
 1. Fork the repository

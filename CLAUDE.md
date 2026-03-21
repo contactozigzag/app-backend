@@ -108,6 +108,15 @@ Always: `createApiClient()` → create Foundry factories → `loginUser()`. Crea
 - OpenSearch 2.x at `http://opensearch:9200` (single-node, security disabled) for driver full-text search
 - JWT keys in `config/jwt/` (generated via `make keys` or CI workflow)
 
+### Deployment (Blue/Green)
+- `compose.deploy.yaml` is the production blue/green overlay (replaces `compose.prod.yaml` for deployments)
+- `scripts/deploy.sh` runs on the droplet: build → start new slot → health check → migrate → switch Traefik → drain → stop old slot
+- `.active-slot` file on the droplet tracks which slot (blue/green) is currently live
+- `.env.prod` on the droplet contains all production secrets (never committed)
+- `traefik/dynamic/routing.yaml` is written by the deploy script to switch Traefik routing between slots
+- Deploy is triggered by pushing a `v*` tag or via GitHub Actions `workflow_dispatch`
+- Shared infrastructure (database, rabbitmq, redis, opensearch, traefik, fluent-bit) uses the `infra` profile and is never restarted during deploys
+
 ### OpenSearch
 - **Env vars:** `OPENSEARCH_URL` (default `http://opensearch:9200`), `OPENSEARCH_INDEX_PREFIX` (default `zigzag_dev_`)
 - **Re-index command:** `php bin/console app:opensearch:index-drivers [--force] [--batch-size=100] [--school=ID]`

@@ -1,0 +1,291 @@
+---
+# Blue/Green Deployment Workflow
+#
+# Triggers:
+#   - Push v* tag to main  -> CI (quality + tests) + deploy to production
+#   - Manual workflow_dispatch -> CI + deploy (with optional slot override)
+#
+# CI-only triggers (quality.yml + ci.yaml) handle pushes to main and PRs.
+# This workflow is dedicated to deployments that require the full CI gate first.
+
+name: Deploy
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      force_slot:
+        description: 'Force deploy to specific slot (leave empty for auto)'
+        required: false
+        type: choice
+        options: ['', 'blue', 'green']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false  # Never cancel a running deploy
+
+env:
+  DROPLET_IP: ${{ secrets.DROPLET_IP }}
+  DEPLOY_USER: deploy
+  PROJECT_DIR: /opt/zigzag
+
+jobs:
+  # ── Job 1: Quality gate ──────────────────────────────────
+  quality:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
+      APP_SECRET: "$ecretf0rt3st"
+      DATABASE_URL: "sqlite:///:memory:"
+      JWT_SECRET_KEY: "%kernel.project_dir%/config/jwt/private.pem"
+      JWT_PUBLIC_KEY: "%kernel.project_dir%/config/jwt/public.pem"
+      JWT_PASSPHRASE: "test"
+      MERCADOPAGO_ACCESS_TOKEN: "TEST-access-token"
+      MERCADOPAGO_PUBLIC_KEY: "TEST-public-key"
+      MERCADOPAGO_WEBHOOK_SECRET: "test-secret"
+      MERCADOPAGO_MARKETPLACE_FEE_PERCENT: "5"
+      MERCADOPAGO_APP_ID: "test-app-id"
+      MERCADOPAGO_APP_SECRET: "test-app-secret"
+      MERCADOPAGO_OAUTH_REDIRECT_URI: "http://localhost/oauth/mercadopago/callback"
+      TOKEN_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+      MERCURE_URL: "http://localhost/.well-known/mercure"
+      MERCURE_PUBLIC_URL: "http://localhost/.well-known/mercure"
+      MERCURE_JWT_SECRET: "test-secret"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: ctype, iconv, intl, pdo, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts
+
+      - name: Generate JWT keypair
+        run: |
+          mkdir -p config/jwt
+          openssl genrsa -out config/jwt/private.pem -passout pass:test 4096 2>/dev/null
+          openssl rsa -pubout -in config/jwt/private.pem -out config/jwt/public.pem -passin pass:test 2>/dev/null
+
+      - name: Warm up Symfony cache
+        run: php bin/console cache:warmup --env=dev
+        env:
+          APP_ENV: dev
+
+      - name: PHPStan
+        run: php -d memory_limit=512M vendor/bin/phpstan analyse --configuration=phpstan.dist.neon --no-progress --error-format=github
+
+      - name: ECS
+        run: vendor/bin/ecs check --no-progress-bar
+
+      - name: Rector (dry run)
+        run: vendor/bin/rector process --dry-run --no-progress-bar
+
+  # ── Job 2: Test suite ────────────────────────────────────
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker images
+        uses: docker/bake-action@v6
+        with:
+          pull: true
+          load: true
+          source: .
+          files: |
+            compose.yaml
+            compose.override.yaml
+          set: |
+            *.cache-from=type=gha,scope=${{github.ref}}
+            *.cache-from=type=gha,scope=refs/heads/main
+            *.cache-to=type=gha,scope=${{github.ref}},mode=max
+
+      - name: Install Composer dependencies
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}":/app \
+            -w /app \
+            -e COMPOSER_ALLOW_SUPERUSER=1 \
+            --entrypoint="" \
+            app-php \
+            php -d memory_limit=-1 /usr/local/bin/composer install \
+              --prefer-dist --no-progress --no-interaction --no-scripts
+
+      - name: Install ImportMap assets
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}":/app \
+            -w /app \
+            --entrypoint="" \
+            app-php \
+            php bin/console importmap:install
+
+      - name: Generate JWT keys
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}":/app \
+            -w /app \
+            --entrypoint="" \
+            app-php \
+            php bin/console lexik:jwt:generate-keypair --skip-if-exists
+
+      - name: Start services
+        run: |
+          docker compose up --wait --no-build || {
+            echo "=== PHP container logs ==="
+            docker compose logs --no-color php
+            exit 1
+          }
+
+      - name: Check HTTP reachability
+        run: |
+          for i in $(seq 1 10); do
+            if curl -s --fail-with-body http://localhost > /dev/null 2>&1; then
+              echo "HTTP reachable on attempt $i"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying in 2s..."
+            sleep 2
+          done
+          echo "HTTP not reachable after 10 attempts"
+          curl -v --fail-with-body http://localhost
+          exit 1
+
+      - name: Create test database
+        run: |
+          docker compose exec -T database \
+            mysql -uroot -p"${MYSQL_ROOT_PASSWORD:-passwd}" \
+            -e "CREATE DATABASE IF NOT EXISTS db_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                GRANT ALL PRIVILEGES ON db_test.* TO 'user'@'%';
+                FLUSH PRIVILEGES;"
+
+      - name: Run migrations
+        run: docker compose exec -T php bin/console -e test doctrine:migrations:migrate --no-interaction
+
+      - name: Run PHPUnit
+        run: docker compose exec -T php bin/phpunit
+
+      - name: Doctrine Schema Validator
+        run: docker compose exec -T php bin/console -e test doctrine:schema:validate
+
+  # ── Job 3: Deploy (only on version tags or manual dispatch) ──
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [quality, test]
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$DROPLET_IP" >> ~/.ssh/known_hosts
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Determine deploy slot
+        id: slot
+        env:
+          FORCE_SLOT: ${{ inputs.force_slot }}
+        run: |
+          if [ -n "$FORCE_SLOT" ]; then
+            echo "slot=$FORCE_SLOT" >> "$GITHUB_OUTPUT"
+          else
+            # Read current active slot from droplet, deploy to the OTHER one
+            ACTIVE=$(ssh "${DEPLOY_USER}@${DROPLET_IP}" \
+              "cat ${PROJECT_DIR}/.active-slot 2>/dev/null || echo 'blue'")
+            if [ "$ACTIVE" = "blue" ]; then
+              echo "slot=green" >> "$GITHUB_OUTPUT"
+            else
+              echo "slot=blue" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Determine image tag
+        id: tag
+        env:
+          GIT_REF: ${{ github.ref }}
+          GIT_REF_NAME: ${{ github.ref_name }}
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          if [[ "$GIT_REF" == refs/tags/v* ]]; then
+            echo "tag=$GIT_REF_NAME" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GIT_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sync code to droplet
+        run: |
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='var/' \
+            --exclude='.env.local' \
+            --exclude='.env.prod' \
+            --exclude='config/jwt/' \
+            --exclude='.active-slot' \
+            --exclude='traefik/dynamic/routing.yaml' \
+            ./ "${DEPLOY_USER}@${DROPLET_IP}:${PROJECT_DIR}/"
+
+      - name: Run deploy script
+        env:
+          DEPLOY_SLOT: ${{ steps.slot.outputs.slot }}
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          ssh "${DEPLOY_USER}@${DROPLET_IP}" \
+            "cd ${PROJECT_DIR} && bash scripts/deploy.sh ${DEPLOY_SLOT} ${IMAGE_TAG}"
+
+      - name: Post-deploy verification
+        env:
+          SERVER_NAME: ${{ secrets.SERVER_NAME }}
+        run: |
+          sleep 10
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 10 \
+            "https://${SERVER_NAME}/api/docs")
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "::error::Post-deploy check failed: HTTP $HTTP_STATUS"
+            exit 1
+          fi
+          echo "Application responding with HTTP $HTTP_STATUS"
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          DEPLOY_SLOT: ${{ steps.slot.outputs.slot }}
+        run: |
+          echo "::error::Deployment to ${DEPLOY_SLOT} failed!"
+          # Add Slack/email notification here if desired
