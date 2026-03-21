@@ -12,7 +12,10 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Dto\DriverRate\SetDriverRatesInput;
+use App\Enum\PricingModel;
 use App\Repository\DriverRepository;
+use App\State\DriverRate\SetDriverRatesProcessor;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -37,6 +40,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Post(security: "is_granted('ROLE_USER')"),
         new Patch(security: "is_granted('ROLE_DRIVER')"),
         new Delete(security: "is_granted('ROLE_ADMIN')"),
+        new Post(
+            uriTemplate: '/drivers/{id}/rates',
+            security: "is_granted('ROLE_DRIVER')",
+            input: SetDriverRatesInput::class,
+            processor: SetDriverRatesProcessor::class,
+        ),
     ]
 )]
 #[ApiFilter(SearchFilter::class, properties: [
@@ -94,9 +103,21 @@ class Driver
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $mpTokenExpiresAt = null;
 
+    #[ORM\Column(type: Types::STRING, length: 30, nullable: true, enumType: PricingModel::class)]
+    #[Groups(['driver:read', 'driver:write'])]
+    private ?PricingModel $pricingModel = null;
+
+    /**
+     * @var Collection<int, DriverRate>
+     */
+    #[ORM\OneToMany(targetEntity: DriverRate::class, mappedBy: 'driver', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[Groups(['driver:item:read'])]
+    private Collection $rates;
+
     public function __construct()
     {
         $this->vehicles = new ArrayCollection();
+        $this->rates = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -210,6 +231,45 @@ class Driver
     {
         if ($this->vehicles->removeElement($vehicle) && $vehicle->getDriver() === $this) {
             $vehicle->setDriver(null);
+        }
+
+        return $this;
+    }
+
+    public function getPricingModel(): ?PricingModel
+    {
+        return $this->pricingModel;
+    }
+
+    public function setPricingModel(?PricingModel $pricingModel): static
+    {
+        $this->pricingModel = $pricingModel;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DriverRate>
+     */
+    public function getRates(): Collection
+    {
+        return $this->rates;
+    }
+
+    public function addRate(DriverRate $rate): static
+    {
+        if (! $this->rates->contains($rate)) {
+            $this->rates->add($rate);
+            $rate->setDriver($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRate(DriverRate $rate): static
+    {
+        if ($this->rates->removeElement($rate) && $rate->getDriver() === $this) {
+            $rate->setDriver(null);
         }
 
         return $this;

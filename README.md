@@ -15,7 +15,7 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 - **Special Event Routes**: Full lifecycle management for field trips and sports events — three route modes, two departure modes, live student-ready re-sequencing
 - **Route Optimization**: Intelligent route planning with Google Maps integration
 - **Multi-channel Notifications**: Push, SMS, and Email alerts
-- **Payment Integration**: Mercado Pago Marketplace model with real-time SSE status updates
+- **Payment Integration**: Mercado Pago Marketplace model with driver-defined rates and real-time SSE status updates
 - **Safety First**: Check-in/check-out logging, safety audits, and automated anomaly detection
 
 ## 🏗️ Technology Stack
@@ -938,6 +938,7 @@ Marketplace + OAuth model: each driver authorises the app once via OAuth and eve
 ### Architecture Features
 
 - **Marketplace + OAuth** — per-driver payments; no intermediary holding funds
+- **Driver-defined Rates** — four pricing models (flat, per-route, per-student, per-route-student); amount always calculated server-side from the driver's rate configuration
 - **Idempotency** — Redis-backed idempotency keys (24-hour TTL) prevent duplicate charges
 - **Async Webhook Processing** — RabbitMQ decouples webhook receipt from processing
 - **Real-time Updates** — Mercure pushes private payment status events to the subscribing parent app
@@ -945,6 +946,7 @@ Marketplace + OAuth model: each driver authorises the app once via OAuth and eve
 - **Rate Limiting** — 10 requests/minute per IP on payment endpoints
 - **Retry Logic** — exponential backoff (1 s → 2 s → 4 s), max 3 retries, dead-letter on failure
 - **Token Encryption** — driver OAuth tokens encrypted at rest with libsodium secretbox
+- **Rate Snapshots** — each payment stores a JSON snapshot of the rate used at payment time for auditability
 
 ### Payment Flow
 
@@ -952,9 +954,14 @@ Marketplace + OAuth model: each driver authorises the app once via OAuth and eve
 Driver (once)
   └── GET /oauth/mercadopago/connect → MP OAuth → encrypted tokens in DB
 
+Driver (rate setup)
+  └── POST /api/driver-rates (or POST /api/drivers/{id}/rates for bulk set)
+        └── defines pricing model + rates (flat, per-route, per-student, per-route-student)
+
 Parent
   └── POST /api/payments/create-preference
-        └── returns { init_point, payment_id }
+        ├── amount auto-calculated from driver's rate config
+        └── returns { init_point, payment_id, amount, currency }
 
 MP calls POST /api/webhooks/mercadopago
   └── validate → dispatch ProcessWebhookMessage → RabbitMQ → HTTP 200
@@ -971,33 +978,57 @@ Parent app
 
 ### API Endpoints
 
+#### Driver Rate Management
+```http
+GET    /api/driver-rates?driver={id}       # List driver's rates
+POST   /api/driver-rates                   # Create a single rate (ROLE_DRIVER)
+PATCH  /api/driver-rates/{id}              # Update a rate (owner only)
+DELETE /api/driver-rates/{id}              # Delete a rate (owner only)
+POST   /api/drivers/{id}/rates             # Bulk set all rates (atomically replaces existing)
+```
+
+Pricing models: `flat`, `per_route`, `per_student`, `per_route_student`.
+- **flat** / **per_route**: requires `amount`; `perStudentAmount` must be null
+- **per_student** / **per_route_student**: requires `perStudentAmount`; `amount` must be null
+- **per_route** / **per_route_student**: requires `route`; other models must have `route` null
+
 #### Create Payment Preference
+
+The payment amount is always calculated server-side from the driver's rate configuration. No `amount` or `currency` field is sent by the client.
+
 ```http
 POST /api/payments/create-preference
 Authorization: Bearer {api-jwt}
 Content-Type: application/json
 
 {
-  "driver_id": 42,
-  "student_ids": [1, 2],
-  "amount": 3500.00,
+  "driverId": 42,
+  "studentIds": [1, 2],
+  "routeId": null,
   "description": "Transporte escolar — marzo 2026",
-  "currency": "ARS",
-  "idempotency_key": "550e8400-e29b-41d4-a716-446655440000"
+  "idempotencyKey": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
 **Response `201`:**
 ```json
 {
-  "payment_id": 123,
-  "preference_id": "123456-abc-def",
-  "init_point": "https://www.mercadopago.com/checkout/v1/redirect?pref_id=...",
+  "paymentId": 123,
+  "preferenceId": "123456-abc-def",
+  "initPoint": "https://www.mercadopago.com/checkout/v1/redirect?pref_id=...",
   "status": "pending",
   "amount": "3500.00",
   "currency": "ARS"
 }
 ```
+
+The `amount` is calculated as:
+- **flat**: `rate.amount`
+- **per_route**: `rate(route).amount`
+- **per_student**: `rate.perStudentAmount × studentCount`
+- **per_route_student**: `rate(route).perStudentAmount × studentCount`
+
+Payment detail includes a `rateSnapshot` JSON object recording the pricing model, amounts, route, and student count used at payment time.
 
 #### Check Payment Status
 ```http
@@ -1478,21 +1509,21 @@ export const useChatUpdates = (alertId) => {
 ### Payment Integration (Parent App)
 
 ```javascript
-// api/payment.js
+// api/payment.js — amount is calculated server-side from driver's rate
 import apiClient from './client';
 import { v4 as uuidv4 } from 'uuid';
 import { Linking } from 'react-native';
 
-export const initiatePayment = async (driverId, studentIds, amount, description) => {
+export const initiatePayment = async (driverId, studentIds, description, routeId = null) => {
   const { data } = await apiClient.post('/payments/create-preference', {
-    driver_id: driverId,
-    student_ids: studentIds,
-    amount, description,
-    currency: 'ARS',
-    idempotency_key: uuidv4(),
+    driverId,
+    studentIds,
+    routeId,
+    description,
+    idempotencyKey: uuidv4(),
   });
-  await Linking.openURL(data.init_point);
-  return data.payment_id;
+  await Linking.openURL(data.initPoint);
+  return data.paymentId;
 };
 
 // Exchange API JWT → short-lived Mercure JWT for a single payment topic

@@ -213,6 +213,15 @@ class Payment
     private string $refundedAmount = '0.00';
 
     /**
+     * Snapshot of the driver rate used to calculate the payment amount.
+     *
+     * @var array<string, mixed>|null
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['payment:detail'])]
+    private ?array $rateSnapshot = null;
+
+    /**
      * @var Collection<int, PaymentTransaction>
      */
     #[ORM\OneToMany(targetEntity: PaymentTransaction::class, mappedBy: 'payment', cascade: ['persist'], orphanRemoval: true)]
@@ -452,6 +461,24 @@ class Payment
         if ($this->transactions->removeElement($transaction) && $transaction->getPayment() === $this) {
             $transaction->setPayment(null);
         }
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getRateSnapshot(): ?array
+    {
+        return $this->rateSnapshot;
+    }
+
+    /**
+     * @param array<string, mixed>|null $rateSnapshot
+     */
+    public function setRateSnapshot(?array $rateSnapshot): static
+    {
+        $this->rateSnapshot = $rateSnapshot;
 
         return $this;
     }

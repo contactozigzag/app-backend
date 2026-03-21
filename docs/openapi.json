@@ -2912,6 +2912,147 @@
                 }
             }
         },
+        "/api/drivers/{id}/rates": {
+            "post": {
+                "operationId": "api_drivers_idrates_post",
+                "tags": [
+                    "Driver"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Driver resource created",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Driver.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Driver"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Driver.html"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Driver.csv"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "422": {
+                        "description": "An error occurred",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Creates a Driver resource.",
+                "description": "Creates a Driver resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Driver identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "requestBody": {
+                    "description": "The new Driver resource",
+                    "content": {
+                        "application/ld+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Driver.SetDriverRatesInput"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Driver.SetDriverRatesInput"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Driver.SetDriverRatesInput"
+                            }
+                        },
+                        "text/csv": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Driver.SetDriverRatesInput"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
         "/api/driver-alerts/{alertId}/resolve": {
             "post": {
                 "operationId": "api_driver-alerts_alertIdresolve_post",
@@ -3501,6 +3642,556 @@
                         "explode": false
                     }
                 ]
+            }
+        },
+        "/api/driver-rates": {
+            "get": {
+                "operationId": "api_driver-rates_get_collection",
+                "tags": [
+                    "DriverRate"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "DriverRate collection",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "DriverRate.jsonld-driver_rate.read collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchema"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/DriverRate.jsonld-driver_rate.read"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/DriverRate-driver_rate.read"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/DriverRate.html-driver_rate.read"
+                                    }
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/DriverRate.csv-driver_rate.read"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves the collection of DriverRate resources.",
+                "description": "Retrieves the collection of DriverRate resources.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "The collection page number",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "itemsPerPage",
+                        "in": "query",
+                        "description": "The number of items per page",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 30,
+                            "minimum": 0,
+                            "maximum": 100
+                        },
+                        "style": "form",
+                        "explode": false
+                    }
+                ]
+            },
+            "post": {
+                "operationId": "api_driver-rates_post",
+                "tags": [
+                    "DriverRate"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "DriverRate resource created",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverRate.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverRate"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverRate.html"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverRate.csv"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "422": {
+                        "description": "An error occurred",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Creates a DriverRate resource.",
+                "description": "Creates a DriverRate resource.",
+                "parameters": [],
+                "requestBody": {
+                    "description": "The new DriverRate resource",
+                    "content": {
+                        "application/ld+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DriverRate-driver_rate.write"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DriverRate-driver_rate.write"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DriverRate-driver_rate.write"
+                            }
+                        },
+                        "text/csv": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DriverRate-driver_rate.write"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/api/driver-rates/{id}": {
+            "get": {
+                "operationId": "api_driver-rates_id_get",
+                "tags": [
+                    "DriverRate"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "DriverRate resource",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverRate.jsonld-driver_rate.read_driver_rate.item.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverRate-driver_rate.read_driver_rate.item.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverRate.html-driver_rate.read_driver_rate.item.read"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverRate.csv-driver_rate.read_driver_rate.item.read"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a DriverRate resource.",
+                "description": "Retrieves a DriverRate resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "DriverRate identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            },
+            "delete": {
+                "operationId": "api_driver-rates_id_delete",
+                "tags": [
+                    "DriverRate"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "DriverRate resource deleted"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Removes the DriverRate resource.",
+                "description": "Removes the DriverRate resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "DriverRate identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            },
+            "patch": {
+                "operationId": "api_driver-rates_id_patch",
+                "tags": [
+                    "DriverRate"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "DriverRate resource updated",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverRate.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverRate"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverRate.html"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverRate.csv"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "422": {
+                        "description": "An error occurred",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Updates the DriverRate resource.",
+                "description": "Updates the DriverRate resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "DriverRate identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "requestBody": {
+                    "description": "The updated DriverRate resource",
+                    "content": {
+                        "application/merge-patch+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DriverRate-driver_rate.write.jsonMergePatch"
+                            }
+                        }
+                    },
+                    "required": true
+                }
             }
         },
         "/api/drivers/search": {
@@ -14637,6 +15328,27 @@
                         ],
                         "format": "date-time"
                     },
+                    "pricingModel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student",
+                            null
+                        ]
+                    },
+                    "rates": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
                     "mpAuthorized": {
                         "readOnly": true,
                         "description": "Returns true once the driver has completed the OAuth flow.",
@@ -14664,6 +15376,27 @@
                         "type": "string"
                     },
                     "vehicles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "pricingModel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student",
+                            null
+                        ]
+                    },
+                    "rates": {
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -14702,6 +15435,34 @@
                     },
                     "nickname": {
                         "type": "string"
+                    }
+                }
+            },
+            "Driver.SetDriverRatesInput": {
+                "type": "object",
+                "required": [
+                    "pricingModel",
+                    "rates"
+                ],
+                "properties": {
+                    "pricingModel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student",
+                            null
+                        ]
+                    },
+                    "rates": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RateInput"
+                        }
                     }
                 }
             },
@@ -14763,6 +15524,27 @@
                         ],
                         "format": "date-time"
                     },
+                    "pricingModel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student",
+                            null
+                        ]
+                    },
+                    "rates": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
                     "mpAuthorized": {
                         "readOnly": true,
                         "description": "Returns true once the driver has completed the OAuth flow.",
@@ -14790,6 +15572,27 @@
                         "type": "string"
                     },
                     "vehicles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "pricingModel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student",
+                            null
+                        ]
+                    },
+                    "rates": {
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -14875,6 +15678,27 @@
                         ],
                         "format": "date-time"
                     },
+                    "pricingModel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student",
+                            null
+                        ]
+                    },
+                    "rates": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
                     "mpAuthorized": {
                         "readOnly": true,
                         "description": "Returns true once the driver has completed the OAuth flow.",
@@ -14902,6 +15726,27 @@
                         "type": "string"
                     },
                     "vehicles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
+                    "pricingModel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student",
+                            null
+                        ]
+                    },
+                    "rates": {
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -14987,6 +15832,27 @@
                         ],
                         "format": "date-time"
                     },
+                    "pricingModel": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student",
+                            null
+                        ]
+                    },
+                    "rates": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
                     "mpAuthorized": {
                         "readOnly": true,
                         "description": "Returns true once the driver has completed the OAuth flow.",
@@ -15057,6 +15923,27 @@
                                 ],
                                 "format": "date-time"
                             },
+                            "pricingModel": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "enum": [
+                                    "flat",
+                                    "per_route",
+                                    "per_student",
+                                    "per_route_student",
+                                    null
+                                ]
+                            },
+                            "rates": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "iri-reference",
+                                    "example": "https://example.com/"
+                                }
+                            },
                             "mpAuthorized": {
                                 "readOnly": true,
                                 "description": "Returns true once the driver has completed the OAuth flow.",
@@ -15091,6 +15978,27 @@
                                 "type": "string"
                             },
                             "vehicles": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "iri-reference",
+                                    "example": "https://example.com/"
+                                }
+                            },
+                            "pricingModel": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "enum": [
+                                    "flat",
+                                    "per_route",
+                                    "per_student",
+                                    "per_route_student",
+                                    null
+                                ]
+                            },
+                            "rates": {
                                 "type": "array",
                                 "items": {
                                     "type": "string",
@@ -15758,6 +16666,878 @@
                     }
                 ],
                 "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)"
+            },
+            "DriverRate": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "pricingModel": {
+                        "type": "string",
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student"
+                        ]
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "amount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "perStudentAmount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "ARS",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "pricingModel"
+                ]
+            },
+            "DriverRate-driver_rate.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "pricingModel": {
+                        "type": "string",
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student"
+                        ]
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "amount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "perStudentAmount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "ARS",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "pricingModel"
+                ]
+            },
+            "DriverRate-driver_rate.read_driver_rate.item.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "pricingModel": {
+                        "type": "string",
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student"
+                        ]
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "amount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "perStudentAmount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "ARS",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "pricingModel"
+                ]
+            },
+            "DriverRate-driver_rate.write": {
+                "type": "object",
+                "properties": {
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "pricingModel": {
+                        "type": "string",
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student"
+                        ]
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "amount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "perStudentAmount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "ARS",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "pricingModel"
+                ]
+            },
+            "DriverRate-driver_rate.write.jsonMergePatch": {
+                "type": "object",
+                "properties": {
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "pricingModel": {
+                        "type": "string",
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student"
+                        ]
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "amount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "perStudentAmount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "ARS",
+                        "type": "string"
+                    }
+                }
+            },
+            "DriverRate.csv": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "pricingModel": {
+                        "type": "string",
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student"
+                        ]
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "amount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "perStudentAmount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "ARS",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "pricingModel"
+                ]
+            },
+            "DriverRate.csv-driver_rate.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "pricingModel": {
+                        "type": "string",
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student"
+                        ]
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "amount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "perStudentAmount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "ARS",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "pricingModel"
+                ]
+            },
+            "DriverRate.csv-driver_rate.read_driver_rate.item.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "pricingModel": {
+                        "type": "string",
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student"
+                        ]
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "amount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "perStudentAmount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "ARS",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "pricingModel"
+                ]
+            },
+            "DriverRate.html": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "pricingModel": {
+                        "type": "string",
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student"
+                        ]
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "amount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "perStudentAmount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "ARS",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "pricingModel"
+                ]
+            },
+            "DriverRate.html-driver_rate.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "pricingModel": {
+                        "type": "string",
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student"
+                        ]
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "amount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "perStudentAmount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "ARS",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "pricingModel"
+                ]
+            },
+            "DriverRate.html-driver_rate.read_driver_rate.item.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "driver": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "pricingModel": {
+                        "type": "string",
+                        "enum": [
+                            "flat",
+                            "per_route",
+                            "per_student",
+                            "per_route_student"
+                        ]
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "amount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "perStudentAmount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "ARS",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "readOnly": true,
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "pricingModel"
+                ]
+            },
+            "DriverRate.jsonld": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "driver": {
+                                "type": "string",
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "pricingModel": {
+                                "type": "string",
+                                "enum": [
+                                    "flat",
+                                    "per_route",
+                                    "per_student",
+                                    "per_route_student"
+                                ]
+                            },
+                            "route": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "amount": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "perStudentAmount": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "currency": {
+                                "externalDocs": {
+                                    "url": "https://schema.org/priceCurrency"
+                                },
+                                "default": "ARS",
+                                "type": "string"
+                            },
+                            "createdAt": {
+                                "readOnly": true,
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updatedAt": {
+                                "readOnly": true,
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        },
+                        "required": [
+                            "pricingModel"
+                        ]
+                    }
+                ]
+            },
+            "DriverRate.jsonld-driver_rate.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "driver": {
+                                "type": "string",
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "pricingModel": {
+                                "type": "string",
+                                "enum": [
+                                    "flat",
+                                    "per_route",
+                                    "per_student",
+                                    "per_route_student"
+                                ]
+                            },
+                            "route": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "amount": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "perStudentAmount": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "currency": {
+                                "externalDocs": {
+                                    "url": "https://schema.org/priceCurrency"
+                                },
+                                "default": "ARS",
+                                "type": "string"
+                            },
+                            "createdAt": {
+                                "readOnly": true,
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updatedAt": {
+                                "readOnly": true,
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        },
+                        "required": [
+                            "pricingModel"
+                        ]
+                    }
+                ]
+            },
+            "DriverRate.jsonld-driver_rate.read_driver_rate.item.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "driver": {
+                                "type": "string",
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "pricingModel": {
+                                "type": "string",
+                                "enum": [
+                                    "flat",
+                                    "per_route",
+                                    "per_student",
+                                    "per_route_student"
+                                ]
+                            },
+                            "route": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "amount": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "perStudentAmount": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "currency": {
+                                "externalDocs": {
+                                    "url": "https://schema.org/priceCurrency"
+                                },
+                                "default": "ARS",
+                                "type": "string"
+                            },
+                            "createdAt": {
+                                "readOnly": true,
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updatedAt": {
+                                "readOnly": true,
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        },
+                        "required": [
+                            "pricingModel"
+                        ]
+                    }
+                ]
             },
             "DriverSearch": {
                 "type": "object"
@@ -16821,6 +18601,19 @@
                         "default": "0.00",
                         "type": "string"
                     },
+                    "rateSnapshot": {
+                        "description": "Snapshot of the driver rate used to calculate the payment amount.",
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
                     "transactions": {
                         "type": "array",
                         "items": {
@@ -16839,8 +18632,6 @@
                 "required": [
                     "driverId",
                     "studentIds",
-                    "amount",
-                    "currency",
                     "description",
                     "idempotencyKey"
                 ],
@@ -16859,17 +18650,14 @@
                             "type": "integer"
                         }
                     },
-                    "amount": {
-                        "description": "Payment amount (positive decimal string, e.g. \"1500.00\").",
-                        "type": "string"
-                    },
-                    "currency": {
-                        "description": "ISO 4217 currency code (default: ARS).",
-                        "externalDocs": {
-                            "url": "https://schema.org/priceCurrency"
-                        },
-                        "default": "ARS",
-                        "type": "string"
+                    "routeId": {
+                        "minimum": 0,
+                        "exclusiveMinimum": 0,
+                        "description": "Optional route ID \u2014 required when the driver uses per-route or per-route-student pricing.",
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "description": {
                         "maxLength": 500,
@@ -17506,6 +19294,19 @@
                         "default": "0.00",
                         "type": "string"
                     },
+                    "rateSnapshot": {
+                        "description": "Snapshot of the driver rate used to calculate the payment amount.",
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
                     "transactions": {
                         "type": "array",
                         "items": {
@@ -17683,6 +19484,19 @@
                     "refundedAmount": {
                         "default": "0.00",
                         "type": "string"
+                    },
+                    "rateSnapshot": {
+                        "description": "Snapshot of the driver rate used to calculate the payment amount.",
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
                     },
                     "transactions": {
                         "type": "array",
@@ -17873,6 +19687,19 @@
                                 "default": "0.00",
                                 "type": "string"
                             },
+                            "rateSnapshot": {
+                                "description": "Snapshot of the driver rate used to calculate the payment amount.",
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                }
+                            },
                             "transactions": {
                                 "type": "array",
                                 "items": {
@@ -17899,6 +19726,38 @@
             },
             "PaymentTransaction.jsonld-payment.read_payment.detail": {
                 "type": "object"
+            },
+            "RateInput": {
+                "type": "object",
+                "properties": {
+                    "routeId": {
+                        "minimum": 0,
+                        "exclusiveMinimum": 0,
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "amount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "perStudentAmount": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "externalDocs": {
+                            "url": "https://schema.org/priceCurrency"
+                        },
+                        "default": "ARS",
+                        "type": "string"
+                    }
+                }
             },
             "Route-route.read": {
                 "type": "object",
@@ -21320,6 +23179,22 @@
                         ],
                         "format": "date-time"
                     },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
                     "dueForBilling": {
                         "readOnly": true,
                         "type": "boolean"
@@ -21417,6 +23292,22 @@
                         "readOnly": true,
                         "default": 0,
                         "type": "integer"
+                    },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     }
                 },
                 "required": [
@@ -21511,6 +23402,22 @@
                         "readOnly": true,
                         "default": 0,
                         "type": "integer"
+                    },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     }
                 },
                 "required": [
@@ -21560,6 +23467,22 @@
                             "string",
                             "null"
                         ]
+                    },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     }
                 },
                 "required": [
@@ -21667,6 +23590,22 @@
                         ],
                         "format": "date-time"
                     },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
                     "dueForBilling": {
                         "readOnly": true,
                         "type": "boolean"
@@ -21764,6 +23703,22 @@
                         "readOnly": true,
                         "default": 0,
                         "type": "integer"
+                    },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     }
                 },
                 "required": [
@@ -21858,6 +23813,22 @@
                         "readOnly": true,
                         "default": 0,
                         "type": "integer"
+                    },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     }
                 },
                 "required": [
@@ -21965,6 +23936,22 @@
                         ],
                         "format": "date-time"
                     },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
                     "dueForBilling": {
                         "readOnly": true,
                         "type": "boolean"
@@ -22062,6 +24049,22 @@
                         "readOnly": true,
                         "default": 0,
                         "type": "integer"
+                    },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     }
                 },
                 "required": [
@@ -22156,6 +24159,22 @@
                         "readOnly": true,
                         "default": 0,
                         "type": "integer"
+                    },
+                    "driver": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "route": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
                     }
                 },
                 "required": [
@@ -22268,6 +24287,22 @@
                                 ],
                                 "format": "date-time"
                             },
+                            "driver": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "route": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
                             "dueForBilling": {
                                 "readOnly": true,
                                 "type": "boolean"
@@ -22372,6 +24407,22 @@
                                 "readOnly": true,
                                 "default": 0,
                                 "type": "integer"
+                            },
+                            "driver": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "route": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
                             }
                         },
                         "required": [
@@ -22473,6 +24524,22 @@
                                 "readOnly": true,
                                 "default": 0,
                                 "type": "integer"
+                            },
+                            "driver": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "route": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
                             }
                         },
                         "required": [
@@ -23661,6 +25728,10 @@
         {
             "name": "Driver",
             "description": "Resource 'Driver' operations."
+        },
+        {
+            "name": "DriverRate",
+            "description": "Resource 'DriverRate' operations."
         },
         {
             "name": "LocationUpdate",

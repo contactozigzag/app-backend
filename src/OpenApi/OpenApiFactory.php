@@ -54,7 +54,7 @@ final readonly class OpenApiFactory implements OpenApiFactoryInterface
                     '404' => new Response(description: 'No driver profile found for this user.'),
                 ],
                 summary: 'Initiate MercadoPago OAuth flow',
-                description: 'Generates a CSRF state, stores it in Redis, then redirects the browser to Mercado Pago\'s authorization page. Requires ROLE_DRIVER.',
+                description: "Generates a CSRF state, stores it in Redis, then redirects the browser to Mercado Pago's authorization page. Requires ROLE_DRIVER.",
                 security: [[
                     'JWT' => [],
                 ]],

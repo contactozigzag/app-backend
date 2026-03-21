@@ -28,18 +28,10 @@ final class CreatePaymentPreferenceInput
     public array $studentIds = [];
 
     /**
-     * Payment amount (positive decimal string, e.g. "1500.00").
+     * Optional route ID — required when the driver uses per-route or per-route-student pricing.
      */
-    #[Assert\NotBlank]
     #[Assert\Positive]
-    public string $amount;
-
-    /**
-     * ISO 4217 currency code (default: ARS).
-     */
-    #[Assert\NotBlank]
-    #[Assert\Currency]
-    public string $currency = 'ARS';
+    public ?int $routeId = null;
 
     /**
      * Human-readable description shown on the Mercado Pago checkout page.

@@ -7,6 +7,7 @@ namespace App\MessageHandler;
 use App\Enum\SubscriptionStatus;
 use App\Message\ProcessSubscriptionsMessage;
 use App\Repository\SubscriptionRepository;
+use App\Service\Payment\DriverRateCalculator;
 use App\Service\Payment\PaymentProcessor;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,8 +21,9 @@ class ProcessSubscriptionsMessageHandler
     public function __construct(
         private readonly SubscriptionRepository $subscriptionRepository,
         private readonly PaymentProcessor $paymentProcessor,
+        private readonly DriverRateCalculator $driverRateCalculator,
         private readonly EntityManagerInterface $entityManager,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -55,17 +57,25 @@ class ProcessSubscriptionsMessageHandler
 
                     $studentIds = $subscription->getStudents()->map(fn ($s): ?int => $s->getId())->toArray();
 
+                    $calculatedRate = $this->driverRateCalculator->calculateAmount(
+                        $subscription->getDriver(),
+                        $subscription->getRoute(),
+                        count($studentIds),
+                    );
+
                     $payment = $this->paymentProcessor->createPayment(
                         user: $subscription->getUser(),
                         studentIds: $studentIds,
-                        amount: $subscription->getAmount(),
+                        amount: $calculatedRate->amount,
                         description: sprintf(
                             'Subscription billing - %s (%s)',
                             $subscription->getPlanType(),
-                            $subscription->getNextBillingDate()->format('Y-m-d')
+                            $subscription->getNextBillingDate()->format('Y-m-d'),
                         ),
                         idempotencyKey: $idempotencyKey,
-                        currency: $subscription->getCurrency()
+                        currency: $calculatedRate->currency,
+                        driver: $subscription->getDriver(),
+                        rateSnapshot: $calculatedRate->rateSnapshot,
                     );
 
                     // Update subscription
@@ -129,17 +139,25 @@ class ProcessSubscriptionsMessageHandler
 
                         $studentIds = $subscription->getStudents()->map(fn ($s): ?int => $s->getId())->toArray();
 
+                        $calculatedRate = $this->driverRateCalculator->calculateAmount(
+                            $subscription->getDriver(),
+                            $subscription->getRoute(),
+                            count($studentIds),
+                        );
+
                         $payment = $this->paymentProcessor->createPayment(
                             user: $subscription->getUser(),
                             studentIds: $studentIds,
-                            amount: $subscription->getAmount(),
+                            amount: $calculatedRate->amount,
                             description: sprintf(
                                 'Subscription billing retry #%d - %s',
                                 $subscription->getFailedPaymentCount() + 1,
-                                $subscription->getPlanType()
+                                $subscription->getPlanType(),
                             ),
                             idempotencyKey: $idempotencyKey,
-                            currency: $subscription->getCurrency()
+                            currency: $calculatedRate->currency,
+                            driver: $subscription->getDriver(),
+                            rateSnapshot: $calculatedRate->rateSnapshot,
                         );
 
                         $subscription->setLastPaymentAttemptAt(new DateTimeImmutable());

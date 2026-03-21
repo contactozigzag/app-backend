@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller;
 
 use App\Enum\PaymentStatus;
+use App\Enum\PricingModel;
 use App\Service\Payment\MercadoPagoOAuthService;
 use App\Service\Payment\MercadoPagoService;
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\DriverFactory;
+use App\Tests\Factory\DriverRateFactory;
 use App\Tests\Factory\PaymentFactory;
 use App\Tests\Factory\StudentFactory;
 use App\Tests\Factory\UserFactory;
@@ -45,7 +47,6 @@ final class PaymentControllerTest extends AbstractApiTestCase
 
         $body = $this->postJson($client, '/api/payments/preference', [
             'studentIds' => [1],
-            'amount' => '100',
             'description' => 'Test',
             'idempotencyKey' => 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         ]);
@@ -65,7 +66,6 @@ final class PaymentControllerTest extends AbstractApiTestCase
         $body = $this->postJson($client, '/api/payments/preference', [
             'driverId' => 1,
             'studentIds' => [1],
-            'amount' => '100',
             'description' => 'Test',
             'idempotencyKey' => 'not-a-uuid',
         ]);
@@ -85,7 +85,6 @@ final class PaymentControllerTest extends AbstractApiTestCase
         $body = $this->postJson($client, '/api/payments/preference', [
             'driverId' => 999999,
             'studentIds' => [1],
-            'amount' => '100',
             'description' => 'Test',
             'idempotencyKey' => 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         ]);
@@ -105,7 +104,6 @@ final class PaymentControllerTest extends AbstractApiTestCase
         $body = $this->postJson($client, '/api/payments/preference', [
             'driverId' => $driver->getId(),
             'studentIds' => [1],
-            'amount' => '100',
             'description' => 'Test',
             'idempotencyKey' => 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         ]);
@@ -120,7 +118,12 @@ final class PaymentControllerTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
         $user = UserFactory::createOne();
-        $driver = DriverFactory::new()->withMpAuthorized()->create();
+        $driver = DriverFactory::new()->withMpAuthorized()->with([
+            'pricingModel' => PricingModel::FLAT,
+        ])->create();
+        DriverRateFactory::new()->flat('150.00')->with([
+            'driver' => $driver,
+        ])->create();
         $student = StudentFactory::new()->withParent($user)->create();
 
         // Mock MercadoPagoService so we don't need real MP credentials
@@ -142,10 +145,8 @@ final class PaymentControllerTest extends AbstractApiTestCase
         $body = $this->postJson($client, '/api/payments/preference', [
             'driverId' => $driver->getId(),
             'studentIds' => [$student->getId()],
-            'amount' => '150.00',
             'description' => 'School transport fee',
             'idempotencyKey' => 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            'currency' => 'ARS',
         ]);
 
         self::assertResponseStatusCodeSame(201);

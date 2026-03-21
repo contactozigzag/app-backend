@@ -78,4 +78,40 @@ abstract class AbstractApiTestCase extends WebTestCase
 
         return json_decode((string) $client->getResponse()->getContent(), true) ?? [];
     }
+
+    /**
+     * PATCH JSON body and return a decoded response array.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    protected function patchJson(KernelBrowser $client, string $uri, array $data): array
+    {
+        $client->request(Request::METHOD_PATCH, $uri, [], [], [
+            'CONTENT_TYPE' => 'application/merge-patch+json',
+            'HTTP_ACCEPT' => 'application/json',
+        ], (string) json_encode($data));
+
+        /** @var array<string, mixed> $result */
+        $result = json_decode((string) $client->getResponse()->getContent(), true) ?? [];
+
+        return $result;
+    }
+
+    /**
+     * DELETE and return a decoded response array.
+     *
+     * @return array<string, mixed>
+     */
+    protected function deleteJson(KernelBrowser $client, string $uri): array
+    {
+        $client->request(Request::METHOD_DELETE, $uri, [], [], [
+            'HTTP_ACCEPT' => 'application/json',
+        ]);
+
+        /** @var array<string, mixed> $result */
+        $result = json_decode((string) $client->getResponse()->getContent(), true) ?? [];
+
+        return $result;
+    }
 }

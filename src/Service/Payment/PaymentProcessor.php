@@ -44,6 +44,9 @@ class PaymentProcessor
      * @param Driver|null $driver The driver who will receive the funds
      * @throws InvalidArgumentException
      */
+    /**
+     * @param array<string, mixed>|null $rateSnapshot
+     */
     public function createPayment(
         User $user,
         array $studentIds,
@@ -52,6 +55,7 @@ class PaymentProcessor
         string $idempotencyKey,
         string $currency = 'USD',
         ?Driver $driver = null,
+        ?array $rateSnapshot = null,
     ): Payment {
         if ($driver instanceof Driver && ! $driver->hasMpAuthorized()) {
             throw new \InvalidArgumentException(
@@ -61,7 +65,7 @@ class PaymentProcessor
 
         return $this->idempotencyService->processWithIdempotency(
             $idempotencyKey,
-            function () use ($user, $driver, $studentIds, $amount, $description, $idempotencyKey, $currency): Payment {
+            function () use ($user, $driver, $studentIds, $amount, $description, $idempotencyKey, $currency, $rateSnapshot): Payment {
                 $this->logger->info('Creating payment', [
                     'user_id' => $user->getId(),
                     'driver_id' => $driver?->getId(),
@@ -84,6 +88,7 @@ class PaymentProcessor
                 $payment->setIdempotencyKey($idempotencyKey);
                 $payment->setStatus(PaymentStatus::PENDING);
                 $payment->setExpiresAt(new DateTimeImmutable('+24 hours'));
+                $payment->setRateSnapshot($rateSnapshot);
 
                 foreach ($students as $student) {
                     $payment->addStudent($student);

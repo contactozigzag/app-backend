@@ -80,7 +80,7 @@ services:
   # without rebuilding the image, consistent with the php service behaviour.
 
   messenger_worker:
-    restart: "no"
+    restart: unless-stopped
     build:
       context: .
       target: frankenphp_dev
@@ -90,7 +90,7 @@ services:
       APP_ENV: "${APP_ENV:-dev}"
 
   messenger_worker_webhooks:
-    restart: "no"
+    restart: unless-stopped
     build:
       context: .
       target: frankenphp_dev
@@ -100,7 +100,7 @@ services:
       APP_ENV: "${APP_ENV:-dev}"
 
   messenger_worker_tracking:
-    restart: "no"
+    restart: unless-stopped
     build:
       context: .
       target: frankenphp_dev

@@ -20,31 +20,40 @@ Mercado Pago account. The platform can optionally retain a marketplace fee perce
 
 ### Code Implementation
 
-#### Enums (5/5)
+#### Enums (6/6)
 - `PaymentStatus` — 7 states: `pending`, `processing`, `approved`, `rejected`, `cancelled`, `refunded`, `partially_refunded`
 - `PaymentMethod` — 6 methods: `credit_card`, `debit_card`, `bank_transfer`, `digital_wallet`, `cash`, `mercado_pago`
 - `SubscriptionStatus` — 5 states: `active`, `paused`, `cancelled`, `expired`, `payment_failed`
 - `BillingCycle` — 4 cycles: `weekly`, `monthly`, `quarterly`, `yearly`
 - `TransactionEvent` — 7 events: `created`, `approved`, `rejected`, `refunded`, `cancelled`, `webhook_received`, `status_updated`
+- `PricingModel` — 4 models: `flat`, `per_route`, `per_student`, `per_route_student`
 
-#### Entities & Repositories (3/3)
-- `Payment` entity — includes `driver` (ManyToOne → Driver, ON DELETE SET NULL) and `idempotency_key`
-- `Subscription` entity — recurring billing
+#### Entities & Repositories (4/4)
+- `Payment` entity — includes `driver` (ManyToOne → Driver, ON DELETE SET NULL), `idempotency_key`, and `rateSnapshot` (JSON, nullable)
+- `DriverRate` entity — driver-defined rates with unique constraint on `(driver_id, route_id)`
+- `Subscription` entity — recurring billing with `driver` and `route` FKs for rate resolution
 - `PaymentTransaction` entity — complete audit trail
-- `Driver` entity — extended with `mpAccessToken` (encrypted), `mpRefreshToken` (encrypted), `mpAccountId`, `mpTokenExpiresAt`
-- `PaymentRepository`, `SubscriptionRepository`, `PaymentTransactionRepository`
+- `Driver` entity — extended with `pricingModel`, `mpAccessToken` (encrypted), `mpRefreshToken` (encrypted), `mpAccountId`, `mpTokenExpiresAt`
+- `PaymentRepository`, `SubscriptionRepository`, `PaymentTransactionRepository`, `DriverRateRepository`
 
-#### Core Services (6/6)
+#### Core Services (7/7)
 - `IdempotencyService` — Redis-backed with DB fallback and distributed locking
 - `MercadoPagoService` — SDK wrapper; uses `RequestOptions` for per-driver API calls
 - `WebhookValidator` — HMAC-SHA256 signature validation + replay-attack prevention
 - `PaymentProcessor` — Main orchestrator; fetches driver OAuth token for each preference creation
 - `TokenEncryptor` — libsodium `secretbox` symmetric encryption for OAuth tokens stored in DB
 - `MercadoPagoOAuthService` — Full OAuth flow: build URL, exchange code, refresh tokens, CSRF state via Redis
+- `DriverRateCalculator` — Calculates payment amount from driver's rate config; returns `CalculatedRate` (amount + currency + rateSnapshot)
 
-#### Controllers (5/5)
-- `PaymentController` — All parent payment endpoints (`create-preference`, `status`, `list`, `detail`)
-- `WebhookController` — Validates MP webhook, looks up payment, dispatches `ProcessWebhookMessage` to RabbitMQ; returns HTTP 200 immediately
+#### API Platform Resources & State Processors
+- `Payment` entity — `#[ApiResource]` with 4 operations: GetCollection, Get, Post (create-preference), Get (status)
+- `MercadoPagoWebhook` — virtual AP4 resource at `src/ApiResource/MercadoPagoWebhook.php`
+- `DriverRate` entity — `#[ApiResource]` with 5 operations: GetCollection, Get, Post, Patch, Delete
+- `Driver` entity — includes bulk-set `Post` operation at `/api/drivers/{id}/rates`
+- `CreatePaymentPreferenceProcessor` — injects `DriverRateCalculator`, calculates amount from driver rate
+- `DriverRateCreateProcessor` — validates driver/route ownership and pricing model consistency
+- `DriverRateCollectionProvider` — filters by `?driver=` query param
+- `SetDriverRatesProcessor` — atomically replaces all rates for a driver
 - `AdminPaymentController` — Admin operations: refunds, reconciliation, stats
 - `OAuthController` — Driver MP OAuth flow: `/oauth/mercadopago/connect`, `/callback`, `/status`
 - `MercureController` — Issues short-lived Mercure subscriber JWTs: `GET /api/mercure/token`
@@ -84,11 +93,17 @@ Driver (once, on-boarding)
   └── GET /oauth/mercadopago/connect  →  redirect to MP
         └── POST /oauth/mercadopago/callback  →  exchange code → store encrypted tokens in DB
 
+Driver (rate setup)
+  └── POST /api/driver-rates  or  POST /api/drivers/{id}/rates
+        └── defines pricing model + rates
+
 Parent (each payment)
   └── POST /api/payments/create-preference
+        ├── Calculates amount from driver's rate config (DriverRateCalculator)
         ├── Looks up driver + decrypts MP access token
         ├── Creates MP preference with RequestOptions(driverToken)
         │     → payment goes to driver's MP account directly
+        ├── Stores rateSnapshot JSON in Payment for audit
         └── Returns init_point URL → parent opens MP checkout
               └── (payment completed by user in MP)
                     └── MP calls POST /api/webhooks/mercadopago
@@ -157,7 +172,59 @@ All heavy lifting happens in `ProcessWebhookMessageHandler` (RabbitMQ worker):
 
 ## API Endpoints
 
+### Driver: Manage Rates
+
+Drivers define their rates before parents can pay. Four pricing models are supported:
+
+| Model | `route` | Amount field | Calculation |
+|-------|---------|-------------|-------------|
+| `flat` | must be null | `amount` | `rate.amount` |
+| `per_route` | required | `amount` | `rate(route).amount` |
+| `per_student` | must be null | `perStudentAmount` | `perStudentAmount × studentCount` |
+| `per_route_student` | required | `perStudentAmount` | `perStudentAmount × studentCount` |
+
+```http
+GET    /api/driver-rates?driver={id}   — list rates (ROLE_USER)
+GET    /api/driver-rates/{id}          — single rate (ROLE_USER)
+POST   /api/driver-rates               — create rate (ROLE_DRIVER)
+PATCH  /api/driver-rates/{id}          — update rate (owner only)
+DELETE /api/driver-rates/{id}          — delete rate (owner only)
+POST   /api/drivers/{id}/rates         — bulk set all rates (owner only, atomically replaces)
+```
+
+**Create single rate:**
+```http
+POST /api/driver-rates
+Authorization: Bearer {api-jwt}
+Content-Type: application/json
+
+{
+  "driver": "/api/drivers/42",
+  "pricingModel": "flat",
+  "amount": "1500.00",
+  "currency": "ARS"
+}
+```
+
+**Bulk set (replace all):**
+```http
+POST /api/drivers/42/rates
+Authorization: Bearer {api-jwt}
+Content-Type: application/json
+
+{
+  "pricingModel": "per_route",
+  "rates": [
+    { "routeId": 1, "amount": "2000.00" },
+    { "routeId": 2, "amount": "2500.00" }
+  ]
+}
+```
+
 ### Parent: Create Payment Preference
+
+The payment amount is always calculated server-side from the driver's rate configuration.
+No `amount` or `currency` field is provided by the client.
 
 ```http
 POST /api/payments/create-preference
@@ -165,34 +232,59 @@ Authorization: Bearer {api-jwt}
 Content-Type: application/json
 
 {
-  "driver_id":       42,
-  "student_ids":     [1, 2],
-  "amount":          3500.00,
-  "description":     "Transporte escolar — febrero 2026",
-  "currency":        "ARS",
-  "idempotency_key": "550e8400-e29b-41d4-a716-446655440000"
+  "driverId":       42,
+  "studentIds":     [1, 2],
+  "routeId":        null,
+  "description":    "Transporte escolar — marzo 2026",
+  "idempotencyKey": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
+
+- `routeId` is required when the driver uses `per_route` or `per_route_student` pricing.
+- `studentIds` determines the student count for per-student models.
 
 Response `201 Created`:
 ```json
 {
-  "payment_id":          123,
-  "preference_id":       "123456-abc-def",
-  "init_point":          "https://www.mercadopago.com/checkout/v1/redirect?pref_id=...",
-  "sandbox_init_point":  "https://sandbox.mercadopago.com/...",
-  "status":              "pending",
-  "amount":              "3500.00",
-  "currency":            "ARS",
-  "expires_at":          "2026-02-21T12:00:00+00:00"
+  "paymentId":         123,
+  "preferenceId":      "123456-abc-def",
+  "initPoint":         "https://www.mercadopago.com/checkout/v1/redirect?pref_id=...",
+  "sandboxInitPoint":  "https://sandbox.mercadopago.com/...",
+  "status":            "pending",
+  "amount":            "3500.00",
+  "currency":          "ARS",
+  "expiresAt":         "2026-03-21T12:00:00+00:00"
 }
 ```
 
 **Error responses:**
-- `400` — missing/invalid field or idempotency key format
-- `404` — driver not found
-- `422` — driver has not connected their Mercado Pago account yet
+- `422` — validation error (missing fields, driver has no pricing model, no rate configured, driver not MP-connected)
 - `429` — rate limit exceeded
+
+### Payment Detail (with Rate Snapshot)
+
+```http
+GET /api/payments/{id}
+Authorization: Bearer {api-jwt}
+```
+
+The response includes a `rateSnapshot` object recording the rate used at payment time:
+
+```json
+{
+  "id": 123,
+  "amount": "1500.00",
+  "currency": "ARS",
+  "rateSnapshot": {
+    "pricingModel": "per_student",
+    "perStudentAmount": "500.00",
+    "studentCount": 3,
+    "calculatedAmount": "1500.00"
+  }
+}
+```
+
+For per-route models, the snapshot also includes `routeId` and `routeName`.
 
 ### Parent: Check Payment Status
 
@@ -352,31 +444,31 @@ import { Linking } from 'react-native';
 
 /**
  * Create a Mercado Pago payment preference.
+ * Amount is calculated server-side from the driver's rate configuration.
  *
  * @param {number}   driverId    - Driver the parent is paying.
  * @param {number[]} studentIds  - Students covered by this payment.
- * @param {number}   amount      - Amount in ARS.
  * @param {string}   description - Description shown in MP checkout.
+ * @param {number|null} routeId  - Required for per-route/per-route-student pricing.
  */
-export const createPayment = async (driverId, studentIds, amount, description) => {
+export const createPayment = async (driverId, studentIds, description, routeId = null) => {
   const response = await apiClient.post('/payments/create-preference', {
-    driver_id:       driverId,
-    student_ids:     studentIds,
-    amount,
+    driverId,
+    studentIds,
+    routeId,
     description,
-    currency:        'ARS',
-    idempotency_key: uuidv4(),
+    idempotencyKey: uuidv4(),
   });
   return response.data;
 };
 
 /**
- * Open MP checkout and return the payment_id for status tracking.
+ * Open MP checkout and return the paymentId for status tracking.
  */
-export const initiatePayment = async (driverId, studentIds, amount, description) => {
-  const payment = await createPayment(driverId, studentIds, amount, description);
-  await Linking.openURL(payment.init_point);
-  return payment.payment_id;
+export const initiatePayment = async (driverId, studentIds, description, routeId = null) => {
+  const payment = await createPayment(driverId, studentIds, description, routeId);
+  await Linking.openURL(payment.initPoint);
+  return payment.paymentId;
 };
 
 export const checkPaymentStatus = async (paymentId) => {
@@ -596,7 +688,7 @@ import { Button, Text, View } from 'react-native';
 import { initiatePayment } from '../api/payment';
 import { usePaymentStatus } from '../hooks/usePaymentStatus';
 
-const PayNowScreen = ({ driverId, studentIds }) => {
+const PayNowScreen = ({ driverId, studentIds, routeId = null }) => {
   const [paymentId, setPaymentId] = useState(null);
   const { status, loading, error } = usePaymentStatus(paymentId);
 
@@ -605,8 +697,8 @@ const PayNowScreen = ({ driverId, studentIds }) => {
       const id = await initiatePayment(
         driverId,
         studentIds,
-        3500,
-        'Transporte escolar — febrero 2026',
+        'Transporte escolar — marzo 2026',
+        routeId,
       );
       setPaymentId(id);
       // Mercure SSE connection starts automatically via usePaymentStatus
@@ -616,7 +708,7 @@ const PayNowScreen = ({ driverId, studentIds }) => {
   };
 
   if (!paymentId) {
-    return <Button title="Pay ARS 3,500" onPress={handlePay} />;
+    return <Button title="Pay Now" onPress={handlePay} />;
   }
 
   if (loading) return <Text>Waiting for payment confirmation...</Text>;
@@ -739,7 +831,8 @@ docker compose exec php php bin/console cache:clear --env=prod
 ### Manual Checklist
 
 - [ ] Driver OAuth: connect, verify `mp_account_id` stored
-- [ ] Create payment preference (with `driver_id`)
+- [ ] Driver rate setup: create rates via `POST /api/driver-rates` or bulk set via `POST /api/drivers/{id}/rates`
+- [ ] Create payment preference (amount auto-calculated from rate)
 - [ ] Complete payment in MP sandbox
 - [ ] Verify webhook received (check logs: `docker compose logs php | grep webhook`)
 - [ ] Verify `ProcessWebhookMessageHandler` ran (check RabbitMQ management UI)
@@ -800,5 +893,5 @@ Rejected:  5031 4332 1540 6351
 
 ---
 
-**Last updated**: February 20, 2026
+**Last updated**: March 21, 2026
 **Status**: Production Ready

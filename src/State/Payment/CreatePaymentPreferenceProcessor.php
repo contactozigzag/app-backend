@@ -11,6 +11,8 @@ use App\Dto\Payment\PaymentPreferenceOutput;
 use App\Entity\User;
 use App\Event\Payment\PaymentCreatedEvent;
 use App\Repository\DriverRepository;
+use App\Repository\RouteRepository;
+use App\Service\Payment\DriverRateCalculator;
 use App\Service\Payment\PaymentProcessor;
 use Exception;
 use InvalidArgumentException;
@@ -44,6 +46,8 @@ final readonly class CreatePaymentPreferenceProcessor implements ProcessorInterf
     public function __construct(
         private PaymentProcessor $paymentProcessor,
         private DriverRepository $driverRepository,
+        private RouteRepository $routeRepository,
+        private DriverRateCalculator $driverRateCalculator,
         private EventDispatcherInterface $eventDispatcher,
         private Security $security,
         private UrlGeneratorInterface $urlGenerator,
@@ -82,16 +86,36 @@ final readonly class CreatePaymentPreferenceProcessor implements ProcessorInterf
             throw new UnprocessableEntityHttpException('This driver has not connected their Mercado Pago account yet.');
         }
 
-        // ── 4. Create payment (idempotency-protected) ───────────────────────
+        // ── 4. Calculate amount from driver rate ─────────────────────────────
+        $route = null;
+        if ($data->routeId !== null) {
+            $route = $this->routeRepository->find($data->routeId);
+            if ($route === null) {
+                throw new NotFoundHttpException(sprintf('Route %d not found.', $data->routeId));
+            }
+        }
+
+        try {
+            $calculatedRate = $this->driverRateCalculator->calculateAmount(
+                $driver,
+                $route,
+                count($data->studentIds),
+            );
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            throw new UnprocessableEntityHttpException($invalidArgumentException->getMessage(), $invalidArgumentException);
+        }
+
+        // ── 5. Create payment (idempotency-protected) ───────────────────────
         try {
             $payment = $this->paymentProcessor->createPayment(
                 user: $user,
                 studentIds: $data->studentIds,
-                amount: $data->amount,
+                amount: $calculatedRate->amount,
                 description: $data->description,
                 idempotencyKey: $data->idempotencyKey,
-                currency: $data->currency,
+                currency: $calculatedRate->currency,
                 driver: $driver,
+                rateSnapshot: $calculatedRate->rateSnapshot,
             );
         } catch (InvalidArgumentException $invalidArgumentException) {
             throw new UnprocessableEntityHttpException($invalidArgumentException->getMessage(), $invalidArgumentException);

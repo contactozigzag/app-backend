@@ -116,6 +116,16 @@ class Subscription
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $lastPaymentAttemptAt = null;
 
+    #[ORM\ManyToOne(targetEntity: Driver::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['subscription:read', 'subscription:write'])]
+    private ?Driver $driver = null;
+
+    #[ORM\ManyToOne(targetEntity: Route::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['subscription:read', 'subscription:write'])]
+    private ?Route $route = null;
+
     public function __construct()
     {
         $this->students = new ArrayCollection();
@@ -329,6 +339,30 @@ class Subscription
         return $this->status === SubscriptionStatus::ACTIVE
             && $this->nextBillingDate instanceof DateTimeImmutable
             && $this->nextBillingDate <= new DateTimeImmutable();
+    }
+
+    public function getDriver(): ?Driver
+    {
+        return $this->driver;
+    }
+
+    public function setDriver(?Driver $driver): static
+    {
+        $this->driver = $driver;
+
+        return $this;
+    }
+
+    public function getRoute(): ?Route
+    {
+        return $this->route;
+    }
+
+    public function setRoute(?Route $route): static
+    {
+        $this->route = $route;
+
+        return $this;
     }
 
     public function shouldRetryPayment(): bool
