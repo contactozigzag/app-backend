@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Service\OpenSearch;
 
 use App\Entity\Driver;
+use App\Entity\Route;
 use App\Entity\User;
 use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
 use OpenSearch\Client;
 use OpenSearch\Common\Exceptions\Missing404Exception;
 
@@ -30,6 +32,7 @@ readonly class DriverSearchService
     public function __construct(
         private Client $opensearchClient,
         private string $indexPrefix,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -96,7 +99,7 @@ readonly class DriverSearchService
 
         $body = [
             '_source' => $sourceFields,
-            'track_total_hits' => false,
+            'track_total_hits' => true,
             'from' => $from,
             'size' => $limit,
             'query' => [
@@ -154,6 +157,10 @@ readonly class DriverSearchService
 
     /**
      * Index or update a single driver document.
+     *
+     * school_id is stored as an array derived from the driver's route assignments,
+     * since a driver can serve multiple schools. OpenSearch's term filter matches
+     * any value in the array natively.
      */
     public function index(Driver $driver): void
     {
@@ -163,7 +170,7 @@ readonly class DriverSearchService
             return;
         }
 
-        $school = $user->getSchool();
+        $schoolIds = $this->getSchoolIdsForDriver($driver);
 
         $this->opensearchClient->index([
             'index' => $this->getIndexName(),
@@ -171,7 +178,7 @@ readonly class DriverSearchService
             'body' => [
                 'driver_id' => $driver->getId(),
                 'user_id' => $user->getId(),
-                'school_id' => $school?->getId(),
+                'school_id' => $schoolIds,
                 'nickname' => $driver->getNickname() ?? '',
                 'first_name' => $user->getFirstName() ?? '',
                 'last_name' => $user->getLastName() ?? '',
@@ -181,6 +188,26 @@ readonly class DriverSearchService
                 'updated_at' => new DateTimeImmutable()->format('c'),
             ],
         ]);
+    }
+
+    /**
+     * Get all school IDs this driver is assigned to via routes.
+     *
+     * @return list<int>
+     */
+    public function getSchoolIdsForDriver(Driver $driver): array
+    {
+        /** @var list<array{school_id: int}> $rows */
+        $rows = $this->entityManager->createQueryBuilder()
+            ->select('DISTINCT IDENTITY(r.school) AS school_id')
+            ->from(Route::class, 'r')
+            ->where('r.driver = :driver')
+            ->andWhere('r.school IS NOT NULL')
+            ->setParameter('driver', $driver)
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_map(static fn (array $row): int => $row['school_id'], $rows);
     }
 
     /**

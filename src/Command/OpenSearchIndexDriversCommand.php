@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Entity\Driver;
+use App\Entity\Route;
 use App\Service\OpenSearch\DriverSearchService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -87,7 +88,7 @@ final class OpenSearchIndexDriversCommand extends Command
             ->join('d.user', 'u');
 
         if ($schoolId !== null) {
-            $qb->where('u.school = :schoolId')
+            $qb->join(Route::class, 'r', 'WITH', 'r.driver = d AND r.school = :schoolId')
                 ->setParameter('schoolId', $schoolId);
         }
 
@@ -125,7 +126,7 @@ final class OpenSearchIndexDriversCommand extends Command
                 continue;
             }
 
-            $school = $user->getSchool();
+            $schoolIds = $this->driverSearchService->getSchoolIdsForDriver($driver);
 
             $batch[] = [
                 'index' => [
@@ -136,7 +137,7 @@ final class OpenSearchIndexDriversCommand extends Command
             $batch[] = [
                 'driver_id' => $driver->getId(),
                 'user_id' => $user->getId(),
-                'school_id' => $school?->getId(),
+                'school_id' => $schoolIds,
                 'nickname' => $driver->getNickname() ?? '',
                 'first_name' => $user->getFirstName() ?? '',
                 'last_name' => $user->getLastName() ?? '',

@@ -15,11 +15,17 @@ use App\State\DriverSearch\DriverSearchProvider;
     operations: [
         new GetCollection(
             uriTemplate: '/drivers/search',
+            outputFormats: [
+                'json' => ['application/json'],
+            ],
             openapi: new Operation(
                 summary: 'Search for drivers by name, nickname, or identification number',
                 parameters: [
                     new Parameter(name: 'q', in: 'query', required: true, schema: [
                         'type' => 'string',
+                    ]),
+                    new Parameter(name: 'school', in: 'query', description: 'School ID (required for parents, ignored for school admins)', required: false, schema: [
+                        'type' => 'integer',
                     ]),
                     new Parameter(name: 'page', in: 'query', required: false, schema: [
                         'type' => 'integer',

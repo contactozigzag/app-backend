@@ -3513,52 +3513,11 @@
                     "200": {
                         "description": "DriverSearch collection",
                         "content": {
-                            "application/ld+json": {
-                                "schema": {
-                                    "type": "object",
-                                    "description": "DriverSearch.jsonld collection.",
-                                    "allOf": [
-                                        {
-                                            "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "member"
-                                            ],
-                                            "properties": {
-                                                "member": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "$ref": "#/components/schemas/DriverSearch.jsonld"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            },
                             "application/json": {
                                 "schema": {
                                     "type": "array",
                                     "items": {
                                         "$ref": "#/components/schemas/DriverSearch"
-                                    }
-                                }
-                            },
-                            "text/html": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/DriverSearch.html"
-                                    }
-                                }
-                            },
-                            "text/csv": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/DriverSearch.csv"
                                     }
                                 }
                             }
@@ -3597,6 +3556,18 @@
                         "deprecated": false,
                         "schema": {
                             "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "school",
+                        "in": "query",
+                        "description": "School ID (required for parents, ignored for school admins)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer"
                         },
                         "style": "form",
                         "explode": false
@@ -15515,22 +15486,6 @@
             },
             "DriverSearch": {
                 "type": "object"
-            },
-            "DriverSearch.csv": {
-                "type": "object"
-            },
-            "DriverSearch.html": {
-                "type": "object"
-            },
-            "DriverSearch.jsonld": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/HydraItemBaseSchema"
-                    },
-                    {
-                        "type": "object"
-                    }
-                ]
             },
             "Error": {
                 "type": "object",

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\EventListener;
 
 use App\Entity\Driver;
+use App\Entity\Route;
 use App\Entity\User;
 use App\Message\IndexDriverMessage;
 use App\Message\RemoveDriverFromIndexMessage;
@@ -18,8 +19,10 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /**
  * Dispatches async messages to keep the OpenSearch drivers index in sync.
  *
- * Listens to Driver persist/update/remove AND User update (because firstName/lastName
- * live on User but are indexed in the drivers index).
+ * Listens to:
+ * - Driver persist/update/remove
+ * - User update (firstName/lastName live on User but are indexed)
+ * - Route persist/update/remove (school_id is derived from route assignments)
  *
  * All OpenSearch calls are async via Messenger — never synchronous in the listener.
  */
@@ -39,6 +42,17 @@ final readonly class DriverIndexListener
 
         if ($entity instanceof Driver && $entity->getId() !== null) {
             $this->messageBus->dispatch(new IndexDriverMessage($entity->getId()));
+
+            return;
+        }
+
+        // Route created with a driver — re-index that driver (school_id may have changed)
+        if ($entity instanceof Route) {
+            $driver = $entity->getDriver();
+
+            if ($driver instanceof Driver && $driver->getId() !== null) {
+                $this->messageBus->dispatch(new IndexDriverMessage($driver->getId()));
+            }
         }
     }
 
@@ -53,8 +67,18 @@ final readonly class DriverIndexListener
         }
 
         // User updated — if this user has an associated Driver, re-index it
-        // (firstName/lastName live on User but are indexed in the drivers index)
         if ($entity instanceof User) {
+            $driver = $entity->getDriver();
+
+            if ($driver instanceof Driver && $driver->getId() !== null) {
+                $this->messageBus->dispatch(new IndexDriverMessage($driver->getId()));
+            }
+
+            return;
+        }
+
+        // Route updated — re-index the driver (driver or school assignment may have changed)
+        if ($entity instanceof Route) {
             $driver = $entity->getDriver();
 
             if ($driver instanceof Driver && $driver->getId() !== null) {
@@ -69,6 +93,17 @@ final readonly class DriverIndexListener
 
         if ($entity instanceof Driver && $entity->getId() !== null) {
             $this->messageBus->dispatch(new RemoveDriverFromIndexMessage($entity->getId()));
+
+            return;
+        }
+
+        // Route being removed — re-index the driver (school_id array may shrink)
+        if ($entity instanceof Route) {
+            $driver = $entity->getDriver();
+
+            if ($driver instanceof Driver && $driver->getId() !== null) {
+                $this->messageBus->dispatch(new IndexDriverMessage($driver->getId()));
+            }
         }
     }
 }

@@ -22,7 +22,7 @@ SYMFONY  = $(PHP) bin/console
 
 # Misc
 .DEFAULT_GOAL = help
-.PHONY        : help build up start down logs sh composer vendor sf cc test dev prod check-env debug ps bash phpstan rector-dry rector ecs-dry ecs lint-twig lint-yaml lint-xliff lint-container lint-doctrine lint quality fix
+.PHONY        : help build up start down logs sh composer vendor sf cc test dev prod check-env debug ps bash phpstan rector-dry rector ecs-dry ecs lint-twig lint-yaml lint-xliff lint-container lint-doctrine lint quality fix index-drivers openapi-export
 
 ## —— 🎵 🐳 The Symfony Docker Makefile 🐳 🎵 ——————————————————————————————————
 help: ## Outputs this help screen
@@ -68,6 +68,15 @@ test: ## Start tests with phpunit, pass the parameter "c=" to add options to php
 	@$(eval c ?=)
 	@$(DOCKER_COMP) exec -e APP_ENV=test php php -d memory_limit=512M bin/phpunit $(c)
 
+
+## —— API Docs 📖 ——————————————————————————————————————————————————————————————
+openapi-export: ## Export OpenAPI spec to docs/openapi.json
+	@$(SYMFONY) api:openapi:export --output=./docs/openapi.json
+
+## —— OpenSearch 🔍 ————————————————————————————————————————————————————————————
+index-drivers: ## Hydrate OpenSearch drivers index, pass "c=" for options, example: make index-drivers c="--force --batch-size=50 --school=1"
+	@$(eval c ?=)
+	@$(SYMFONY) app:opensearch:index-drivers $(c)
 
 ## —— Composer 🧙 ——————————————————————————————————————————————————————————————
 composer: ## Run composer, pass the parameter "c=" to run a given command, example: make composer c='req symfony/orm-pack'

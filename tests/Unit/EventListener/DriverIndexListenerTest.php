@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\EventListener;
 
 use App\Entity\Driver;
+use App\Entity\Route;
 use App\Entity\User;
 use App\EventListener\DriverIndexListener;
 use App\Message\IndexDriverMessage;
@@ -92,5 +93,71 @@ final class DriverIndexListenerTest extends TestCase
 
         $listener = new DriverIndexListener($bus);
         $listener->postUpdate(new PostUpdateEventArgs($user, $this->createStub(EntityManagerInterface::class)));
+    }
+
+    public function testPostPersistOnRouteWithDriverDispatchesIndexMessage(): void
+    {
+        $driver = $this->createStub(Driver::class);
+        $driver->method('getId')->willReturn(9);
+
+        $route = $this->createStub(Route::class);
+        $route->method('getDriver')->willReturn($driver);
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects($this->once())
+            ->method('dispatch')
+            ->with(self::callback(fn (IndexDriverMessage $msg): bool => $msg->driverId === 9))
+            ->willReturn(new Envelope(new IndexDriverMessage(9)));
+
+        $listener = new DriverIndexListener($bus);
+        $listener->postPersist(new PostPersistEventArgs($route, $this->createStub(EntityManagerInterface::class)));
+    }
+
+    public function testPostUpdateOnRouteWithDriverDispatchesIndexMessage(): void
+    {
+        $driver = $this->createStub(Driver::class);
+        $driver->method('getId')->willReturn(9);
+
+        $route = $this->createStub(Route::class);
+        $route->method('getDriver')->willReturn($driver);
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects($this->once())
+            ->method('dispatch')
+            ->with(self::callback(fn (IndexDriverMessage $msg): bool => $msg->driverId === 9))
+            ->willReturn(new Envelope(new IndexDriverMessage(9)));
+
+        $listener = new DriverIndexListener($bus);
+        $listener->postUpdate(new PostUpdateEventArgs($route, $this->createStub(EntityManagerInterface::class)));
+    }
+
+    public function testPreRemoveOnRouteWithDriverDispatchesIndexMessage(): void
+    {
+        $driver = $this->createStub(Driver::class);
+        $driver->method('getId')->willReturn(9);
+
+        $route = $this->createStub(Route::class);
+        $route->method('getDriver')->willReturn($driver);
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects($this->once())
+            ->method('dispatch')
+            ->with(self::callback(fn (IndexDriverMessage $msg): bool => $msg->driverId === 9))
+            ->willReturn(new Envelope(new IndexDriverMessage(9)));
+
+        $listener = new DriverIndexListener($bus);
+        $listener->preRemove(new PreRemoveEventArgs($route, $this->createStub(EntityManagerInterface::class)));
+    }
+
+    public function testPostPersistOnRouteWithoutDriverDoesNotDispatch(): void
+    {
+        $route = $this->createStub(Route::class);
+        $route->method('getDriver')->willReturn(null);
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects($this->never())->method('dispatch');
+
+        $listener = new DriverIndexListener($bus);
+        $listener->postPersist(new PostPersistEventArgs($route, $this->createStub(EntityManagerInterface::class)));
     }
 }

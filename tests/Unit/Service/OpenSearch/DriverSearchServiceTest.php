@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\OpenSearch;
 
 use App\Entity\Driver;
-use App\Entity\School;
 use App\Entity\User;
 use App\Service\OpenSearch\DriverSearchService;
+use Doctrine\ORM\EntityManagerInterface;
 use OpenSearch\Client;
 use OpenSearch\Namespaces\IndicesNamespace;
 use PHPUnit\Framework\TestCase;
@@ -34,7 +34,7 @@ final class DriverSearchServiceTest extends TestCase
             }))
             ->willReturn($this->emptySearchResponse());
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX);
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class));
         $service->search('Carlos', 42);
     }
 
@@ -54,7 +54,7 @@ final class DriverSearchServiceTest extends TestCase
             }))
             ->willReturn($this->emptySearchResponse());
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX);
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class));
         $service->search('12345', 1);
     }
 
@@ -73,7 +73,7 @@ final class DriverSearchServiceTest extends TestCase
             }))
             ->willReturn($this->emptySearchResponse());
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX);
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class));
         $service->search('Ca', 1);
     }
 
@@ -93,7 +93,7 @@ final class DriverSearchServiceTest extends TestCase
             }))
             ->willReturn($this->emptySearchResponse());
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX);
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class));
         $service->search('Carlos', 1);
     }
 
@@ -102,7 +102,7 @@ final class DriverSearchServiceTest extends TestCase
         $client = $this->createMock(Client::class);
         $client->expects($this->never())->method('search');
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX);
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class));
         $result = $service->search('', 1);
 
         $this->assertSame([], $result->results);
@@ -114,7 +114,7 @@ final class DriverSearchServiceTest extends TestCase
         $client = $this->createMock(Client::class);
         $client->expects($this->never())->method('search');
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX);
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class));
         $result = $service->search('a', 1);
 
         $this->assertSame([], $result->results);
@@ -137,7 +137,7 @@ final class DriverSearchServiceTest extends TestCase
             }))
             ->willReturn($this->emptySearchResponse());
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX);
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class));
         $service->search($longQuery, 1);
     }
 
@@ -164,7 +164,7 @@ final class DriverSearchServiceTest extends TestCase
             ],
         ]);
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX);
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class));
         $result = $service->search('Carlos', 1);
 
         $this->assertCount(1, $result->results);
@@ -191,21 +191,17 @@ final class DriverSearchServiceTest extends TestCase
             }))
             ->willReturn($this->emptySearchResponse());
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX);
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class));
         $service->search('test', 1);
     }
 
     public function testIndexBuildsCorrectDocument(): void
     {
-        $school = $this->createStub(School::class);
-        $school->method('getId')->willReturn(5);
-
         $user = $this->createStub(User::class);
         $user->method('getId')->willReturn(10);
         $user->method('getFirstName')->willReturn('Carlos');
         $user->method('getLastName')->willReturn('García');
         $user->method('getIdentificationNumber')->willReturn('12345678');
-        $user->method('getSchool')->willReturn($school);
 
         $driver = $this->createStub(Driver::class);
         $driver->method('getId')->willReturn(7);
@@ -222,13 +218,20 @@ final class DriverSearchServiceTest extends TestCase
                 $this->assertSame('Carlitos', $params['body']['nickname']);
                 $this->assertSame('Carlos García', $params['body']['full_name']);
                 $this->assertSame('12345678', $params['body']['identification_number']);
-                $this->assertSame(5, $params['body']['school_id']);
+                $this->assertSame([5, 8], $params['body']['school_id']);
                 $this->assertTrue($params['body']['is_active']);
 
                 return true;
             }));
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX);
+        // Partially mock DriverSearchService to stub getSchoolIdsForDriver
+        $em = $this->createStub(EntityManagerInterface::class);
+        $service = $this->getMockBuilder(DriverSearchService::class)
+            ->setConstructorArgs([$client, self::INDEX_PREFIX, $em])
+            ->onlyMethods(['getSchoolIdsForDriver'])
+            ->getMock();
+        $service->method('getSchoolIdsForDriver')->willReturn([5, 8]);
+
         $service->index($driver);
     }
 
@@ -242,7 +245,7 @@ final class DriverSearchServiceTest extends TestCase
                 'id' => '42',
             ]);
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX);
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class));
         $service->delete(42);
     }
 
@@ -272,7 +275,7 @@ final class DriverSearchServiceTest extends TestCase
         $client = $this->createStub(Client::class);
         $client->method('indices')->willReturn($indices);
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX);
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class));
         $service->createIndex();
     }
 

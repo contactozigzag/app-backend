@@ -7,6 +7,9 @@ namespace App\State\DriverSearch;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Entity\Driver;
+use App\Entity\Route;
+use App\Entity\School;
+use App\Entity\Student;
 use App\Entity\User;
 use App\Service\OpenSearch\DriverSearchHit;
 use App\Service\OpenSearch\DriverSearchResult;
@@ -19,6 +22,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 
@@ -59,11 +63,6 @@ final readonly class DriverSearchProvider implements ProviderInterface
 
         /** @var User $user */
         $user = $this->security->getUser();
-        $school = $user->getSchool();
-
-        if ($school === null) {
-            throw new AccessDeniedHttpException('User is not associated with a school.');
-        }
 
         // Rate limiting: 30 req / 10 sec per user
         $limiter = $this->driverSearchLimiter->create('driver_search_' . $user->getId());
@@ -86,7 +85,7 @@ final readonly class DriverSearchProvider implements ProviderInterface
             return $this->emptyResponse($page, $itemsPerPage);
         }
 
-        $schoolId = (int) $school->getId();
+        $schoolId = $this->resolveSchoolId($request, $user);
 
         // Try OpenSearch first, fall back to Doctrine on failure
         $result = $this->searchOpenSearch($query, $schoolId, $page, $itemsPerPage);
@@ -116,7 +115,51 @@ final readonly class DriverSearchProvider implements ProviderInterface
     }
 
     /**
+     * Resolve the school ID from the request.
+     *
+     * School admins use their own school. Parents must pass a `school` query parameter
+     * and must have at least one child enrolled in that school.
+     */
+    private function resolveSchoolId(Request $request, User $user): int
+    {
+        // School admins always search within their own school
+        $adminSchool = $user->getSchool();
+
+        if ($adminSchool instanceof School) {
+            return (int) $adminSchool->getId();
+        }
+
+        // Parents must specify a school
+        $schoolParam = $request->query->get('school');
+
+        if (! is_numeric($schoolParam)) {
+            throw new BadRequestHttpException('The "school" query parameter is required.');
+        }
+
+        $schoolId = (int) $schoolParam;
+
+        // Validate that the parent has at least one child in this school
+        $hasChild = (int) $this->entityManager->createQueryBuilder()
+            ->select('COUNT(s.id)')
+            ->from(Student::class, 's')
+            ->join('s.parents', 'p')
+            ->where('p = :user')
+            ->andWhere('s.school = :schoolId')
+            ->setParameter('user', $user)
+            ->setParameter('schoolId', $schoolId)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        if ($hasChild === 0) {
+            throw new AccessDeniedHttpException('You do not have access to this school.');
+        }
+
+        return $schoolId;
+    }
+
+    /**
      * Fallback: basic Doctrine LIKE query.
+     * Finds drivers assigned to routes in the given school.
      * Uses prefix LIKE only (value%) for B-tree index utilization.
      */
     private function searchDoctrine(string $query, int $schoolId, int $page, int $limit): DriverSearchResult
@@ -124,11 +167,19 @@ final readonly class DriverSearchProvider implements ProviderInterface
         $queryLower = mb_strtolower($query) . '%';
         $offset = ($page - 1) * $limit;
 
+        // Disable SchoolFilter — driver users don't have school_id set;
+        // we filter by school via Route join instead.
+        $filters = $this->entityManager->getFilters();
+
+        if ($filters->isEnabled('school_filter')) {
+            $filters->disable('school_filter');
+        }
+
         $qb = $this->entityManager->createQueryBuilder()
-            ->select('d', 'u')
+            ->select('DISTINCT d', 'u')
             ->from(Driver::class, 'd')
             ->join('d.user', 'u')
-            ->where('u.school = :schoolId')
+            ->join(Route::class, 'r', 'WITH', 'r.driver = d AND r.school = :schoolId')
             ->andWhere(
                 'LOWER(d.nickname) LIKE :query OR LOWER(u.firstName) LIKE :query OR LOWER(u.lastName) LIKE :query OR u.identificationNumber LIKE :queryRaw',
             )

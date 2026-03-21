@@ -6,7 +6,9 @@ namespace App\Tests\Functional\Api;
 
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\DriverFactory;
+use App\Tests\Factory\RouteFactory;
 use App\Tests\Factory\SchoolFactory;
+use App\Tests\Factory\StudentFactory;
 use App\Tests\Factory\UserFactory;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -16,6 +18,10 @@ use Symfony\Component\HttpFoundation\Request;
  * These tests exercise the Doctrine fallback path since the test environment
  * does not have OpenSearch running. Tests requiring a live OpenSearch instance
  * should be tagged @group opensearch.
+ *
+ * Parent users must pass a `school` query parameter and have a child enrolled
+ * in that school. Drivers are found via their route assignments to that school.
+ * School admins search within their own school automatically.
  */
 final class DriverSearchTest extends AbstractApiTestCase
 {
@@ -24,25 +30,28 @@ final class DriverSearchTest extends AbstractApiTestCase
         $client = $this->createApiClient();
         $school = SchoolFactory::createOne();
 
-        $user = UserFactory::new()->with([
-            'school' => $school,
+        $parentUser = UserFactory::new()->with([
             'roles' => ['ROLE_PARENT'],
         ])->create();
+
+        StudentFactory::new()->with([
+            'school' => $school,
+        ])->withParent($parentUser)->create();
 
         $driverUser = UserFactory::new()->with([
             'firstName' => 'Carlos',
             'lastName' => 'García',
             'identificationNumber' => '12345678',
-            'school' => $school,
             'roles' => ['ROLE_DRIVER'],
         ])->create();
-        DriverFactory::new()->with([
+        $driver = DriverFactory::new()->with([
             'user' => $driverUser,
             'nickname' => 'Carlitos',
         ])->create();
+        RouteFactory::new()->withDriver($driver)->withSchool($school)->create();
 
-        $this->loginUser($client, $user);
-        $data = $this->getJson($client, '/api/drivers/search?q=Carlitos');
+        $this->loginUser($client, $parentUser);
+        $data = $this->getJson($client, '/api/drivers/search?q=Carlitos&school=' . $school->getId());
 
         self::assertResponseIsSuccessful();
         $this->assertNotEmpty($data['results']);
@@ -54,25 +63,28 @@ final class DriverSearchTest extends AbstractApiTestCase
         $client = $this->createApiClient();
         $school = SchoolFactory::createOne();
 
-        $user = UserFactory::new()->with([
-            'school' => $school,
+        $parentUser = UserFactory::new()->with([
             'roles' => ['ROLE_PARENT'],
         ])->create();
+
+        StudentFactory::new()->with([
+            'school' => $school,
+        ])->withParent($parentUser)->create();
 
         $driverUser = UserFactory::new()->with([
             'firstName' => 'Juan',
             'lastName' => 'Pérez',
             'identificationNumber' => '87654321',
-            'school' => $school,
             'roles' => ['ROLE_DRIVER'],
         ])->create();
-        DriverFactory::new()->with([
+        $driver = DriverFactory::new()->with([
             'user' => $driverUser,
             'nickname' => 'Juancho',
         ])->create();
+        RouteFactory::new()->withDriver($driver)->withSchool($school)->create();
 
-        $this->loginUser($client, $user);
-        $data = $this->getJson($client, '/api/drivers/search?q=Juan');
+        $this->loginUser($client, $parentUser);
+        $data = $this->getJson($client, '/api/drivers/search?q=Juan&school=' . $school->getId());
 
         self::assertResponseIsSuccessful();
         $this->assertNotEmpty($data['results']);
@@ -84,25 +96,28 @@ final class DriverSearchTest extends AbstractApiTestCase
         $client = $this->createApiClient();
         $school = SchoolFactory::createOne();
 
-        $user = UserFactory::new()->with([
-            'school' => $school,
+        $parentUser = UserFactory::new()->with([
             'roles' => ['ROLE_PARENT'],
         ])->create();
+
+        StudentFactory::new()->with([
+            'school' => $school,
+        ])->withParent($parentUser)->create();
 
         $driverUser = UserFactory::new()->with([
             'firstName' => 'Carlos',
             'lastName' => 'García',
             'identificationNumber' => '12345678',
-            'school' => $school,
             'roles' => ['ROLE_DRIVER'],
         ])->create();
-        DriverFactory::new()->with([
+        $driver = DriverFactory::new()->with([
             'user' => $driverUser,
             'nickname' => 'Carlitos',
         ])->create();
+        RouteFactory::new()->withDriver($driver)->withSchool($school)->create();
 
-        $this->loginUser($client, $user);
-        $data = $this->getJson($client, '/api/drivers/search?q=Garc');
+        $this->loginUser($client, $parentUser);
+        $data = $this->getJson($client, '/api/drivers/search?q=Garc&school=' . $school->getId());
 
         self::assertResponseIsSuccessful();
         $this->assertNotEmpty($data['results']);
@@ -114,25 +129,28 @@ final class DriverSearchTest extends AbstractApiTestCase
         $client = $this->createApiClient();
         $school = SchoolFactory::createOne();
 
-        $user = UserFactory::new()->with([
-            'school' => $school,
+        $parentUser = UserFactory::new()->with([
             'roles' => ['ROLE_PARENT'],
         ])->create();
+
+        StudentFactory::new()->with([
+            'school' => $school,
+        ])->withParent($parentUser)->create();
 
         $driverUser = UserFactory::new()->with([
             'firstName' => 'Carlos',
             'lastName' => 'García',
             'identificationNumber' => '12345678',
-            'school' => $school,
             'roles' => ['ROLE_DRIVER'],
         ])->create();
-        DriverFactory::new()->with([
+        $driver = DriverFactory::new()->with([
             'user' => $driverUser,
             'nickname' => 'Carlitos',
         ])->create();
+        RouteFactory::new()->withDriver($driver)->withSchool($school)->create();
 
-        $this->loginUser($client, $user);
-        $data = $this->getJson($client, '/api/drivers/search?q=1234');
+        $this->loginUser($client, $parentUser);
+        $data = $this->getJson($client, '/api/drivers/search?q=1234&school=' . $school->getId());
 
         self::assertResponseIsSuccessful();
         $this->assertNotEmpty($data['results']);
@@ -146,38 +164,41 @@ final class DriverSearchTest extends AbstractApiTestCase
         $schoolB = SchoolFactory::createOne();
 
         $parentUser = UserFactory::new()->with([
-            'school' => $schoolA,
             'roles' => ['ROLE_PARENT'],
         ])->create();
 
-        // Driver in school A
+        StudentFactory::new()->with([
+            'school' => $schoolA,
+        ])->withParent($parentUser)->create();
+
+        // Driver with route in school A
         $driverUserA = UserFactory::new()->with([
             'firstName' => 'Carlos',
             'lastName' => 'García',
             'identificationNumber' => '12345678',
-            'school' => $schoolA,
             'roles' => ['ROLE_DRIVER'],
         ])->create();
-        DriverFactory::new()->with([
+        $driverA = DriverFactory::new()->with([
             'user' => $driverUserA,
             'nickname' => 'Carlitos',
         ])->create();
+        RouteFactory::new()->withDriver($driverA)->withSchool($schoolA)->create();
 
-        // Driver in school B — must NOT appear
+        // Driver with route in school B — must NOT appear
         $driverUserB = UserFactory::new()->with([
             'firstName' => 'Carlos',
             'lastName' => 'López',
             'identificationNumber' => '99998888',
-            'school' => $schoolB,
             'roles' => ['ROLE_DRIVER'],
         ])->create();
-        DriverFactory::new()->with([
+        $driverB = DriverFactory::new()->with([
             'user' => $driverUserB,
             'nickname' => 'Carlitos2',
         ])->create();
+        RouteFactory::new()->withDriver($driverB)->withSchool($schoolB)->create();
 
         $this->loginUser($client, $parentUser);
-        $data = $this->getJson($client, '/api/drivers/search?q=Carlos');
+        $data = $this->getJson($client, '/api/drivers/search?q=Carlos&school=' . $schoolA->getId());
 
         self::assertResponseIsSuccessful();
         $this->assertCount(1, $data['results']);
@@ -220,7 +241,7 @@ final class DriverSearchTest extends AbstractApiTestCase
 
         $user = UserFactory::new()->with([
             'school' => $school,
-            'roles' => ['ROLE_PARENT'],
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
         ])->create();
 
         $this->loginUser($client, $user);
@@ -237,7 +258,7 @@ final class DriverSearchTest extends AbstractApiTestCase
 
         $user = UserFactory::new()->with([
             'school' => $school,
-            'roles' => ['ROLE_PARENT'],
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
         ])->create();
 
         $this->loginUser($client, $user);
@@ -252,27 +273,27 @@ final class DriverSearchTest extends AbstractApiTestCase
         $client = $this->createApiClient();
         $school = SchoolFactory::createOne();
 
-        $user = UserFactory::new()->with([
+        $adminUser = UserFactory::new()->with([
             'school' => $school,
-            'roles' => ['ROLE_PARENT'],
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
         ])->create();
 
-        // Create 5 drivers with 'Test' prefix
+        // Create 5 drivers with 'Test' prefix and routes to the school
         for ($i = 1; $i <= 5; ++$i) {
             $driverUser = UserFactory::new()->with([
                 'firstName' => 'Test' . $i,
                 'lastName' => 'Driver',
                 'identificationNumber' => '1000000' . $i,
-                'school' => $school,
                 'roles' => ['ROLE_DRIVER'],
             ])->create();
-            DriverFactory::new()->with([
+            $driver = DriverFactory::new()->with([
                 'user' => $driverUser,
                 'nickname' => 'TestDriver' . $i,
             ])->create();
+            RouteFactory::new()->withDriver($driver)->withSchool($school)->create();
         }
 
-        $this->loginUser($client, $user);
+        $this->loginUser($client, $adminUser);
         $data = $this->getJson($client, '/api/drivers/search?q=Test&itemsPerPage=2&page=1');
 
         self::assertResponseIsSuccessful();
@@ -286,24 +307,24 @@ final class DriverSearchTest extends AbstractApiTestCase
         $client = $this->createApiClient();
         $school = SchoolFactory::createOne();
 
-        $user = UserFactory::new()->with([
+        $adminUser = UserFactory::new()->with([
             'school' => $school,
-            'roles' => ['ROLE_PARENT'],
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
         ])->create();
 
         $driverUser = UserFactory::new()->with([
             'firstName' => 'Carlos',
             'lastName' => 'García',
             'identificationNumber' => '12345678',
-            'school' => $school,
             'roles' => ['ROLE_DRIVER'],
         ])->create();
-        DriverFactory::new()->with([
+        $driver = DriverFactory::new()->with([
             'user' => $driverUser,
             'nickname' => 'Carlitos',
         ])->create();
+        RouteFactory::new()->withDriver($driver)->withSchool($school)->create();
 
-        $this->loginUser($client, $user);
+        $this->loginUser($client, $adminUser);
         $data = $this->getJson($client, '/api/drivers/search?q=Carlitos');
 
         self::assertResponseIsSuccessful();
@@ -321,17 +342,61 @@ final class DriverSearchTest extends AbstractApiTestCase
         $client = $this->createApiClient();
         $school = SchoolFactory::createOne();
 
-        $user = UserFactory::new()->with([
+        $adminUser = UserFactory::new()->with([
             'school' => $school,
-            'roles' => ['ROLE_PARENT'],
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
         ])->create();
 
-        $this->loginUser($client, $user);
+        $this->loginUser($client, $adminUser);
         $data = $this->getJson($client, '/api/drivers/search?q=ZZZZZZZ');
 
         self::assertResponseIsSuccessful();
         $this->assertSame([], $data['results']);
         $this->assertSame(0, $data['total']);
+    }
+
+    public function testParentWithoutSchoolParamGetsBadRequest(): void
+    {
+        $client = $this->createApiClient();
+        $school = SchoolFactory::createOne();
+
+        $parentUser = UserFactory::new()->with([
+            'roles' => ['ROLE_PARENT'],
+        ])->create();
+
+        StudentFactory::new()->with([
+            'school' => $school,
+        ])->withParent($parentUser)->create();
+
+        $this->loginUser($client, $parentUser);
+        $client->request(Request::METHOD_GET, '/api/drivers/search?q=test', [], [], [
+            'HTTP_ACCEPT' => 'application/json',
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+    }
+
+    public function testParentCannotSearchSchoolWithoutChild(): void
+    {
+        $client = $this->createApiClient();
+        $schoolA = SchoolFactory::createOne();
+        $schoolB = SchoolFactory::createOne();
+
+        $parentUser = UserFactory::new()->with([
+            'roles' => ['ROLE_PARENT'],
+        ])->create();
+
+        // Parent has child in school A, but tries to search school B
+        StudentFactory::new()->with([
+            'school' => $schoolA,
+        ])->withParent($parentUser)->create();
+
+        $this->loginUser($client, $parentUser);
+        $client->request(Request::METHOD_GET, '/api/drivers/search?q=test&school=' . $schoolB->getId(), [], [], [
+            'HTTP_ACCEPT' => 'application/json',
+        ]);
+
+        self::assertResponseStatusCodeSame(403);
     }
 
     /**
