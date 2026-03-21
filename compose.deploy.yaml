@@ -51,6 +51,7 @@ services:
     command:
       - --transaction-isolation=READ-COMMITTED
       - --innodb_rollback_on_timeout=ON
+      - --innodb-buffer-pool-size=128M
     logging:
       driver: fluentd
       options:
@@ -84,7 +85,8 @@ services:
     profiles: [infra]
     restart: unless-stopped
     environment:
-      OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
+      OPENSEARCH_JAVA_OPTS: "-Xms256m -Xmx256m"
+      DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI: "true"
     labels:
       - traefik.enable=false
     logging:
