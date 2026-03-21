@@ -230,7 +230,7 @@ final class DriverSearchServiceTest extends TestCase
             ->setConstructorArgs([$client, self::INDEX_PREFIX, $em])
             ->onlyMethods(['getSchoolIdsForDriver'])
             ->getMock();
-        $service->method('getSchoolIdsForDriver')->willReturn([5, 8]);
+        $service->expects($this->once())->method('getSchoolIdsForDriver')->willReturn([5, 8]);
 
         $service->index($driver);
     }
