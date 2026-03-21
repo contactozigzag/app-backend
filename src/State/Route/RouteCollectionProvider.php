@@ -6,19 +6,17 @@ namespace App\State\Route;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Entity\Driver;
 use App\Entity\Route;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Scopes GET /api/routes to the authenticated user's role.
  *
- * - ROLE_SCHOOL_ADMIN / ROLE_SUPER_ADMIN: all routes (optionally filtered by ?driver=)
+ * - ROLE_SCHOOL_ADMIN / ROLE_SUPER_ADMIN: all routes
  * - ROLE_DRIVER: only routes assigned to the authenticated driver
- * - ROLE_PARENT: routes for a specific driver (?driver=) or routes with stops for their students
+ * - ROLE_PARENT: routes that have a stop for one of their students
  * - Others: empty collection
  *
  * @implements ProviderInterface<Route>
@@ -28,7 +26,6 @@ final readonly class RouteCollectionProvider implements ProviderInterface
     public function __construct(
         private EntityManagerInterface $entityManager,
         private Security $security,
-        private RequestStack $requestStack,
     ) {
     }
 
@@ -37,15 +34,7 @@ final readonly class RouteCollectionProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
-        $driverFilter = $this->resolveDriverFilter();
-
         if ($this->security->isGranted('ROLE_SCHOOL_ADMIN')) {
-            if ($driverFilter instanceof Driver) {
-                return $this->entityManager->getRepository(Route::class)->findBy([
-                    'driver' => $driverFilter,
-                ]);
-            }
-
             return $this->entityManager->getRepository(Route::class)->findAll();
         }
 
@@ -65,12 +54,6 @@ final readonly class RouteCollectionProvider implements ProviderInterface
         }
 
         if ($this->security->isGranted('ROLE_PARENT')) {
-            if ($driverFilter instanceof Driver) {
-                return $this->entityManager->getRepository(Route::class)->findBy([
-                    'driver' => $driverFilter,
-                ]);
-            }
-
             return $this->entityManager->createQuery(
                 'SELECT DISTINCT r FROM App\Entity\Route r
                  JOIN App\Entity\RouteStop rs WITH rs.route = r
@@ -83,22 +66,5 @@ final readonly class RouteCollectionProvider implements ProviderInterface
         }
 
         return [];
-    }
-
-    private function resolveDriverFilter(): ?Driver
-    {
-        $request = $this->requestStack->getCurrentRequest();
-
-        if ($request === null) {
-            return null;
-        }
-
-        $driverId = $request->query->get('driver');
-
-        if ($driverId === null || !is_numeric($driverId)) {
-            return null;
-        }
-
-        return $this->entityManager->getRepository(Driver::class)->find((int) $driverId);
     }
 }
