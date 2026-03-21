@@ -139,7 +139,7 @@ services:
       - caddy_data_blue:/data
       - caddy_config_blue:/config
     environment:
-      SERVER_NAME: ${SERVER_NAME:-localhost}, php-blue:80
+      SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
