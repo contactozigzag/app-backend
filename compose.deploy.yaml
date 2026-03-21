@@ -19,6 +19,8 @@ services:
   traefik:
     profiles: [infra]
     restart: unless-stopped
+    environment:
+      DOCKER_API_VERSION: "1.46"
     command:
       - --providers.docker=true
       - --providers.docker.exposedByDefault=false
