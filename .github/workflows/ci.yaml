@@ -91,10 +91,23 @@ jobs:
           }
 
       - name: Check HTTP reachability
-        run: curl -v --fail-with-body http://localhost
+        run: |
+          # Traefik may need a moment to discover backend services via Docker labels.
+          # Retry up to 10 times with 2s delay.
+          for i in $(seq 1 10); do
+            if curl -s --fail-with-body http://localhost > /dev/null 2>&1; then
+              echo "HTTP reachable on attempt $i"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying in 2s..."
+            sleep 2
+          done
+          echo "HTTP not reachable after 10 attempts"
+          curl -v --fail-with-body http://localhost
+          exit 1
 
       - name: Check Mercure reachability
-        run: curl -vI --insecure --fail-with-body https://localhost/.well-known/mercure?topic=test
+        run: curl -vI --fail-with-body http://localhost/.well-known/mercure?topic=test
 
       - name: Create test database
         run: |
