@@ -3503,6 +3503,133 @@
                 ]
             }
         },
+        "/api/drivers/search": {
+            "get": {
+                "operationId": "api_driverssearch_get_collection",
+                "tags": [
+                    "DriverSearch"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "DriverSearch collection",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "DriverSearch.jsonld collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/DriverSearch.jsonld"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/DriverSearch"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/DriverSearch.html"
+                                    }
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/DriverSearch.csv"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Search for drivers by name, nickname, or identification number",
+                "description": "Retrieves the collection of DriverSearch resources.",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "itemsPerPage",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        },
+                        "style": "form",
+                        "explode": false
+                    }
+                ]
+            }
+        },
         "/api/location_updates": {
             "get": {
                 "operationId": "api_location_updates_get_collection",
@@ -15386,6 +15513,25 @@
                 ],
                 "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)"
             },
+            "DriverSearch": {
+                "type": "object"
+            },
+            "DriverSearch.csv": {
+                "type": "object"
+            },
+            "DriverSearch.html": {
+                "type": "object"
+            },
+            "DriverSearch.jsonld": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object"
+                    }
+                ]
+            },
             "Error": {
                 "type": "object",
                 "description": "A representation of common errors.",
@@ -22970,22 +23116,14 @@
                         ]
                     },
                     "driver": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "iri-reference",
-                        "example": "https://example.com/"
-                    },
-                    "user": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": "string",
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     }
-                }
+                },
+                "required": [
+                    "driver"
+                ]
             },
             "Vehicle-vehicle.write": {
                 "type": "object",
@@ -23021,14 +23159,14 @@
                         ]
                     },
                     "driver": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": "string",
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     }
-                }
+                },
+                "required": [
+                    "driver"
+                ]
             },
             "Vehicle-vehicle.write.jsonMergePatch": {
                 "type": "object",
@@ -23064,10 +23202,7 @@
                         ]
                     },
                     "driver": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": "string",
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     }
@@ -23111,22 +23246,14 @@
                         ]
                     },
                     "driver": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "iri-reference",
-                        "example": "https://example.com/"
-                    },
-                    "user": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": "string",
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     }
-                }
+                },
+                "required": [
+                    "driver"
+                ]
             },
             "Vehicle.html-vehicle.read": {
                 "type": "object",
@@ -23166,22 +23293,14 @@
                         ]
                     },
                     "driver": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "format": "iri-reference",
-                        "example": "https://example.com/"
-                    },
-                    "user": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": "string",
                         "format": "iri-reference",
                         "example": "https://example.com/"
                     }
-                }
+                },
+                "required": [
+                    "driver"
+                ]
             },
             "Vehicle.jsonld-vehicle.read": {
                 "allOf": [
@@ -23226,22 +23345,14 @@
                                 ]
                             },
                             "driver": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
-                                "format": "iri-reference",
-                                "example": "https://example.com/"
-                            },
-                            "user": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
+                                "type": "string",
                                 "format": "iri-reference",
                                 "example": "https://example.com/"
                             }
-                        }
+                        },
+                        "required": [
+                            "driver"
+                        ]
                     }
                 ]
             }
@@ -23280,6 +23391,10 @@
         {
             "name": "DriverLocation",
             "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)"
+        },
+        {
+            "name": "DriverSearch",
+            "description": "Resource 'DriverSearch' operations."
         },
         {
             "name": "MercadoPagoWebhook",
