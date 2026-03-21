@@ -561,7 +561,7 @@ Refresh tokens are automatically invalidated on logout for the `api_token_refres
 - `DELETE /api/students/{id}` — Delete (parent of student or school admin)
 
 #### Routes
-- `GET /api/routes` — List; scoped by role: school admin sees all, driver sees own routes, parent sees routes with their students' stops
+- `GET /api/routes` — List; scoped by role: school admin sees all, driver sees own routes, parent sees routes with their students' stops. Supports `?driver={id}` filter to list a specific driver's routes
 - `POST /api/routes` — Create (admin only)
 - `PATCH /api/routes/{id}` — Update
 - `DELETE /api/routes/{id}` — Delete (admin only)
@@ -991,6 +991,13 @@ Pricing models: `flat`, `per_route`, `per_student`, `per_route_student`.
 - **flat** / **per_route**: requires `amount`; `perStudentAmount` must be null
 - **per_student** / **per_route_student**: requires `perStudentAmount`; `amount` must be null
 - **per_route** / **per_route_student**: requires `route`; other models must have `route` null
+
+#### List Driver's Routes (for payment)
+When a parent needs to select a route for per-route pricing, fetch the driver's routes:
+```http
+GET /api/routes?driver=42
+```
+Returns all routes assigned to the driver. The driver detail (`GET /api/drivers/{id}`) also includes route IRIs in the response.
 
 #### Create Payment Preference
 
@@ -1513,6 +1520,11 @@ export const useChatUpdates = (alertId) => {
 import apiClient from './client';
 import { v4 as uuidv4 } from 'uuid';
 import { Linking } from 'react-native';
+
+// Fetch the driver's routes (needed for per-route pricing to select routeId)
+export const getDriverRoutes = (driverId) =>
+  apiClient.get('/routes', { params: { driver: driverId } })
+    .then((r) => r.data);
 
 export const initiatePayment = async (driverId, studentIds, description, routeId = null) => {
   const { data } = await apiClient.post('/payments/create-preference', {

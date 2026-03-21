@@ -23,6 +23,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\MaxDepth;
 
 #[ORM\Entity(repositoryClass: DriverRepository::class)]
 #[UniqueEntity(fields: ['nickname'], message: 'El alias "{{ value }}" ya está en uso. Por favor, elegí otro.')]
@@ -108,6 +109,14 @@ class Driver
     private ?PricingModel $pricingModel = null;
 
     /**
+     * @var Collection<int, Route>
+     */
+    #[ORM\OneToMany(targetEntity: Route::class, mappedBy: 'driver')]
+    #[Groups(['driver:item:read'])]
+    #[MaxDepth(1)]
+    private Collection $routes;
+
+    /**
      * @var Collection<int, DriverRate>
      */
     #[ORM\OneToMany(targetEntity: DriverRate::class, mappedBy: 'driver', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -117,6 +126,7 @@ class Driver
     public function __construct()
     {
         $this->vehicles = new ArrayCollection();
+        $this->routes = new ArrayCollection();
         $this->rates = new ArrayCollection();
     }
 
@@ -246,6 +256,14 @@ class Driver
         $this->pricingModel = $pricingModel;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Route>
+     */
+    public function getRoutes(): Collection
+    {
+        return $this->routes;
     }
 
     /**

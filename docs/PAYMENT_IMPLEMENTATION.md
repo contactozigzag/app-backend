@@ -221,6 +221,19 @@ Content-Type: application/json
 }
 ```
 
+### Parent: List Driver's Routes
+
+When a driver uses per-route or per-route-student pricing, the parent needs to select
+a route. Use the `?driver=` query parameter on the routes endpoint:
+
+```http
+GET /api/routes?driver=42
+Authorization: Bearer {api-jwt}
+```
+
+Returns all routes assigned to the driver. The driver detail (`GET /api/drivers/{id}`)
+also includes route IRIs in the response body.
+
 ### Parent: Create Payment Preference
 
 The payment amount is always calculated server-side from the driver's rate configuration.
@@ -441,6 +454,21 @@ npm install react-native-inappbrowser-reborn
 import apiClient from './client';
 import { v4 as uuidv4 } from 'uuid';
 import { Linking } from 'react-native';
+
+/**
+ * Fetch the driver's routes.
+ * Use this to let the parent select a route when the driver uses
+ * per-route or per-route-student pricing.
+ *
+ * @param {number} driverId
+ * @returns {Promise<Array<{ id: number, name: string, type: string }>>}
+ */
+export const getDriverRoutes = async (driverId) => {
+  const response = await apiClient.get('/routes', {
+    params: { driver: driverId },
+  });
+  return response.data;
+};
 
 /**
  * Create a Mercado Pago payment preference.

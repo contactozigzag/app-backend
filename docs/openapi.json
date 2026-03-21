@@ -15341,6 +15341,15 @@
                             null
                         ]
                     },
+                    "routes": {
+                        "readOnly": true,
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
                     "rates": {
                         "type": "array",
                         "items": {
@@ -15395,6 +15404,15 @@
                             "per_route_student",
                             null
                         ]
+                    },
+                    "routes": {
+                        "readOnly": true,
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
                     },
                     "rates": {
                         "type": "array",
@@ -15537,6 +15555,15 @@
                             null
                         ]
                     },
+                    "routes": {
+                        "readOnly": true,
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
                     "rates": {
                         "type": "array",
                         "items": {
@@ -15591,6 +15618,15 @@
                             "per_route_student",
                             null
                         ]
+                    },
+                    "routes": {
+                        "readOnly": true,
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
                     },
                     "rates": {
                         "type": "array",
@@ -15691,6 +15727,15 @@
                             null
                         ]
                     },
+                    "routes": {
+                        "readOnly": true,
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
                     "rates": {
                         "type": "array",
                         "items": {
@@ -15745,6 +15790,15 @@
                             "per_route_student",
                             null
                         ]
+                    },
+                    "routes": {
+                        "readOnly": true,
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
                     },
                     "rates": {
                         "type": "array",
@@ -15845,6 +15899,15 @@
                             null
                         ]
                     },
+                    "routes": {
+                        "readOnly": true,
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "iri-reference",
+                            "example": "https://example.com/"
+                        }
+                    },
                     "rates": {
                         "type": "array",
                         "items": {
@@ -15936,6 +15999,15 @@
                                     null
                                 ]
                             },
+                            "routes": {
+                                "readOnly": true,
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "iri-reference",
+                                    "example": "https://example.com/"
+                                }
+                            },
                             "rates": {
                                 "type": "array",
                                 "items": {
@@ -15997,6 +16069,15 @@
                                     "per_route_student",
                                     null
                                 ]
+                            },
+                            "routes": {
+                                "readOnly": true,
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "iri-reference",
+                                    "example": "https://example.com/"
+                                }
                             },
                             "rates": {
                                 "type": "array",
