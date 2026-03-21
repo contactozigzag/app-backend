@@ -1,6 +1,29 @@
 ---
 # Production environment override
 services:
+  traefik:
+    restart: unless-stopped
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # ACME Let's Encrypt — TLS termination at Traefik
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      # Dashboard is NOT exposed in production
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "docker.{{.Name}}"
+
   php:
     restart: unless-stopped
     build:
@@ -12,7 +35,20 @@ services:
       APP_SECRET: ${APP_SECRET}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
-
+      MERCURE_PUBLIC_URL: https://${TRAEFIK_DOMAIN}/.well-known/mercure
+    labels:
+      # Production: enable HTTPS entrypoint with Let's Encrypt
+      - traefik.http.routers.zigzag-app.entrypoints=web,websecure
+      - traefik.http.routers.zigzag-app.tls.certresolver=letsencrypt
+      # HTTP→HTTPS redirect middleware
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+      - traefik.http.routers.zigzag-app-http.rule=Host(`${TRAEFIK_DOMAIN}`)
+      - traefik.http.routers.zigzag-app-http.entrypoints=web
+      - traefik.http.routers.zigzag-app-http.middlewares=redirect-to-https
+      # Mercure router also needs websecure entrypoint in prod
+      - traefik.http.routers.zigzag-mercure.entrypoints=web,websecure
+      - traefik.http.routers.zigzag-mercure.tls.certresolver=letsencrypt
     logging:
       driver: fluentd
       options:
@@ -36,6 +72,11 @@ services:
 
   rabbitmq:
     restart: unless-stopped
+    labels:
+      # RabbitMQ management dashboard is NOT exposed in production —
+      # it contains sensitive operational data and should only be accessed
+      # via SSH tunnel or VPN in prod environments
+      - traefik.enable=false
     logging:
       driver: fluentd
       options:
@@ -45,6 +86,34 @@ services:
 
   redis:
     restart: unless-stopped
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "docker.{{.Name}}"
+
+  opensearch:
+    restart: unless-stopped
+    environment:
+      OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
+    labels:
+      # OpenSearch REST API is NOT exposed in production —
+      # the Symfony app accesses it internally via Docker networking (http://opensearch:9200).
+      # Direct external access would bypass application-level auth.
+      - traefik.enable=false
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async: "true"
+        tag: "docker.{{.Name}}"
+
+  opensearch-dashboards:
+    restart: unless-stopped
+    labels:
+      # Dashboards NOT exposed in production — access via SSH tunnel or VPN only
+      - traefik.enable=false
     logging:
       driver: fluentd
       options:
@@ -123,4 +192,3 @@ services:
         fluentd-retry-wait: "1s"
         fluentd-max-retries: "30"
         tag: "docker.{{.Name}}"
-

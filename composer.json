@@ -19,6 +19,7 @@
         "lexik/jwt-authentication-bundle": "^3.2",
         "mercadopago/dx-php": "^3.8",
         "nelmio/cors-bundle": "^2.6.1",
+        "opensearch-project/opensearch-php": "*",
         "phpdocumentor/reflection-docblock": "^5.6.6",
         "phpstan/phpdoc-parser": "^2.3.2",
         "symfony/asset": "8.0.*",

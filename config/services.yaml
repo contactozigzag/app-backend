@@ -31,3 +31,13 @@ services:
 
     Monolog\Processor\UidProcessor:
         tags: ['monolog.processor']
+
+    # OpenSearch client
+    OpenSearch\Client:
+        factory: ['OpenSearch\ClientBuilder', 'fromConfig']
+        arguments:
+            - hosts: ['%env(OPENSEARCH_URL)%']
+
+    App\Service\OpenSearch\DriverSearchService:
+        arguments:
+            $indexPrefix: '%env(OPENSEARCH_INDEX_PREFIX)%'

@@ -1,6 +1,19 @@
 ---
 # Development environment override
 services:
+  traefik:
+    restart: "no"
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --entrypoints.web.address=:80
+      # Dashboard enabled for local development only
+      - --api.dashboard=true
+      - --api.insecure=true
+    ports:
+      - "0.0.0.0:80:80"
+      - "127.0.0.1:8080:8080"
+
   php:
     restart: "no"
     build:
@@ -47,13 +60,19 @@ services:
 
   rabbitmq:
     restart: "no"
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+    # Direct port mappings removed — management UI accessible via Traefik at http://rabbitmq.localhost
+    # AMQP port 5672 is accessible internally via Docker networking
+
   redis:
     restart: "no"
     ports:
       - "6379:6379"
+
+  opensearch:
+    restart: "no"
+
+  opensearch-dashboards:
+    restart: "no"
 
   # Messenger worker services — development overrides
   #
@@ -89,4 +108,3 @@ services:
       - ./:/app
     environment:
       APP_ENV: "${APP_ENV:-dev}"
-

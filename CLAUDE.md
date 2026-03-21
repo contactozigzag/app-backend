@@ -105,4 +105,11 @@ Always: `createApiClient()` → create Foundry factories → `loginUser()`. Crea
 - PostgreSQL supported (default `.env` DSN)
 - Redis for sessions, cache, and rate limiting
 - RabbitMQ for tracking and webhook transports
+- OpenSearch 2.x at `http://opensearch:9200` (single-node, security disabled) for driver full-text search
 - JWT keys in `config/jwt/` (generated via `make keys` or CI workflow)
+
+### OpenSearch
+- **Env vars:** `OPENSEARCH_URL` (default `http://opensearch:9200`), `OPENSEARCH_INDEX_PREFIX` (default `zigzag_dev_`)
+- **Re-index command:** `php bin/console app:opensearch:index-drivers [--force] [--batch-size=100] [--school=ID]`
+- **Service:** `App\Service\OpenSearch\DriverSearchService` — not `final` (needs PHPUnit mocking)
+- **Async indexing:** `DriverIndexListener` dispatches messages via Messenger; never call OpenSearch synchronously on writes

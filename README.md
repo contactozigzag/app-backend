@@ -54,10 +54,15 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 - **Multi-tenant Filtering** — Automatic school-based Doctrine filter
 - **libsodium secretbox** — Driver OAuth token encryption and chat message encryption
 
+### Infrastructure
+- **Traefik v3** — Reverse proxy and TLS termination (Let's Encrypt in prod, plain HTTP in dev)
+- **OpenSearch 2.x** — Full-text search engine (single-node, security plugin disabled — Docker network isolation)
+- **OpenSearch Dashboards** — OpenSearch management UI (dev only)
+
 ### Dev & Quality Tools
 - **Docker & Docker Compose** — Containerized development
 - **FrankenPHP** — High-performance PHP server (worker mode)
-- **Caddy** — Automatic HTTPS / HTTP/3
+- **Caddy** — Embedded in FrankenPHP for Mercure hub
 - **Symfony UID 8.0** — UUID v4 generation for alert identifiers
 - **PHPStan** — Static analysis at level 9
 - **Rector** — Automated code modernization
@@ -73,14 +78,21 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 │  Mobile Apps    │
 │  (iOS/Android)  │
 └────────┬────────┘
-         │ HTTPS/REST + SSE (Mercure)
+         │ HTTP (dev) / HTTPS (prod)
+         │
+┌────────▼────────┐
+│   Traefik v3    │  ← single entry-point reverse proxy
+│  (TLS in prod)  │    Let's Encrypt ACME in prod; plain HTTP in dev
+└────────┬────────┘
+         │ Docker internal networking (HTTP)
          │
 ┌────────▼─────────────────────────────────────────┐
-│              API Gateway (Symfony 8)              │
+│        FrankenPHP + Caddy (Symfony 8)            │
 │  ┌─────────────────────────────────────────────┐ │
 │  │  JWT Authentication & Authorization         │ │
 │  │  Multi-tenant Context Filtering             │ │
 │  │  RouteManagementVoter (runtime flag)        │ │
+│  │  Mercure SSE Hub (Caddy module)             │ │
 │  └─────────────────────────────────────────────┘ │
 │                                                   │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐      │
@@ -96,15 +108,17 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
                     │
     ┌───────────────┼────────────────┐
     │               │                │
-┌───▼────┐    ┌────▼────┐    ┌─────▼────┐
-│ MySQL  │    │  Redis  │    │ RabbitMQ │
-│   DB   │    │  Cache  │    │  Queues  │
-└────────┘    └─────────┘    └──────────┘
+┌───▼────┐    ┌────▼────┐    ┌─────▼─────┐
+│ MySQL  │    │  Redis  │    │ RabbitMQ  │
+│   DB   │    │  Cache  │    │  Queues   │
+└────────┘    └─────────┘    └───────────┘
                     │
-             ┌──────▼──────┐
-             │   Mercure   │
-             │   SSE Hub   │
-             └─────────────┘
+    ┌───────────────┼────────────────┐
+    │                                │
+┌───▼──────────┐          ┌─────────▼──┐
+│   Mercure    │          │ OpenSearch  │
+│   SSE Hub    │          │  (search)   │
+└──────────────┘          └────────────┘
 ```
 
 ### Async GPS Tracking Pipeline
@@ -429,6 +443,40 @@ Manage field trips, sports events, and other out-of-school-day transport.
 - `src/State/SpecialEventRoute/StudentReadyProcessor.php`
 - `src/Message/StudentReadyForPickupMessage.php`
 - `src/MessageHandler/StudentReadyForPickupHandler.php`
+
+### Phase 11: Driver Search (OpenSearch) ✅
+
+**Use case:** Parents search for drivers by name, nickname, or identification number to attach their children to a driver's route. Results are scoped to the parent's school (multi-tenancy enforced at both OpenSearch and Doctrine layers).
+
+**Architecture:**
+- **OpenSearch index** (`{prefix}drivers`) with `edge_ngram` autocomplete analyzer and `asciifolding` for accent-insensitive search (García → garcia, Pérez → perez)
+- **Async indexing pipeline:** Doctrine event listener (`DriverIndexListener`) dispatches `IndexDriverMessage` / `RemoveDriverFromIndexMessage` via Symfony Messenger → async handlers update OpenSearch. Listens to both `Driver` and `User` entity changes (firstName/lastName live on User)
+- **Graceful fallback:** If OpenSearch is unavailable, the API falls back to a Doctrine `LIKE` query with prefix indexes for B-tree utilization
+- **Rate limiting:** 30 requests per 10 seconds per user (sliding window)
+- **Autocomplete-optimized:** Short queries (2–3 chars) use `match_phrase_prefix`; longer queries use `multi_match` with fuzziness. `_source` filtering and `track_total_hits: false` for performance
+
+**Searchable fields:** `nickname`, `firstName`, `lastName`, `identificationNumber` (prefix match via `keyword` type)
+
+**API endpoint:** `GET /api/drivers/search?q=query&page=1&itemsPerPage=10`
+- Security: `ROLE_PARENT` or `ROLE_SCHOOL_ADMIN`
+- Returns: `{ results: [...], total, page, itemsPerPage }`
+- `Cache-Control: private, max-age=5` for autocomplete caching
+
+**Console command:**
+```bash
+php bin/console app:opensearch:index-drivers [--force] [--batch-size=100] [--school=ID]
+```
+
+**Key Files:**
+- `src/Service/OpenSearch/DriverSearchService.php` — search, index, delete, createIndex
+- `src/Service/OpenSearch/DriverSearchHit.php` — immutable search result DTO
+- `src/Service/OpenSearch/DriverSearchResult.php` — immutable result collection DTO
+- `src/EventListener/DriverIndexListener.php` — Doctrine listener for Driver + User events
+- `src/Message/IndexDriverMessage.php` / `RemoveDriverFromIndexMessage.php`
+- `src/MessageHandler/IndexDriverHandler.php` / `RemoveDriverFromIndexHandler.php`
+- `src/ApiResource/DriverSearchResult.php` — virtual API Platform resource
+- `src/State/DriverSearch/DriverSearchProvider.php` — provider with OpenSearch + Doctrine fallback
+- `src/Command/OpenSearchIndexDriversCommand.php` — bulk index hydration command
 
 ## 📚 API Documentation
 
@@ -838,6 +886,40 @@ GET /api/reports/top-performing
 GET /api/reports/comparative
 ```
 
+### Driver Search
+
+```http
+GET /api/drivers/search?q=Carlos&page=1&itemsPerPage=10
+Authorization: Bearer {parent-or-admin-jwt}
+```
+
+**Response `200`:**
+```json
+{
+  "results": [
+    {
+      "driverId": 7,
+      "nickname": "Carlitos",
+      "firstName": "Carlos",
+      "lastName": "García",
+      "identificationNumber": "12345678",
+      "score": 8.45
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "itemsPerPage": 10
+}
+```
+
+| Parameter | Default | Max | Notes |
+|-----------|---------|-----|-------|
+| `q` | — | 100 chars | Min 2 chars; shorter returns empty results |
+| `page` | 1 | — | |
+| `itemsPerPage` | 10 | 20 | |
+
+Rate limited: 30 req / 10 sec per user. Excess returns `429 Too Many Requests`.
+
 ### Absences
 
 ```http
@@ -963,6 +1045,12 @@ php bin/console app:process-subscriptions
 
 # Archive completed routes
 php bin/console app:archive-routes --days=7
+
+# Hydrate OpenSearch drivers index (bulk re-index)
+php bin/console app:opensearch:index-drivers --force --batch-size=100
+
+# Index drivers for a specific school only
+php bin/console app:opensearch:index-drivers --school=1
 ```
 
 ## 🔧 Installation & Setup
@@ -1001,10 +1089,13 @@ SMS_API_URL=https://api.smsprovider.com/send
 RABBITMQ_DSN=phpamqplib://guest:guest@rabbitmq:5672/%2f/webhooks
 RABBITMQ_DSN_TRACKING=phpamqplib://guest:guest@rabbitmq:5672/%2f/tracking
 
-# Mercure
-MERCURE_URL=https://your-domain.com/.well-known/mercure
-MERCURE_PUBLIC_URL=https://your-domain.com/.well-known/mercure
+# Mercure (internal URL uses Docker service name; public URL goes through Traefik)
+MERCURE_URL=http://php:80/.well-known/mercure
+MERCURE_PUBLIC_URL=http://localhost/.well-known/mercure
 MERCURE_JWT_SECRET="change-this-to-a-strong-secret"
+
+# Traefik (prod only — ACME Let's Encrypt email)
+ACME_EMAIL=admin@yourschool.com
 
 # Mercado Pago
 MERCADOPAGO_ACCESS_TOKEN=TEST-your-platform-access-token
@@ -1039,7 +1130,8 @@ docker compose exec php php bin/console lexik:jwt:generate-keypair
 docker compose exec php php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
-**API:** https://localhost | **Docs:** https://localhost/api/docs
+**API:** http://localhost | **Docs:** http://localhost/api/docs | **Traefik Dashboard:** http://127.0.0.1:8080
+**RabbitMQ Management:** http://rabbitmq.localhost | **OpenSearch:** http://opensearch.localhost | **OpenSearch Dashboards:** http://dashboards.localhost
 
 ### Background Workers
 
@@ -1415,7 +1507,7 @@ export const getMercureToken = (paymentId) =>
 - Custom `RouteManagementVoter` for runtime driver privilege elevation
 - Role-based authorization with hierarchical permissions (ROLE_SCHOOL_ADMIN → ROLE_DRIVER, ROLE_PARENT)
 - Multi-tenant Doctrine filter — automatic per-request school context isolation
-- HTTPS/TLS via Caddy; libsodium secretbox for token and message encryption
+- TLS termination via Traefik (Let's Encrypt) in prod; Caddy embedded for Mercure; libsodium secretbox for token and message encryption
 - Webhook HMAC-SHA256 signature validation with replay-attack prevention
 - CSRF-protected MP OAuth flow (Redis-backed single-use state tokens, 10-min TTL)
 - Private Mercure topics for payments and emergency chat; subscribers require a valid JWT
@@ -1426,6 +1518,7 @@ export const getMercureToken = (paymentId) =>
 - **Redis first** — GPS `getDriverLocation` reads Redis (< 15 s TTL) before hitting MySQL
 - **Async fanout** — GPS side-effects (geofencing, Mercure, proximity) are fully non-blocking
 - **Three RabbitMQ transports** — tracking, webhooks, and general async are independently scalable
+- **OpenSearch** — full-text search offloaded to OpenSearch (accessed internally at `http://opensearch:9200`)
 - **Database indexing** — all high-frequency query columns indexed; driver nickname search uses `start` strategy (`LIKE 'value%'`) for B-tree index utilization
 - **Role-scoped collections** — Route, RouteStop, and ActiveRoute GetCollection endpoints use custom providers to return only data the authenticated user is authorized to see (driver isolation)
 - **FrankenPHP worker mode** — application boots once, handles thousands of requests in-process

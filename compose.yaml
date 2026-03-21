@@ -1,40 +1,63 @@
 ---
 services:
+  traefik:
+    image: traefik:v3.4
+    container_name: zigzag_traefik
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+
   php:
     image: ${IMAGES_PREFIX:-}app-php
     container_name: zigzag_php
     environment:
+      # FrankenPHP/Caddy listens on port 80 internally — Traefik handles external TLS in prod
       SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
-      DEFAULT_URI: https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       # Run "composer require symfony/orm-pack" to install and configure Doctrine ORM
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       # Run "composer require symfony/mercure-bundle" to install and configure the Mercure integration
-      MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
-      MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}/.well-known/mercure}
+      # MERCURE_URL: internal (php→hub) — must resolve inside the Docker network, not via Traefik
+      MERCURE_URL: http://php:80/.well-known/mercure
+      # MERCURE_PUBLIC_URL: external (client→hub via Traefik) — overridden per environment
+      MERCURE_PUBLIC_URL: http://${TRAEFIK_DOMAIN:-localhost}/.well-known/mercure
       MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-!ChangeThisGoogleMapsAPIKey!}
       GOOGLE_MAPS_FRONTEND_API_KEY: ${GOOGLE_MAPS_FRONTEND_API_KEY:-!ChangeThisGoogleMapsFrontendAPIKey!}
     volumes:
       - caddy_data:/data
       - caddy_config:/config
-    ports:
-      - target: 80
-        published: ${HTTP_PORT:-80}
-        host_ip: "0.0.0.0"
-        protocol: tcp
-      - target: 443
-        published: ${HTTPS_PORT:-443}
-        host_ip: "0.0.0.0"
-        protocol: tcp
-      - target: 443
-        published: ${HTTPS_PORT:-443}
-        host_ip: "0.0.0.0"
-        protocol: udp
     depends_on:
       database:
         condition: service_healthy
+    labels:
+      - traefik.enable=true
+      # Main application router
+      - traefik.http.routers.zigzag-app.rule=Host(`${TRAEFIK_DOMAIN:-localhost}`) || Host(`192.168.240.1`) || Host(`192.168.240.112`)
+      - traefik.http.routers.zigzag-app.entrypoints=web
+      - traefik.http.services.zigzag-app.loadbalancer.server.port=80
+      # Mercure SSE router — needs dedicated routing with buffering disabled.
+      # Mercure uses long-lived Server-Sent Events (SSE) connections. Without disabling
+      # response buffering, Traefik will try to buffer the entire (infinite) SSE stream,
+      # causing connections to hang or drop immediately.
+      - traefik.http.routers.zigzag-mercure.rule=(Host(`${TRAEFIK_DOMAIN:-localhost}`) || Host(`192.168.240.1`) || Host(`192.168.240.112`)) && PathPrefix(`/.well-known/mercure`)
+      - traefik.http.routers.zigzag-mercure.entrypoints=web
+      - traefik.http.routers.zigzag-mercure.service=zigzag-app
+      # Disable response buffering for SSE and set X-Accel-Buffering: no
+      - traefik.http.middlewares.mercure-headers.headers.customResponseHeaders.X-Accel-Buffering=no
+      - traefik.http.middlewares.mercure-buffering.buffering.maxResponseBodyBytes=0
+      - traefik.http.routers.zigzag-mercure.middlewares=mercure-headers,mercure-buffering
+      # Mercure debugging tips:
+      # - If Mercure returns 401, check JWT secret mismatch between publisher/subscriber keys
+      # - If SSE connections drop immediately, verify response buffering is disabled on zigzag-mercure router
+      # - To test from Waydroid/device: curl -N http://<HOST_LAN_IP>/.well-known/mercure?topic=test — should hang (long poll)
+      # - MERCURE_URL must resolve inside the Docker network (use service name "php", not "localhost")
 
   database:
     image: mysql:${MYSQL_VERSION:-8.4}
@@ -73,12 +96,66 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
       - rabbitmq_logs:/var/log/rabbitmq
+    labels:
+      - traefik.enable=true
+      # RabbitMQ management dashboard — accessible at http://rabbitmq.localhost in dev
+      - traefik.http.routers.zigzag-rabbitmq.rule=Host(`rabbitmq.${TRAEFIK_DOMAIN:-localhost}`)
+      - traefik.http.routers.zigzag-rabbitmq.entrypoints=web
+      - traefik.http.services.zigzag-rabbitmq.loadbalancer.server.port=15672
 
   redis:
     image: redis:8.4-alpine
     container_name: zigzag_redis
     volumes:
       - redis_data:/data
+
+  opensearch:
+    image: opensearchproject/opensearch:2
+    container_name: zigzag_opensearch
+    environment:
+      discovery.type: single-node
+      # Security plugin disabled — Traefik handles external access control and all internal
+      # traffic is isolated within the Docker network. No need for internal TLS/auth.
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+      bootstrap.memory_lock: "true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    labels:
+      - traefik.enable=true
+      # OpenSearch REST API — accessible at http://opensearch.localhost in dev
+      - traefik.http.routers.zigzag-opensearch.rule=Host(`opensearch.${TRAEFIK_DOMAIN:-localhost}`)
+      - traefik.http.routers.zigzag-opensearch.entrypoints=web
+      - traefik.http.services.zigzag-opensearch.loadbalancer.server.port=9200
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2
+    container_name: zigzag_opensearch_dashboards
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      # OpenSearch Dashboards UI — accessible at http://dashboards.localhost in dev
+      - traefik.http.routers.zigzag-opensearch-dashboards.rule=Host(`dashboards.${TRAEFIK_DOMAIN:-localhost}`)
+      - traefik.http.routers.zigzag-opensearch-dashboards.entrypoints=web
+      - traefik.http.services.zigzag-opensearch-dashboards.loadbalancer.server.port=5601
 
   # Messenger worker services
   #
@@ -155,6 +232,8 @@ volumes:
   rabbitmq_data:
   rabbitmq_logs:
   redis_data:
+  traefik_letsencrypt:
+  opensearch_data:
 
 ###> doctrine/doctrine-bundle ###
   database_data:

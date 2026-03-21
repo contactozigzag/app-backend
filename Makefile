@@ -53,7 +53,7 @@ ps: ## List containers with status
 	@$(DOCKER_COMP) ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
 
 down: ## Stop the docker hub
-	@$(DOCKER_COMP) down --remove-orphans
+	@$(DOCKER_COMP) --profile workers down --remove-orphans
 
 logs: ## Show live logs
 	@$(DOCKER_COMP) logs --tail=0 --follow
