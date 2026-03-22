@@ -35,10 +35,6 @@ RUN set -eux; \
 		sockets \
 	;
 
-ENV GIT_CONFIG_COUNT=1
-ENV GIT_CONFIG_KEY_0=safe.directory
-ENV GIT_CONFIG_VALUE_0=/app
-
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
@@ -85,6 +81,8 @@ RUN set -eux; \
 	install-php-extensions \
 		xdebug \
 	;
+
+RUN git config --global --add safe.directory /app
 
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
 

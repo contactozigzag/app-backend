@@ -141,6 +141,7 @@ services:
       - caddy_data_blue:/data
       - caddy_config_blue:/config
     environment:
+      FRANKENPHP_CONFIG: "worker ./public/index.php 4"
       SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
@@ -270,6 +271,7 @@ services:
       - caddy_data_green:/data
       - caddy_config_green:/config
     environment:
+      FRANKENPHP_CONFIG: "worker ./public/index.php 4"
       SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
