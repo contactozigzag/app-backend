@@ -375,7 +375,7 @@ parameters:
         # returns User|null; non-null guaranteed by test setup.
         # ——————————————————————————————————————————————————————————————————————
         -
-            message: '#(Parameter \#1 \$user of method Symfony\\Bundle\\FrameworkBundle\\KernelBrowser::loginUser\(\) expects .+, App\\Entity\\User\|null given|Parameter \#1 \$json of function json_decode expects string, string\|false given|Cannot cast mixed to string)#'
+            message: '#(Parameter \#1 \$user of method (Symfony\\Bundle\\FrameworkBundle\\KernelBrowser::loginUser|Lexik\\Bundle\\JWTAuthenticationBundle\\Services\\JWTTokenManagerInterface::createFromPayload)\(\) expects .+, App\\Entity\\User\|null given|Parameter \#1 \$json of function json_decode expects string, string\|false given|Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert::assertStringContainsString\(\) expects string, string\|false given|Cannot cast mixed to string)#'
             paths:
                 - tests/Functional/Controller/OAuthControllerTest.php
 
