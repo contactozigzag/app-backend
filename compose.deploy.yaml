@@ -146,7 +146,7 @@ services:
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
       MERCURE_URL: http://php-blue:80/.well-known/mercure
-      MERCURE_PUBLIC_URL: https://${SERVER_NAME}/.well-known/mercure
+      MERCURE_PUBLIC_URL: https://${PUBLIC_DOMAIN:-localhost}/.well-known/mercure
       MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET}
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
@@ -275,7 +275,7 @@ services:
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
       MERCURE_URL: http://php-green:80/.well-known/mercure
-      MERCURE_PUBLIC_URL: https://${SERVER_NAME}/.well-known/mercure
+      MERCURE_PUBLIC_URL: https://${PUBLIC_DOMAIN:-localhost}/.well-known/mercure
       MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET}
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
