@@ -73,9 +73,18 @@ final readonly class RouteCollectionProvider implements ProviderInterface
 
         if ($this->security->isGranted('ROLE_PARENT')) {
             if ($driverFilter instanceof Driver) {
-                return $this->entityManager->getRepository(Route::class)->findBy([
-                    'driver' => $driverFilter,
-                ]);
+                return $this->entityManager->createQuery(
+                    'SELECT r FROM App\Entity\Route r
+                     WHERE r.driver = :driver
+                     AND r.school IN (
+                         SELECT DISTINCT IDENTITY(s.school) FROM App\Entity\Student s
+                         JOIN s.parents p
+                         WHERE p = :user
+                     )'
+                )
+                    ->setParameter('driver', $driverFilter)
+                    ->setParameter('user', $user)
+                    ->getResult();
             }
 
             return $this->entityManager->createQuery(

@@ -8,6 +8,7 @@ use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\DriverFactory;
 use App\Tests\Factory\RouteFactory;
 use App\Tests\Factory\SchoolFactory;
+use App\Tests\Factory\StudentFactory;
 use App\Tests\Factory\UserFactory;
 
 final class RouteControllerTest extends AbstractApiTestCase
@@ -76,16 +77,22 @@ final class RouteControllerTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
         $school = SchoolFactory::createOne();
+        $otherSchool = SchoolFactory::createOne();
         $driver = DriverFactory::createOne();
         RouteFactory::new()->withDriver($driver)->withSchool($school)->create();
         RouteFactory::new()->withDriver($driver)->withSchool($school)->create();
+        RouteFactory::new()->withDriver($driver)->withSchool($otherSchool)->create();
 
         $parent = UserFactory::createOne(); // ROLE_PARENT, no school
+        StudentFactory::new()->with([
+            'school' => $school,
+        ])->withParent($parent)->create();
         $this->loginUser($client, $parent);
 
         $data = $this->getJson($client, '/api/routes?driver=' . $driver->getId());
 
         self::assertResponseIsSuccessful();
+        // Only 2 routes from the child's school, not the 3rd from another school
         $this->assertCount(2, $data);
     }
 
