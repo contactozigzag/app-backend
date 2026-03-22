@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Security;
 
+use SensitiveParameter;
+use Throwable;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Http\AccessToken\AccessTokenHandlerInterface;
@@ -22,11 +24,11 @@ final readonly class JwtAccessTokenHandler implements AccessTokenHandlerInterfac
     ) {
     }
 
-    public function getUserBadgeFrom(#[\SensitiveParameter] string $accessToken): UserBadge
+    public function getUserBadgeFrom(#[SensitiveParameter] string $accessToken): UserBadge
     {
         try {
             $payload = $this->jwtManager->parse($accessToken);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             throw new BadCredentialsException('Invalid JWT token.');
         }
 

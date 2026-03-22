@@ -130,7 +130,7 @@ final class OAuthControllerTest extends AbstractApiTestCase
 
         self::assertResponseStatusCodeSame(400);
         $html = $client->getResponse()->getContent();
-        self::assertStringContainsString('access_denied', $html);
+        $this->assertStringContainsString('access_denied', (string) $html);
     }
 
     public function testCallbackInvalidStateReturns400(): void
@@ -160,8 +160,8 @@ final class OAuthControllerTest extends AbstractApiTestCase
 
         self::assertResponseIsSuccessful();
         $html = $client->getResponse()->getContent();
-        self::assertStringContainsString('123456789', $html);
-        self::assertStringContainsString('vinculada', $html);
+        $this->assertStringContainsString('123456789', (string) $html);
+        $this->assertStringContainsString('vinculada', (string) $html);
     }
 
     // ── /status ───────────────────────────────────────────────────────────────
