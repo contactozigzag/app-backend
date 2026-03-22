@@ -67,7 +67,7 @@ final class OAuthControllerTest extends AbstractApiTestCase
     public function testCallbackMissingCodeAndStateReturns400(): void
     {
         $client = $this->createApiClient();
-        $this->getJson($client, '/oauth/mercadopago/callback');
+        $client->request(Request::METHOD_GET, '/oauth/mercadopago/callback');
 
         self::assertResponseStatusCodeSame(400);
     }
@@ -75,11 +75,11 @@ final class OAuthControllerTest extends AbstractApiTestCase
     public function testCallbackWithErrorParamReturns400(): void
     {
         $client = $this->createApiClient();
-        $this->getJson($client, '/oauth/mercadopago/callback?error=access_denied&error_description=User+denied+access');
+        $client->request(Request::METHOD_GET, '/oauth/mercadopago/callback?error=access_denied&error_description=User+denied+access');
 
         self::assertResponseStatusCodeSame(400);
-        $body = json_decode($client->getResponse()->getContent(), true);
-        $this->assertStringContainsString('access_denied', (string) $body['error']);
+        $html = $client->getResponse()->getContent();
+        self::assertStringContainsString('access_denied', $html);
     }
 
     public function testCallbackInvalidStateReturns400(): void
@@ -91,7 +91,7 @@ final class OAuthControllerTest extends AbstractApiTestCase
             ->willThrowException(new RuntimeException('Invalid or expired OAuth state parameter.'));
         self::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
 
-        $this->getJson($client, '/oauth/mercadopago/callback?code=auth-code&state=invalid-state');
+        $client->request(Request::METHOD_GET, '/oauth/mercadopago/callback?code=auth-code&state=invalid-state');
 
         self::assertResponseStatusCodeSame(400);
     }
@@ -105,11 +105,12 @@ final class OAuthControllerTest extends AbstractApiTestCase
         $oauthMock->method('handleCallback')->willReturn($driver);
         self::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
 
-        $body = $this->getJson($client, '/oauth/mercadopago/callback?code=valid-code&state=valid-state');
+        $client->request(Request::METHOD_GET, '/oauth/mercadopago/callback?code=valid-code&state=valid-state');
 
         self::assertResponseIsSuccessful();
-        $this->assertArrayHasKey('driver_id', $body);
-        $this->assertSame('123456789', $body['mp_account_id']);
+        $html = $client->getResponse()->getContent();
+        self::assertStringContainsString('123456789', $html);
+        self::assertStringContainsString('vinculada', $html);
     }
 
     // ── /status ───────────────────────────────────────────────────────────────

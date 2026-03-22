@@ -63,7 +63,7 @@ class OAuthController extends AbstractController
      * to the app instead (e.g. deep-link or SPA route).
      */
     #[Route('/oauth/mercadopago/callback', name: 'oauth_mp_callback', methods: ['GET'])]
-    public function callback(Request $request): JsonResponse
+    public function callback(Request $request): Response
     {
         // MP sends `error` when the driver denies access
         $error = $request->query->get('error');
@@ -73,32 +73,24 @@ class OAuthController extends AbstractController
                 'error_description' => $request->query->get('error_description'),
             ]);
 
-            return new JsonResponse(
-                [
-                    'error' => 'Authorization denied by Mercado Pago: ' . $error,
-                ],
-                Response::HTTP_BAD_REQUEST
-            );
+            return $this->render('oauth/callback_error.html.twig', [
+                'error' => 'Autorizacion denegada por Mercado Pago: ' . $error,
+            ], new Response('', Response::HTTP_BAD_REQUEST));
         }
 
         $code = $request->query->get('code');
         $state = $request->query->get('state');
 
         if ($code === null || $state === null) {
-            return new JsonResponse(
-                [
-                    'error' => 'Missing required parameters: code, state',
-                ],
-                Response::HTTP_BAD_REQUEST
-            );
+            return $this->render('oauth/callback_error.html.twig', [
+                'error' => 'Faltan parametros requeridos en la respuesta de Mercado Pago.',
+            ], new Response('', Response::HTTP_BAD_REQUEST));
         }
 
         try {
             $driver = $this->oauthService->handleCallback($code, $state);
 
-            return new JsonResponse([
-                'message' => 'Mercado Pago account connected successfully.',
-                'driver_id' => $driver->getId(),
+            return $this->render('oauth/callback_success.html.twig', [
                 'mp_account_id' => $driver->getMpAccountId(),
             ]);
         } catch (RuntimeException $runtimeException) {
@@ -106,9 +98,9 @@ class OAuthController extends AbstractController
                 'error' => $runtimeException->getMessage(),
             ]);
 
-            return new JsonResponse([
+            return $this->render('oauth/callback_error.html.twig', [
                 'error' => $runtimeException->getMessage(),
-            ], Response::HTTP_BAD_REQUEST);
+            ], new Response('', Response::HTTP_BAD_REQUEST));
         }
     }
 
