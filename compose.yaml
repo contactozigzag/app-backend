@@ -39,14 +39,14 @@ services:
     labels:
       - traefik.enable=true
       # Main application router
-      - traefik.http.routers.zigzag-app.rule=Host(`${TRAEFIK_DOMAIN:-localhost}`) || Host(`192.168.240.1`) || Host(`192.168.240.112`)
+      - traefik.http.routers.zigzag-app.rule=Host(`${TRAEFIK_DOMAIN:-localhost}`)
       - traefik.http.routers.zigzag-app.entrypoints=web
       - traefik.http.services.zigzag-app.loadbalancer.server.port=80
       # Mercure SSE router — needs dedicated routing with buffering disabled.
       # Mercure uses long-lived Server-Sent Events (SSE) connections. Without disabling
       # response buffering, Traefik will try to buffer the entire (infinite) SSE stream,
       # causing connections to hang or drop immediately.
-      - traefik.http.routers.zigzag-mercure.rule=(Host(`${TRAEFIK_DOMAIN:-localhost}`) || Host(`192.168.240.1`) || Host(`192.168.240.112`)) && PathPrefix(`/.well-known/mercure`)
+      - traefik.http.routers.zigzag-mercure.rule=Host(`${TRAEFIK_DOMAIN:-localhost}`) && PathPrefix(`/.well-known/mercure`)
       - traefik.http.routers.zigzag-mercure.entrypoints=web
       - traefik.http.routers.zigzag-mercure.service=zigzag-app
       # Disable response buffering for SSE and set X-Accel-Buffering: no
