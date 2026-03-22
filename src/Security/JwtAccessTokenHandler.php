@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Security;
 
-use SensitiveParameter;
-use Throwable;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use SensitiveParameter;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Http\AccessToken\AccessTokenHandlerInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
+use Throwable;
 
 /**
  * Validates a Lexik JWT and returns the user identifier.
