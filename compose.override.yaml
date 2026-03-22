@@ -15,6 +15,7 @@ services:
       - "127.0.0.1:8080:8080"
 
   php:
+    image: ${IMAGES_PREFIX:-}app-php-dev
     restart: "no"
     build:
       context: .

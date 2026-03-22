@@ -13,11 +13,12 @@ services:
       - traefik_letsencrypt:/letsencrypt
 
   php:
-    image: ${IMAGES_PREFIX:-}app-php
+    restart: unless-stopped
     container_name: zigzag_php
     environment:
       # FrankenPHP/Caddy listens on port 80 internally — Traefik handles external TLS in prod
       SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
+      DEFAULT_URI: https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       # Run "composer require symfony/orm-pack" to install and configure Doctrine ORM

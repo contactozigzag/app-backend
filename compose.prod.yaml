@@ -25,6 +25,7 @@ services:
         tag: "docker.{{.Name}}"
 
   php:
+    image: ${IMAGES_PREFIX:-}app-php-prod
     restart: unless-stopped
     build:
       context: .
