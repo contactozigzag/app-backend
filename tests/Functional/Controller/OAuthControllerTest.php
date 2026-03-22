@@ -8,15 +8,15 @@ use App\Service\Payment\MercadoPagoOAuthService;
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\DriverFactory;
 use App\Tests\Factory\UserFactory;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * The /oauth/mercadopago/* routes are under the "main" (form-login) firewall,
- * not the stateless JWT "api" firewall.  Authentication is done via
- * $client->loginUser() which stores a TestBrowserToken in the session.
- *
- * Unauthenticated requests redirect to /login (302), not 401.
+ * /oauth/mercadopago/connect is behind the "oauth_connect" firewall
+ * (stateless, JWT via ?access_token= query parameter).
+ * /oauth/mercadopago/callback is PUBLIC_ACCESS (no auth needed).
+ * /oauth/mercadopago/status is behind the "main" (form-login) firewall.
  */
 final class OAuthControllerTest extends AbstractApiTestCase
 {
@@ -27,8 +27,8 @@ final class OAuthControllerTest extends AbstractApiTestCase
         $client = $this->createApiClient();
         $client->request(Request::METHOD_GET, '/oauth/mercadopago/connect');
 
-        // main firewall redirects unauthenticated users to /login
-        self::assertResponseRedirects('http://localhost/login');
+        // oauth_connect firewall is stateless — returns 401 without a token
+        self::assertResponseStatusCodeSame(401);
     }
 
     public function testConnectRequiresDriverRole(): void
@@ -60,6 +60,57 @@ final class OAuthControllerTest extends AbstractApiTestCase
         $client->request(Request::METHOD_GET, '/oauth/mercadopago/connect');
 
         self::assertResponseRedirects('https://auth.mercadopago.com/authorization?client_id=123&state=abc');
+    }
+
+    /**
+     * End-to-end: mobile app opens /oauth/mercadopago/connect?access_token=<jwt>
+     * in the system browser. The oauth_connect firewall authenticates via
+     * the JWT in the query string and redirects to Mercado Pago.
+     */
+    public function testConnectWithJwtQueryParamRedirectsToMercadoPago(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::createOne();
+
+        /** @var JWTTokenManagerInterface $jwtManager */
+        $jwtManager = self::getContainer()->get(JWTTokenManagerInterface::class);
+        $jwt = $jwtManager->createFromPayload($driver->getUser(), []);
+
+        $oauthMock = $this->createMock(MercadoPagoOAuthService::class);
+        $oauthMock
+            ->expects($this->once())
+            ->method('buildAuthorizationUrl')
+            ->willReturn('https://auth.mercadopago.com/authorization?client_id=123&state=abc');
+        self::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
+
+        $client->request(Request::METHOD_GET, '/oauth/mercadopago/connect?access_token=' . $jwt);
+
+        self::assertResponseRedirects('https://auth.mercadopago.com/authorization?client_id=123&state=abc');
+    }
+
+    public function testConnectWithInvalidJwtReturns401(): void
+    {
+        $client = $this->createApiClient();
+
+        $client->request(Request::METHOD_GET, '/oauth/mercadopago/connect?access_token=invalid-jwt-token');
+
+        self::assertResponseStatusCodeSame(401);
+    }
+
+    public function testConnectWithParentJwtReturns403(): void
+    {
+        $client = $this->createApiClient();
+        $parent = UserFactory::createOne([
+            'roles' => ['ROLE_PARENT'],
+        ]);
+
+        /** @var JWTTokenManagerInterface $jwtManager */
+        $jwtManager = self::getContainer()->get(JWTTokenManagerInterface::class);
+        $jwt = $jwtManager->createFromPayload($parent, []);
+
+        $client->request(Request::METHOD_GET, '/oauth/mercadopago/connect?access_token=' . $jwt);
+
+        self::assertResponseStatusCodeSame(403);
     }
 
     // ── /callback ─────────────────────────────────────────────────────────────

@@ -41,6 +41,15 @@ security:
             provider: app_user_provider  # <-- ADD THIS for consistency
             jwt: ~
 
+        oauth_connect:
+            pattern: ^/oauth/mercadopago/connect
+            stateless: true
+            provider: app_user_provider
+            access_token:
+                token_handler: App\Security\JwtAccessTokenHandler
+                token_extractors:
+                    - query_string
+
         main:
             pattern: ^/
             lazy: true
