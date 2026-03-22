@@ -70,6 +70,25 @@ final class RouteControllerTest extends AbstractApiTestCase
         $this->assertSame('/api/drivers/' . $driver2->getId(), $data[0]['driver']);
     }
 
+    // ── GET /api/routes?driver= — parent sees driver's routes ─────────────────
+
+    public function testGetCollectionParentSeesDriverRoutesViaFilter(): void
+    {
+        $client = $this->createApiClient();
+        $school = SchoolFactory::createOne();
+        $driver = DriverFactory::createOne();
+        RouteFactory::new()->withDriver($driver)->withSchool($school)->create();
+        RouteFactory::new()->withDriver($driver)->withSchool($school)->create();
+
+        $parent = UserFactory::createOne(); // ROLE_PARENT, no school
+        $this->loginUser($client, $parent);
+
+        $data = $this->getJson($client, '/api/routes?driver=' . $driver->getId());
+
+        self::assertResponseIsSuccessful();
+        $this->assertCount(2, $data);
+    }
+
     // ── POST /api/routes/{id}/optimize — authentication & authorisation ────────
 
     public function testOptimizeRequiresAuthentication(): void
