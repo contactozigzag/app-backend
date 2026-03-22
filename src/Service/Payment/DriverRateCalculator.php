@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Service\Payment;
 
-use App\Enum\PricingModel;
-use App\Entity\DriverRate;
 use App\Dto\Payment\CalculatedRate;
 use App\Entity\Driver;
+use App\Entity\DriverRate;
 use App\Entity\Route;
+use App\Enum\PricingModel;
 use App\Repository\DriverRateRepository;
 use InvalidArgumentException;
 
@@ -23,11 +23,11 @@ final readonly class DriverRateCalculator
     {
         $pricingModel = $driver->getPricingModel();
 
-        if (!$pricingModel instanceof PricingModel) {
+        if (! $pricingModel instanceof PricingModel) {
             throw new InvalidArgumentException('Driver has no pricing model configured.');
         }
 
-        if ($pricingModel->requiresRoute() && !$route instanceof Route) {
+        if ($pricingModel->requiresRoute() && ! $route instanceof Route) {
             throw new InvalidArgumentException(
                 sprintf('Route is required for "%s" pricing model.', $pricingModel->label()),
             );
@@ -36,7 +36,7 @@ final readonly class DriverRateCalculator
         $lookupRoute = $pricingModel->requiresRoute() ? $route : null;
         $rate = $this->driverRateRepository->findByDriverAndRoute($driver, $lookupRoute);
 
-        if (!$rate instanceof DriverRate) {
+        if (! $rate instanceof DriverRate) {
             $routeInfo = $route instanceof Route ? sprintf(' and route "%s" (ID %d)', $route->getName(), $route->getId()) : '';
             throw new InvalidArgumentException(
                 sprintf('No rate configured for driver "%s"%s.', $driver->getNickname(), $routeInfo),

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\State\DriverRate;
 
-use App\Enum\PricingModel;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Driver;
 use App\Entity\DriverRate;
 use App\Entity\User;
+use App\Enum\PricingModel;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -52,7 +52,7 @@ final readonly class DriverRateCreateProcessor implements ProcessorInterface
 
         // Auto-set the driver's pricing model if not yet configured
         $pricingModel = $data->getPricingModel();
-        if ($pricingModel !== null && !$driver->getPricingModel() instanceof PricingModel) {
+        if ($pricingModel !== null && ! $driver->getPricingModel() instanceof PricingModel) {
             $driver->setPricingModel($pricingModel);
         }
 

@@ -124,11 +124,11 @@ class DriverRate
     #[Assert\Callback]
     public function validatePricingModelConsistency(ExecutionContextInterface $context): void
     {
-        if (!$this->pricingModel instanceof PricingModel) {
+        if (! $this->pricingModel instanceof PricingModel) {
             return;
         }
 
-        if ($this->pricingModel->requiresRoute() && !$this->route instanceof Route) {
+        if ($this->pricingModel->requiresRoute() && ! $this->route instanceof Route) {
             $context->buildViolation('Route is required for {{ model }} pricing model.')
                 ->setParameter('{{ model }}', $this->pricingModel->label())
                 ->atPath('route')

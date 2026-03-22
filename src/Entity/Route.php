@@ -140,7 +140,7 @@ class Route
     #[Groups(['route:read', 'route:write'])]
     private ?string $type = null;
 
-    #[ORM\ManyToOne(targetEntity: Driver::class)]
+    #[ORM\ManyToOne(targetEntity: Driver::class, inversedBy: 'routes')]
     #[ORM\JoinColumn(nullable: true)]
     #[Groups(['route:read', 'route:write'])]
     private ?Driver $driver = null;

@@ -4,22 +4,22 @@ framework:
             policy: 'sliding_window'
             limit: 10
             interval: '1 minute'
-            storage_service: 'cache.rate_limiter'
+            cache_pool: 'cache.app'
 
         gps_ingestion:
             policy: 'fixed_window'
             limit: 1
             interval: '3 seconds'
-            storage_service: 'cache.rate_limiter'
+            cache_pool: 'cache.app'
 
         driver_search:
             policy: 'sliding_window'
             limit: 30
             interval: '10 seconds'
-            storage_service: 'cache.rate_limiter'
+            cache_pool: 'cache.app'
 
-# In dev/test the cache.rate_limiter pool is wrapped in TraceableAdapter (debug
-# mode) which does not implement StorageInterface. Override to InMemoryStorage so
+# In dev/test the cache pools are wrapped in TraceableAdapter (debug mode)
+# which does not implement StorageInterface. Override to InMemoryStorage so
 # lint:container and functional tests can instantiate controllers cleanly.
 when@dev:
     services:
@@ -29,21 +29,12 @@ when@dev:
     framework:
         rate_limiter:
             payment_api:
-                policy: 'sliding_window'
-                limit: 10
-                interval: '1 minute'
                 storage_service: 'dev.rate_limiter.storage'
 
             gps_ingestion:
-                policy: 'fixed_window'
-                limit: 1
-                interval: '3 seconds'
                 storage_service: 'dev.rate_limiter.storage'
 
             driver_search:
-                policy: 'sliding_window'
-                limit: 30
-                interval: '10 seconds'
                 storage_service: 'dev.rate_limiter.storage'
 
 when@test:
@@ -54,19 +45,11 @@ when@test:
     framework:
         rate_limiter:
             payment_api:
-                policy: 'sliding_window'
-                limit: 10
-                interval: '1 minute'
                 storage_service: 'test.rate_limiter.storage'
 
             gps_ingestion:
-                policy: 'fixed_window'
-                limit: 1
-                interval: '3 seconds'
                 storage_service: 'test.rate_limiter.storage'
 
             driver_search:
-                policy: 'sliding_window'
                 limit: 5
-                interval: '10 seconds'
                 storage_service: 'test.rate_limiter.storage'

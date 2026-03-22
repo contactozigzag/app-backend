@@ -11,6 +11,7 @@ use App\Entity\Route;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -95,13 +96,13 @@ final readonly class RouteCollectionProvider implements ProviderInterface
     {
         $request = $this->requestStack->getCurrentRequest();
 
-        if ($request === null) {
+        if (! $request instanceof Request) {
             return null;
         }
 
         $driverId = $request->query->get('driver');
 
-        if ($driverId === null || !is_numeric($driverId)) {
+        if ($driverId === null || ! is_numeric($driverId)) {
             return null;
         }
 

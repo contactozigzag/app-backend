@@ -13,7 +13,6 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Dto\DriverRate\SetDriverRatesInput;
-use App\Entity\Route;
 use App\Enum\PricingModel;
 use App\Repository\DriverRepository;
 use App\State\DriverRate\SetDriverRatesProcessor;
