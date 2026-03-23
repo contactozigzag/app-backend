@@ -28,18 +28,13 @@ services:
       - --entrypoints.websecure.address=:443
       - --entrypoints.websecure.forwardedHeaders.insecure=true
       - --entrypoints.web.forwardedHeaders.insecure=true
-      # ACME Let's Encrypt — TLS termination at Traefik
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
-      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
-      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
     ports:
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
-      - traefik_letsencrypt:/letsencrypt
+      - ./traefik/certs:/etc/traefik/certs:ro
     logging:
       driver: fluentd
       options:
