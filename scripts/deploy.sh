@@ -129,6 +129,8 @@ http:
         - websecure
       tls:
         certResolver: letsencrypt
+      middlewares:
+        - security-headers
 
     zigzag-app-http-redirect:
       rule: "Host(\`${PUBLIC_DOMAIN}\`)"
@@ -147,10 +149,24 @@ http:
       tls:
         certResolver: letsencrypt
       middlewares:
+        - security-headers
         - mercure-headers
         - mercure-buffering
 
   middlewares:
+    security-headers:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        frameDeny: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        customResponseHeaders:
+          X-Permitted-Cross-Domain-Policies: "none"
+          Referrer-Policy: "strict-origin-when-cross-origin"
+          Permissions-Policy: "camera=(), microphone=(), geolocation=()"
+
     redirect-to-https:
       redirectScheme:
         scheme: https
