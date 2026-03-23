@@ -125,12 +125,11 @@ http:
       rule: "Host(\`${PUBLIC_DOMAIN}\`)"
       service: zigzag-app
       entrypoints:
-        - web
         - websecure
-      tls:
-        certResolver: letsencrypt
+      tls: {}
       middlewares:
         - security-headers
+        - compress
 
     zigzag-app-http-redirect:
       rule: "Host(\`${PUBLIC_DOMAIN}\`)"
@@ -144,10 +143,8 @@ http:
       rule: "Host(\`${PUBLIC_DOMAIN}\`) && PathPrefix(\`/.well-known/mercure\`)"
       service: zigzag-app
       entrypoints:
-        - web
         - websecure
-      tls:
-        certResolver: letsencrypt
+      tls: {}
       middlewares:
         - security-headers
         - mercure-headers
@@ -171,6 +168,11 @@ http:
       redirectScheme:
         scheme: https
         permanent: true
+
+    compress:
+      compress:
+        excludedContentTypes:
+          - "text/event-stream"
 
     mercure-headers:
       headers:
