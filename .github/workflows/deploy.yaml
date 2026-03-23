@@ -20,6 +20,10 @@ on:
         required: false
         type: choice
         options: ['', 'blue', 'green']
+      no_cache:
+        description: 'Force full rebuild (no Docker cache)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -264,9 +268,10 @@ jobs:
         env:
           DEPLOY_SLOT: ${{ steps.slot.outputs.slot }}
           IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+          NO_CACHE: ${{ inputs.no_cache }}
         run: |
           ssh "${DEPLOY_USER}@${DROPLET_IP}" \
-            "cd ${PROJECT_DIR} && bash scripts/deploy.sh ${DEPLOY_SLOT} ${IMAGE_TAG}"
+            "cd ${PROJECT_DIR} && NO_CACHE=${NO_CACHE:-false} bash scripts/deploy.sh ${DEPLOY_SLOT} ${IMAGE_TAG}"
 
       - name: Post-deploy verification
         env:

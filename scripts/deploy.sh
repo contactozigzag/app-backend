@@ -52,8 +52,14 @@ echo "Time: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo ""
 
 # 1. Build the prod image with the deploy tag
-echo "-> Building image for php-${NEW_SLOT}..."
-DEPLOY_TAG="$IMAGE_TAG" $COMPOSE_BASE --profile infra --profile "$NEW_SLOT" build --no-cache "php-${NEW_SLOT}"
+BUILD_FLAGS=""
+if [ "${NO_CACHE:-false}" = "true" ]; then
+  BUILD_FLAGS="--no-cache"
+  echo "-> Building image for php-${NEW_SLOT} (no cache)..."
+else
+  echo "-> Building image for php-${NEW_SLOT}..."
+fi
+DEPLOY_TAG="$IMAGE_TAG" $COMPOSE_BASE --profile infra --profile "$NEW_SLOT" build $BUILD_FLAGS "php-${NEW_SLOT}"
 echo "OK: Image built"
 
 # 2. Ensure shared infrastructure is running
