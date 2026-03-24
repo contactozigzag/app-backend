@@ -22,6 +22,8 @@ readonly class MercurePublishHandler
 
     public function __invoke(DriverLocationUpdatedMessage $message): void
     {
+        $startTime = microtime(true);
+
         $payload = json_encode([
             'driverId' => $message->driverId,
             'lat' => $message->latitude,
@@ -44,17 +46,26 @@ readonly class MercurePublishHandler
             try {
                 $this->hub->publish($update);
             } catch (Throwable $e) {
-                $this->logger->error('MercurePublishHandler: failed to publish', [
+                $elapsed = (int) ((microtime(true) - $startTime) * 1000);
+
+                $this->logger->error('Handler failed', [
+                    'handler' => self::class,
+                    'exception' => $e::class,
+                    'message' => $e->getMessage(),
                     'topic' => $topic,
                     'correlationId' => $message->correlationId,
-                    'error' => $e->getMessage(),
+                    'duration_ms' => $elapsed,
                 ]);
             }
         }
 
-        $this->logger->info('MercurePublishHandler: published', [
+        $elapsed = (int) ((microtime(true) - $startTime) * 1000);
+
+        $this->logger->info('Handler completed', [
+            'handler' => self::class,
             'topics' => $topics,
             'correlationId' => $message->correlationId,
+            'duration_ms' => $elapsed,
         ]);
     }
 }

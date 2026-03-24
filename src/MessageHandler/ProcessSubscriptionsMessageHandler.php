@@ -29,7 +29,10 @@ class ProcessSubscriptionsMessageHandler
 
     public function __invoke(ProcessSubscriptionsMessage $message): void
     {
-        $this->logger->info('Starting scheduled subscription processing', [
+        $startTime = microtime(true);
+
+        $this->logger->info('Handler started', [
+            'handler' => self::class,
             'limit' => $message->getLimit(),
             'process_retries' => $message->shouldProcessRetries(),
         ]);
@@ -183,14 +186,22 @@ class ProcessSubscriptionsMessageHandler
                 }
             }
 
-            $this->logger->info('Subscription processing completed', [
+            $elapsed = (int) ((microtime(true) - $startTime) * 1000);
+
+            $this->logger->info('Handler completed', [
+                'handler' => self::class,
                 'processed' => $processed,
                 'failed' => $failed,
+                'duration_ms' => $elapsed,
             ]);
         } catch (Exception $exception) {
-            $this->logger->critical('Subscription processing failed with critical error', [
-                'error' => $exception->getMessage(),
-                'trace' => $exception->getTraceAsString(),
+            $elapsed = (int) ((microtime(true) - $startTime) * 1000);
+
+            $this->logger->critical('Handler failed', [
+                'handler' => self::class,
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+                'duration_ms' => $elapsed,
             ]);
 
             throw $exception;

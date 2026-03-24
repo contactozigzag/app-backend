@@ -40,7 +40,10 @@ class ProcessWebhookMessageHandler
 
     public function __invoke(ProcessWebhookMessage $message): void
     {
-        $this->logger->info('Webhook handler started', [
+        $startTime = microtime(true);
+
+        $this->logger->info('Handler started', [
+            'handler' => self::class,
             'payment_id' => $message->paymentId,
             'payment_provider_id' => $message->paymentProviderId,
             'request_id' => $message->requestId,
@@ -75,11 +78,15 @@ class ProcessWebhookMessageHandler
             $this->dispatchStatusEvent($payment, $newStatus, $message->webhookData);
         }
 
-        $this->logger->info('Webhook handler completed', [
+        $elapsed = (int) ((microtime(true) - $startTime) * 1000);
+
+        $this->logger->info('Handler completed', [
+            'handler' => self::class,
             'payment_id' => $message->paymentId,
             'old_status' => $oldStatus->value,
             'new_status' => $newStatus->value,
             'request_id' => $message->requestId,
+            'duration_ms' => $elapsed,
         ]);
     }
 

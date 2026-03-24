@@ -34,8 +34,15 @@ class DetectGpsAnomalyHandler
 
     public function __invoke(DetectGpsAnomalyMessage $message): void
     {
+        $startTime = microtime(true);
+
+        $this->logger->info('Handler started', [
+            'handler' => self::class,
+        ]);
+
         $inProgressRoutes = $this->activeRouteRepository->findInProgress();
         $now = new DateTimeImmutable();
+        $alertsCreated = 0;
 
         foreach ($inProgressRoutes as $route) {
             $driver = $route->getDriver();
@@ -97,11 +104,20 @@ class DetectGpsAnomalyHandler
             $this->entityManager->flush();
 
             $this->bus->dispatch(new DriverDistressMessage((int) $alert->getId()));
+            $alertsCreated++;
 
             $this->logger->info('DetectGpsAnomalyHandler: distress alert created', [
                 'alertId' => $alert->getAlertId(),
                 'driverId' => $driver->getId(),
             ]);
         }
+
+        $elapsed = (int) ((microtime(true) - $startTime) * 1000);
+
+        $this->logger->info('Handler completed', [
+            'handler' => self::class,
+            'alerts_created' => $alertsCreated,
+            'duration_ms' => $elapsed,
+        ]);
     }
 }

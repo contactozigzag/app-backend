@@ -7,6 +7,7 @@ namespace App\Service\OpenSearch;
 use App\Entity\Driver;
 use App\Entity\Route;
 use App\Entity\User;
+use App\Service\Logging\PerformanceLogger;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenSearch\Client;
@@ -33,6 +34,7 @@ readonly class DriverSearchService
         private Client $opensearchClient,
         private string $indexPrefix,
         private EntityManagerInterface $entityManager,
+        private PerformanceLogger $performanceLogger,
     ) {
     }
 
@@ -131,10 +133,17 @@ readonly class DriverSearchService
 
         // Let exceptions propagate — the provider catches them to trigger Doctrine fallback
         /** @var array{hits: array{total: array{value: int}, hits: array<int, array{_source: array<string, mixed>, _score: float}>}} $response */
-        $response = $this->opensearchClient->search([
-            'index' => $this->getIndexName(),
-            'body' => $body,
-        ]);
+        $response = $this->performanceLogger->measure(
+            'opensearch.search',
+            fn (): array => $this->opensearchClient->search([
+                'index' => $this->getIndexName(),
+                'body' => $body,
+            ]),
+            [
+                'school_id' => $schoolId,
+                'query_length' => mb_strlen($query),
+            ],
+        );
 
         $hits = [];
         foreach ($response['hits']['hits'] as $hit) {
