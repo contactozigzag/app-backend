@@ -50,6 +50,22 @@ Three Symfony Messenger transports:
 
 In `test` environment all transports use `test://` (synchronous, assertable).
 
+### Payment Sync
+Sandbox/test payments do not trigger real MP webhook notifications. Use the CLI command to manually sync payment status from Mercado Pago:
+
+```bash
+# Sync a payment using its MP payment ID (required when paymentProviderId is not yet stored)
+php bin/console app:payment:sync <payment-id> --provider-id=<mp-payment-id>
+
+# Sync a payment that already has a provider ID
+php bin/console app:payment:sync <payment-id>
+
+# Dry run — preview without changes
+php bin/console app:payment:sync <payment-id> --provider-id=<mp-payment-id> --dry-run
+```
+
+This runs the full flow: fetches status from MP API → updates payment entity → dispatches events (Mercure notifications, etc.).
+
 ### API Platform
 Entities use `#[ApiResource]` with attribute-based Doctrine mapping. Custom controllers handle complex operations. If a custom controller handles `GET /api/{entity}` or `GET /api/{entity}/{id}`, remove the corresponding `Get`/`GetCollection` operations from `#[ApiResource]` to avoid route conflicts.
 
