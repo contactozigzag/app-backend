@@ -51,7 +51,14 @@ echo "Domain:  $PUBLIC_DOMAIN"
 echo "Time: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo ""
 
-# 1. Build the prod image with the deploy tag
+# 1. Stamp APP_VERSION so every log line includes the deployed release
+echo "-> Setting APP_VERSION=${IMAGE_TAG}..."
+sed -i "s/APP_VERSION=.*/APP_VERSION=${IMAGE_TAG}/" "${PROJECT_DIR}/.env"
+sed -i "s/APP_VERSION=.*/APP_VERSION=${IMAGE_TAG}/" "${PROJECT_DIR}/.env.prod"
+grep -q 'APP_VERSION' "${PROJECT_DIR}/.env.prod" || echo "APP_VERSION=${IMAGE_TAG}" >> "${PROJECT_DIR}/.env.prod"
+echo "OK: APP_VERSION updated"
+
+# 2. Build the prod image with the deploy tag
 BUILD_FLAGS=""
 if [ "${NO_CACHE:-false}" = "true" ]; then
   BUILD_FLAGS="--no-cache"
@@ -62,17 +69,17 @@ fi
 DEPLOY_TAG="$IMAGE_TAG" $COMPOSE_BASE --profile infra --profile "$NEW_SLOT" build $BUILD_FLAGS "php-${NEW_SLOT}"
 echo "OK: Image built"
 
-# 2. Ensure shared infrastructure is running
+# 3. Ensure shared infrastructure is running
 echo "-> Starting shared infrastructure..."
 $COMPOSE_BASE --profile infra up -d --no-recreate
 echo "OK: Infrastructure running"
 
-# 3. Start the NEW slot (include --profile infra so cross-profile depends_on resolves)
+# 4. Start the NEW slot (include --profile infra so cross-profile depends_on resolves)
 echo "-> Starting ${NEW_SLOT} slot..."
 DEPLOY_TAG="$IMAGE_TAG" $COMPOSE_BASE --profile infra --profile "$NEW_SLOT" up -d
 echo "OK: ${NEW_SLOT} slot started"
 
-# 4. Wait for the NEW slot's php service to be healthy
+# 5. Wait for the NEW slot's php service to be healthy
 echo "-> Health checking php-${NEW_SLOT}..."
 RETRIES=0
 until docker inspect --format='{{.State.Health.Status}}' "zigzag_php_${NEW_SLOT}" 2>/dev/null | grep -q "healthy"; do
@@ -96,19 +103,19 @@ until docker inspect --format='{{.State.Health.Status}}' "zigzag_php_${NEW_SLOT}
 done
 echo "OK: php-${NEW_SLOT} is healthy"
 
-# 5. Run database migrations from the new slot (use docker exec to avoid profile issues)
+# 6. Run database migrations from the new slot (use docker exec to avoid profile issues)
 echo "-> Running migrations..."
 docker exec "zigzag_php_${NEW_SLOT}" \
   php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
 echo "OK: Migrations complete"
 
-# 6. Warm up Symfony cache
+# 7. Warm up Symfony cache
 echo "-> Warming cache..."
 docker exec "zigzag_php_${NEW_SLOT}" \
   php bin/console cache:warmup --env=prod
 echo "OK: Cache warmed"
 
-# 7. Switch Traefik routing via dynamic file provider
+# 8. Switch Traefik routing via dynamic file provider
 # Traefik watches this file and picks up changes within 1-2 seconds
 echo "-> Switching Traefik routing to ${NEW_SLOT}..."
 
@@ -186,21 +193,21 @@ EOF
 
 echo "OK: Traefik routing switched to ${NEW_SLOT}"
 
-# 8. Grace period — let in-flight requests to the old slot complete
+# 9. Grace period — let in-flight requests to the old slot complete
 echo "-> Draining old slot (${OLD_SLOT})... waiting 30s"
 sleep 30
 
-# 9. Stop the old slot containers by name (NOT docker compose down, which would remove infra)
+# 10. Stop the old slot containers by name (NOT docker compose down, which would remove infra)
 echo "-> Stopping ${OLD_SLOT} slot..."
 docker stop "${SLOT_CONTAINERS[@]}" 2>/dev/null || true
 docker rm "${SLOT_CONTAINERS[@]}" 2>/dev/null || true
 echo "OK: ${OLD_SLOT} stopped"
 
-# 10. Clean up old images (keep last 24h)
+# 11. Clean up old images (keep last 24h)
 echo "-> Pruning old images..."
 docker image prune -f --filter "until=24h" || true
 
-# 11. Record which slot is active
+# 12. Record which slot is active
 echo "$NEW_SLOT" > "${PROJECT_DIR}/.active-slot"
 
 echo ""
