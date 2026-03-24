@@ -17,7 +17,9 @@ use ValueError;
 /**
  * State provider for GET /api/payments (collection).
  *
- * Always scopes results to the authenticated user's own payments.
+
+ * For parents: returns payments they made.
+ * For drivers: returns payments they received.
  * Supports optional ?status= filter using the PaymentStatus enum.
  *
  * @implements ProviderInterface<Payment>
@@ -52,6 +54,11 @@ final readonly class PaymentCollectionProvider implements ProviderInterface
             } catch (ValueError) {
                 // Invalid status value — ignore filter, return all
             }
+        }
+
+        $driver = $user->getDriver();
+        if ($driver !== null && $this->security->isGranted('ROLE_DRIVER')) {
+            return $this->paymentRepository->findByDriver($driver, $paymentStatus, $limit, $offset);
         }
 
         return $this->paymentRepository->findByUser($user, $paymentStatus, $limit, $offset);

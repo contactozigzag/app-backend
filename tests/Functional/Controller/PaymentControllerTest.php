@@ -257,6 +257,49 @@ final class PaymentControllerTest extends AbstractApiTestCase
         $this->assertCount(2, $body);
     }
 
+    // ── list: driver perspective ────────────────────────────────────────────
+
+    public function testListPaymentsDriverSeesReceivedPayments(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::new()->withMpAuthorized()->create();
+        $parentUser = UserFactory::createOne();
+        PaymentFactory::createMany(3, [
+            'user' => $parentUser,
+            'driver' => $driver,
+        ]);
+        // Payments to a different driver — should not appear
+        PaymentFactory::createMany(2, [
+            'user' => $parentUser,
+        ]);
+        $this->loginUser($client, $driver->getUser());
+
+        $body = $this->getJson($client, '/api/payments');
+
+        self::assertResponseIsSuccessful();
+        $this->assertCount(3, $body);
+    }
+
+    public function testListPaymentsDriverFiltersByStatus(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::new()->withMpAuthorized()->create();
+        PaymentFactory::createMany(2, [
+            'driver' => $driver,
+            'status' => PaymentStatus::APPROVED,
+        ]);
+        PaymentFactory::createOne([
+            'driver' => $driver,
+            'status' => PaymentStatus::PENDING,
+        ]);
+        $this->loginUser($client, $driver->getUser());
+
+        $body = $this->getJson($client, '/api/payments?status=approved');
+
+        self::assertResponseIsSuccessful();
+        $this->assertCount(2, $body);
+    }
+
     // ── detail ────────────────────────────────────────────────────────────────
 
     public function testDetailReturnsFullPaymentData(): void

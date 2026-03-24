@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Driver;
 use App\Entity\Payment;
 use App\Entity\User;
 use App\Enum\PaymentStatus;
@@ -47,6 +48,26 @@ class PaymentRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('p')
             ->where('p.user = :user')
             ->setParameter('user', $user)
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset);
+
+        if ($status instanceof PaymentStatus) {
+            $qb->andWhere('p.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @return Payment[]
+     */
+    public function findByDriver(Driver $driver, ?PaymentStatus $status = null, int $limit = 30, int $offset = 0): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->where('p.driver = :driver')
+            ->setParameter('driver', $driver)
             ->orderBy('p.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->setFirstResult($offset);
