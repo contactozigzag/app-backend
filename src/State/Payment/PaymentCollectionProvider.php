@@ -17,7 +17,6 @@ use ValueError;
 /**
  * State provider for GET /api/payments (collection).
  *
-
  * For parents: returns payments they made.
  * For drivers: returns payments they received.
  * Supports optional ?status= filter using the PaymentStatus enum.
