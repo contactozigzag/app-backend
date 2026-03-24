@@ -32,6 +32,14 @@ services:
     Monolog\Processor\UidProcessor:
         tags: ['monolog.processor']
 
+    App\Service\Logging\CorrelationIdProcessor:
+        tags: ['monolog.processor']
+
+    # Named logger injections for dedicated channels
+    App\EventSubscriber\SecurityAuditSubscriber:
+        arguments:
+            $securityAuditLogger: '@monolog.logger.security_audit'
+
     # OpenSearch client
     OpenSearch\Client:
         factory: ['OpenSearch\ClientBuilder', 'fromConfig']
@@ -41,3 +49,4 @@ services:
     App\Service\OpenSearch\DriverSearchService:
         arguments:
             $indexPrefix: '%env(OPENSEARCH_INDEX_PREFIX)%'
+            $performanceLogger: '@App\Service\Logging\PerformanceLogger'

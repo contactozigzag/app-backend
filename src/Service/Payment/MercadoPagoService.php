@@ -6,6 +6,7 @@ namespace App\Service\Payment;
 
 use App\Entity\Payment;
 use App\Entity\User;
+use App\Service\Logging\PerformanceLogger;
 use DateTime;
 use DateTimeInterface;
 use Exception;
@@ -16,6 +17,7 @@ use MercadoPago\Exceptions\InvalidArgumentException;
 use MercadoPago\Exceptions\MPApiException;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Resources\Payment as MPPayment;
+use MercadoPago\Resources\Preference;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -39,6 +41,7 @@ class MercadoPagoService
         #[Autowire(service: 'cache.app')]
         private readonly CacheInterface $cache,
         private readonly LoggerInterface $logger,
+        private readonly PerformanceLogger $performanceLogger,
         #[Autowire(env: 'float:MERCADOPAGO_MARKETPLACE_FEE_PERCENT')]
         private readonly float $marketplaceFeePercent = 0.0,
     ) {
@@ -123,7 +126,14 @@ class MercadoPagoService
                 'marketplace_fee' => $marketplaceFee,
             ]);
 
-            $preference = $this->preferenceClient->create($preferenceData, $requestOptions);
+            /** @var Preference $preference */
+            $preference = $this->performanceLogger->measure(
+                'mercadopago.create_preference',
+                fn (): Preference => $this->preferenceClient->create($preferenceData, $requestOptions),
+                [
+                    'payment_id' => $payment->getId(),
+                ],
+            );
 
             $this->logger->info('Mercado Pago preference created', [
                 'payment_id' => $payment->getId(),
@@ -181,9 +191,16 @@ class MercadoPagoService
                     'payment_provider_id' => $paymentProviderId,
                 ]);
 
-                $payment = $this->paymentClient->get((int) $paymentProviderId);
+                /** @var MPPayment $mpPayment */
+                $mpPayment = $this->performanceLogger->measure(
+                    'mercadopago.get_payment_status',
+                    fn (): \MercadoPago\Resources\Payment => $this->paymentClient->get((int) $paymentProviderId),
+                    [
+                        'payment_provider_id' => $paymentProviderId,
+                    ],
+                );
 
-                return $this->mapPaymentToArray($payment);
+                return $this->mapPaymentToArray($mpPayment);
             });
         } catch (MPApiException $mpApiException) {
             $this->logger->error('Mercado Pago API error fetching payment status', [
@@ -201,7 +218,14 @@ class MercadoPagoService
     public function getPaymentDetails(string $paymentProviderId): MPPayment
     {
         try {
-            return $this->paymentClient->get((int) $paymentProviderId);
+            /** @var MPPayment */
+            return $this->performanceLogger->measure(
+                'mercadopago.get_payment_details',
+                fn (): \MercadoPago\Resources\Payment => $this->paymentClient->get((int) $paymentProviderId),
+                [
+                    'payment_provider_id' => $paymentProviderId,
+                ],
+            );
         } catch (MPApiException $mpApiException) {
             $this->logger->error('Mercado Pago API error fetching payment details', [
                 'payment_provider_id' => $paymentProviderId,
@@ -232,7 +256,14 @@ class MercadoPagoService
                 $refundData['amount'] = $amount;
             }
 
-            $refund = $this->paymentClient->refund((int) $paymentProviderId, $refundData);
+            /** @var object{id: mixed, status: mixed, amount: mixed} $refund */
+            $refund = $this->performanceLogger->measure(
+                'mercadopago.refund_payment',
+                fn () => $this->paymentClient->refund((int) $paymentProviderId, $refundData),
+                [
+                    'payment_provider_id' => $paymentProviderId,
+                ],
+            );
 
             $this->logger->info('Mercado Pago refund processed', [
                 'payment_provider_id' => $paymentProviderId,

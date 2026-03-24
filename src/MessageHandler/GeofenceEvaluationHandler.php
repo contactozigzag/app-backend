@@ -24,9 +24,17 @@ class GeofenceEvaluationHandler
 
     public function __invoke(DriverLocationUpdatedMessage $message): void
     {
+        $startTime = microtime(true);
+
         if ($message->activeRouteId === null) {
             return;
         }
+
+        $this->logger->info('Handler started', [
+            'handler' => self::class,
+            'active_route_id' => $message->activeRouteId,
+            'correlationId' => $message->correlationId,
+        ]);
 
         $activeRoute = $this->activeRouteRepository->find($message->activeRouteId);
 
@@ -48,11 +56,15 @@ class GeofenceEvaluationHandler
 
         $result = $this->geofencingService->checkActiveRoute($activeRoute);
 
-        $this->logger->info('GeofenceEvaluationHandler: completed', [
+        $elapsed = (int) ((microtime(true) - $startTime) * 1000);
+
+        $this->logger->info('Handler completed', [
+            'handler' => self::class,
             'activeRouteId' => $message->activeRouteId,
             'approaching' => count($result['approaching']),
             'arrived' => count($result['arrived']),
             'correlationId' => $message->correlationId,
+            'duration_ms' => $elapsed,
         ]);
     }
 }

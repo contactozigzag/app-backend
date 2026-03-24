@@ -26,6 +26,14 @@ class ChatMessagePublishHandler
 
     public function __invoke(ChatMessageCreatedMessage $message): void
     {
+        $startTime = microtime(true);
+
+        $this->logger->info('Handler started', [
+            'handler' => self::class,
+            'chat_message_id' => $message->chatMessageId,
+            'alert_id' => $message->alertId,
+        ]);
+
         $chatMessage = $this->chatMessageRepository->find($message->chatMessageId);
 
         if ($chatMessage === null) {
@@ -53,10 +61,25 @@ class ChatMessagePublishHandler
         try {
             $this->hub->publish(new Update($topic, $payload, true));
         } catch (Throwable $throwable) {
-            $this->logger->error('ChatMessagePublishHandler: failed to publish', [
+            $elapsed = (int) ((microtime(true) - $startTime) * 1000);
+
+            $this->logger->error('Handler failed', [
+                'handler' => self::class,
+                'exception' => $throwable::class,
+                'message' => $throwable->getMessage(),
                 'topic' => $topic,
-                'error' => $throwable->getMessage(),
+                'duration_ms' => $elapsed,
             ]);
+
+            return;
         }
+
+        $elapsed = (int) ((microtime(true) - $startTime) * 1000);
+
+        $this->logger->info('Handler completed', [
+            'handler' => self::class,
+            'chat_message_id' => $message->chatMessageId,
+            'duration_ms' => $elapsed,
+        ]);
     }
 }

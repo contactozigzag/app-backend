@@ -35,6 +35,13 @@ class DriverDistressHandler
 
     public function __invoke(DriverDistressMessage $message): void
     {
+        $startTime = microtime(true);
+
+        $this->logger->info('Handler started', [
+            'handler' => self::class,
+            'driver_alert_id' => $message->driverAlertId,
+        ]);
+
         $alert = $this->driverAlertRepository->find($message->driverAlertId);
 
         if ($alert === null) {
@@ -127,9 +134,13 @@ class DriverDistressHandler
         $alert->setNearbyDriverIds($notifiedDriverIds);
         $this->entityManager->flush();
 
-        $this->logger->info('DriverDistressHandler: completed', [
+        $elapsed = (int) ((microtime(true) - $startTime) * 1000);
+
+        $this->logger->info('Handler completed', [
+            'handler' => self::class,
             'alertId' => $alert->getAlertId(),
             'notifiedCount' => count($notifiedDriverIds),
+            'duration_ms' => $elapsed,
         ]);
     }
 }

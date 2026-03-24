@@ -32,6 +32,8 @@ class StudentReadyForPickupHandler
 
     public function __invoke(StudentReadyForPickupMessage $message): void
     {
+        $startTime = microtime(true);
+
         // Acquire a non-blocking lock to coalesce rapid student-ready events
         $lock = $this->lockFactory->createLock($message->lockKey, 60.0, false);
 
@@ -44,6 +46,12 @@ class StudentReadyForPickupHandler
 
             return;
         }
+
+        $this->logger->info('Handler started', [
+            'handler' => self::class,
+            'route_id' => $message->specialEventRouteId,
+            'student_id' => $message->studentId,
+        ]);
 
         try {
             $route = $this->repository->find($message->specialEventRouteId);
@@ -147,9 +155,13 @@ class StudentReadyForPickupHandler
                 }
             }
 
-            $this->logger->info('StudentReadyForPickupHandler: completed', [
+            $elapsed = (int) ((microtime(true) - $startTime) * 1000);
+
+            $this->logger->info('Handler completed', [
+                'handler' => self::class,
                 'routeId' => $message->specialEventRouteId,
                 'studentId' => $message->studentId,
+                'duration_ms' => $elapsed,
             ]);
         } finally {
             $lock->release();

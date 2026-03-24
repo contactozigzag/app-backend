@@ -22,6 +22,13 @@ final readonly class IndexDriverHandler
 
     public function __invoke(IndexDriverMessage $message): void
     {
+        $startTime = microtime(true);
+
+        $this->logger->info('Handler started', [
+            'handler' => self::class,
+            'driver_id' => $message->driverId,
+        ]);
+
         $driver = $this->driverRepository->find($message->driverId);
 
         if ($driver === null) {
@@ -34,5 +41,13 @@ final readonly class IndexDriverHandler
 
         // Exception propagates for Messenger retry policy
         $this->driverSearchService->index($driver);
+
+        $elapsed = (int) ((microtime(true) - $startTime) * 1000);
+
+        $this->logger->info('Handler completed', [
+            'handler' => self::class,
+            'driver_id' => $message->driverId,
+            'duration_ms' => $elapsed,
+        ]);
     }
 }
