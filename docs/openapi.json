@@ -15362,6 +15362,10 @@
                         "readOnly": true,
                         "description": "Returns true once the driver has completed the OAuth flow.",
                         "type": "boolean"
+                    },
+                    "mpConnected": {
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 }
             },
@@ -15392,6 +15396,14 @@
                             "example": "https://example.com/"
                         }
                     },
+                    "mpTokenExpiresAt": {
+                        "description": "When the current access token expires (MP tokens last ~180 days).",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
                     "pricingModel": {
                         "type": [
                             "string",
@@ -15421,6 +15433,10 @@
                             "format": "iri-reference",
                             "example": "https://example.com/"
                         }
+                    },
+                    "mpConnected": {
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 }
             },
@@ -15576,6 +15592,10 @@
                         "readOnly": true,
                         "description": "Returns true once the driver has completed the OAuth flow.",
                         "type": "boolean"
+                    },
+                    "mpConnected": {
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 }
             },
@@ -15606,6 +15626,14 @@
                             "example": "https://example.com/"
                         }
                     },
+                    "mpTokenExpiresAt": {
+                        "description": "When the current access token expires (MP tokens last ~180 days).",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
                     "pricingModel": {
                         "type": [
                             "string",
@@ -15635,6 +15663,10 @@
                             "format": "iri-reference",
                             "example": "https://example.com/"
                         }
+                    },
+                    "mpConnected": {
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 }
             },
@@ -15748,6 +15780,10 @@
                         "readOnly": true,
                         "description": "Returns true once the driver has completed the OAuth flow.",
                         "type": "boolean"
+                    },
+                    "mpConnected": {
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 }
             },
@@ -15778,6 +15814,14 @@
                             "example": "https://example.com/"
                         }
                     },
+                    "mpTokenExpiresAt": {
+                        "description": "When the current access token expires (MP tokens last ~180 days).",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
                     "pricingModel": {
                         "type": [
                             "string",
@@ -15807,6 +15851,10 @@
                             "format": "iri-reference",
                             "example": "https://example.com/"
                         }
+                    },
+                    "mpConnected": {
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 }
             },
@@ -15920,6 +15968,10 @@
                         "readOnly": true,
                         "description": "Returns true once the driver has completed the OAuth flow.",
                         "type": "boolean"
+                    },
+                    "mpConnected": {
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 }
             },
@@ -16020,6 +16072,10 @@
                                 "readOnly": true,
                                 "description": "Returns true once the driver has completed the OAuth flow.",
                                 "type": "boolean"
+                            },
+                            "mpConnected": {
+                                "readOnly": true,
+                                "type": "boolean"
                             }
                         }
                     }
@@ -16057,6 +16113,14 @@
                                     "example": "https://example.com/"
                                 }
                             },
+                            "mpTokenExpiresAt": {
+                                "description": "When the current access token expires (MP tokens last ~180 days).",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
                             "pricingModel": {
                                 "type": [
                                     "string",
@@ -16086,6 +16150,10 @@
                                     "format": "iri-reference",
                                     "example": "https://example.com/"
                                 }
+                            },
+                            "mpConnected": {
+                                "readOnly": true,
+                                "type": "boolean"
                             }
                         }
                     }
