@@ -32,4 +32,8 @@ phpstan.neon
 .env.prod
 .active-slot
 /traefik/dynamic/routing.yaml
+/traefik/dynamic/tls.yaml
+/traefik/certs/*.pem
+/traefik/certs/*.crt
+/traefik/certs/*.key
 ###< deployment ###

@@ -262,6 +262,8 @@ jobs:
             --exclude='config/jwt/' \
             --exclude='.active-slot' \
             --exclude='traefik/dynamic/routing.yaml' \
+            --exclude='traefik/dynamic/tls.yaml' \
+            --exclude='traefik/certs/' \
             ./ "${DEPLOY_USER}@${DROPLET_IP}:${PROJECT_DIR}/"
 
       - name: Run deploy script
