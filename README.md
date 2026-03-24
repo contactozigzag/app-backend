@@ -1089,6 +1089,15 @@ php bin/console app:opensearch:index-drivers --force --batch-size=100
 
 # Index drivers for a specific school only
 php bin/console app:opensearch:index-drivers --school=1
+
+# Sync payment status from Mercado Pago (useful for sandbox/test payments that don't trigger webhooks)
+php bin/console app:payment:sync <payment-id> --provider-id=<mp-payment-id>
+
+# Sync when provider ID is already stored on the payment
+php bin/console app:payment:sync <payment-id>
+
+# Dry run — preview without making changes
+php bin/console app:payment:sync <payment-id> --dry-run
 ```
 
 ## 🔧 Installation & Setup
