@@ -135,6 +135,7 @@ services:
       - ./config/jwt:/app/config/jwt:rw,cached
       - caddy_data_blue:/data
       - caddy_config_blue:/config
+    env_file: .env.prod
     environment:
       FRANKENPHP_WORKER_CONFIG: "num 4"
       SERVER_NAME: ":80"
@@ -171,6 +172,7 @@ services:
     command: ["php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv"]
     healthcheck:
       disable: true
+    env_file: .env.prod
     environment:
       SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
@@ -201,6 +203,7 @@ services:
     command: ["php", "bin/console", "messenger:consume", "async_webhooks", "--time-limit=3600", "--memory-limit=64M", "-vv"]
     healthcheck:
       disable: true
+    env_file: .env.prod
     environment:
       SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
@@ -229,6 +232,7 @@ services:
     command: ["php", "bin/console", "messenger:consume", "async_tracking", "--time-limit=3600", "--memory-limit=64M", "-vv"]
     healthcheck:
       disable: true
+    env_file: .env.prod
     environment:
       SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
@@ -265,6 +269,7 @@ services:
       - ./config/jwt:/app/config/jwt:rw,cached
       - caddy_data_green:/data
       - caddy_config_green:/config
+    env_file: .env.prod
     environment:
       FRANKENPHP_WORKER_CONFIG: "num 4"
       SERVER_NAME: ":80"
@@ -300,6 +305,7 @@ services:
     command: ["php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv"]
     healthcheck:
       disable: true
+    env_file: .env.prod
     environment:
       SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
@@ -330,6 +336,7 @@ services:
     command: ["php", "bin/console", "messenger:consume", "async_webhooks", "--time-limit=3600", "--memory-limit=64M", "-vv"]
     healthcheck:
       disable: true
+    env_file: .env.prod
     environment:
       SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
@@ -358,6 +365,7 @@ services:
     command: ["php", "bin/console", "messenger:consume", "async_tracking", "--time-limit=3600", "--memory-limit=64M", "-vv"]
     healthcheck:
       disable: true
+    env_file: .env.prod
     environment:
       SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET}
