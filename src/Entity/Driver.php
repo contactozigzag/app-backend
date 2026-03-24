@@ -101,7 +101,7 @@ class Driver
      * When the current access token expires (MP tokens last ~180 days).
      */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    #[Groups(['driver:read'])]
+    #[Groups(['driver:read', 'user:item:read'])]
     private ?DateTimeImmutable $mpTokenExpiresAt = null;
 
     #[ORM\Column(type: Types::STRING, length: 30, nullable: true, enumType: PricingModel::class)]
@@ -300,7 +300,7 @@ class Driver
         return $this->mpAccessToken !== null && $this->mpAccountId !== null;
     }
 
-    #[Groups(['driver:read'])]
+    #[Groups(['driver:read', 'user:item:read'])]
     public function getMpConnected(): bool
     {
         return $this->hasMpAuthorized();
