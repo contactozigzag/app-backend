@@ -148,6 +148,9 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
       GOOGLE_MAPS_FRONTEND_API_KEY: ${GOOGLE_MAPS_FRONTEND_API_KEY:-}
+      JWT_SECRET_KEY: "%kernel.project_dir%/config/jwt/private.pem"
+      JWT_PUBLIC_KEY: "%kernel.project_dir%/config/jwt/public.pem"
+      JWT_PASSPHRASE: "${JWT_PASSPHRASE}"
       TRUSTED_PROXIES: "REMOTE_ADDR"
     depends_on:
       database:
@@ -282,6 +285,9 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
       GOOGLE_MAPS_FRONTEND_API_KEY: ${GOOGLE_MAPS_FRONTEND_API_KEY:-}
+      JWT_SECRET_KEY: "%kernel.project_dir%/config/jwt/private.pem"
+      JWT_PUBLIC_KEY: "%kernel.project_dir%/config/jwt/public.pem"
+      JWT_PASSPHRASE: "${JWT_PASSPHRASE}"
       TRUSTED_PROXIES: "REMOTE_ADDR"
     depends_on:
       database:
