@@ -187,9 +187,21 @@ services:
       JWT_PUBLIC_KEY: "%kernel.project_dir%/config/jwt/public.pem"
       JWT_PASSPHRASE: "${JWT_PASSPHRASE}"
       TRUSTED_PROXIES: "REMOTE_ADDR"
+      OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_SERVICE_NAME: "zigzag-api"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy:4318"
+      OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=prod,service.version=${APP_VERSION:-1.0.0}"
     depends_on:
       database:
         condition: service_healthy
+      alloy:
+        condition: service_started
     labels:
       # Routing is handled by Traefik file provider, not Docker labels
       - traefik.enable=false
@@ -217,12 +229,24 @@ services:
       APP_ENV: prod
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+      OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_SERVICE_NAME: "zigzag-worker-async"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy:4318"
+      OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=prod,service.version=${APP_VERSION:-1.0.0}"
     depends_on:
       database:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
       redis:
+        condition: service_started
+      alloy:
         condition: service_started
     logging:
       driver: fluentd
@@ -248,10 +272,22 @@ services:
       APP_ENV: prod
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+      OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_SERVICE_NAME: "zigzag-worker-webhooks"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy:4318"
+      OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=prod,service.version=${APP_VERSION:-1.0.0}"
     depends_on:
       rabbitmq:
         condition: service_healthy
       redis:
+        condition: service_started
+      alloy:
         condition: service_started
     logging:
       driver: fluentd
@@ -277,10 +313,22 @@ services:
       APP_ENV: prod
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+      OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_SERVICE_NAME: "zigzag-worker-tracking"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy:4318"
+      OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=prod,service.version=${APP_VERSION:-1.0.0}"
     depends_on:
       rabbitmq:
         condition: service_healthy
       redis:
+        condition: service_started
+      alloy:
         condition: service_started
     logging:
       driver: fluentd
@@ -324,9 +372,21 @@ services:
       JWT_PUBLIC_KEY: "%kernel.project_dir%/config/jwt/public.pem"
       JWT_PASSPHRASE: "${JWT_PASSPHRASE}"
       TRUSTED_PROXIES: "REMOTE_ADDR"
+      OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_SERVICE_NAME: "zigzag-api"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy:4318"
+      OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=prod,service.version=${APP_VERSION:-1.0.0}"
     depends_on:
       database:
         condition: service_healthy
+      alloy:
+        condition: service_started
     labels:
       - traefik.enable=false
     logging:
@@ -353,12 +413,24 @@ services:
       APP_ENV: prod
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+      OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_SERVICE_NAME: "zigzag-worker-async"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy:4318"
+      OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=prod,service.version=${APP_VERSION:-1.0.0}"
     depends_on:
       database:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
       redis:
+        condition: service_started
+      alloy:
         condition: service_started
     logging:
       driver: fluentd
@@ -384,10 +456,22 @@ services:
       APP_ENV: prod
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+      OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_SERVICE_NAME: "zigzag-worker-webhooks"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy:4318"
+      OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=prod,service.version=${APP_VERSION:-1.0.0}"
     depends_on:
       rabbitmq:
         condition: service_healthy
       redis:
+        condition: service_started
+      alloy:
         condition: service_started
     logging:
       driver: fluentd
@@ -413,10 +497,22 @@ services:
       APP_ENV: prod
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+      OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_SERVICE_NAME: "zigzag-worker-tracking"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy:4318"
+      OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=prod,service.version=${APP_VERSION:-1.0.0}"
     depends_on:
       rabbitmq:
         condition: service_healthy
       redis:
+        condition: service_started
+      alloy:
         condition: service_started
     logging:
       driver: fluentd

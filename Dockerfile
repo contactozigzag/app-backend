@@ -32,7 +32,8 @@ RUN <<-EOF
 		zip \
         pdo_mysql \
         redis \
-        sockets
+        sockets \
+        opentelemetry
 	rm -rf /var/lib/apt/lists/*
 EOF
 

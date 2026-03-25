@@ -6,13 +6,12 @@ namespace App\Tests\Unit\Service\OpenSearch;
 
 use App\Entity\Driver;
 use App\Entity\User;
-use App\Service\Logging\PerformanceLogger;
 use App\Service\OpenSearch\DriverSearchService;
+use App\Service\Tracing\TracingService;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenSearch\Client;
 use OpenSearch\Namespaces\IndicesNamespace;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
 
 final class DriverSearchServiceTest extends TestCase
 {
@@ -36,7 +35,7 @@ final class DriverSearchServiceTest extends TestCase
             }))
             ->willReturn($this->emptySearchResponse());
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), new PerformanceLogger(new NullLogger()));
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), $this->createTracingServiceStub());
         $service->search('Carlos', 42);
     }
 
@@ -56,7 +55,7 @@ final class DriverSearchServiceTest extends TestCase
             }))
             ->willReturn($this->emptySearchResponse());
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), new PerformanceLogger(new NullLogger()));
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), $this->createTracingServiceStub());
         $service->search('12345', 1);
     }
 
@@ -75,7 +74,7 @@ final class DriverSearchServiceTest extends TestCase
             }))
             ->willReturn($this->emptySearchResponse());
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), new PerformanceLogger(new NullLogger()));
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), $this->createTracingServiceStub());
         $service->search('Ca', 1);
     }
 
@@ -95,7 +94,7 @@ final class DriverSearchServiceTest extends TestCase
             }))
             ->willReturn($this->emptySearchResponse());
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), new PerformanceLogger(new NullLogger()));
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), $this->createTracingServiceStub());
         $service->search('Carlos', 1);
     }
 
@@ -104,7 +103,7 @@ final class DriverSearchServiceTest extends TestCase
         $client = $this->createMock(Client::class);
         $client->expects($this->never())->method('search');
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), new PerformanceLogger(new NullLogger()));
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), $this->createTracingServiceStub());
         $result = $service->search('', 1);
 
         $this->assertSame([], $result->results);
@@ -116,7 +115,7 @@ final class DriverSearchServiceTest extends TestCase
         $client = $this->createMock(Client::class);
         $client->expects($this->never())->method('search');
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), new PerformanceLogger(new NullLogger()));
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), $this->createTracingServiceStub());
         $result = $service->search('a', 1);
 
         $this->assertSame([], $result->results);
@@ -139,7 +138,7 @@ final class DriverSearchServiceTest extends TestCase
             }))
             ->willReturn($this->emptySearchResponse());
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), new PerformanceLogger(new NullLogger()));
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), $this->createTracingServiceStub());
         $service->search($longQuery, 1);
     }
 
@@ -166,7 +165,7 @@ final class DriverSearchServiceTest extends TestCase
             ],
         ]);
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), new PerformanceLogger(new NullLogger()));
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), $this->createTracingServiceStub());
         $result = $service->search('Carlos', 1);
 
         $this->assertCount(1, $result->results);
@@ -193,7 +192,7 @@ final class DriverSearchServiceTest extends TestCase
             }))
             ->willReturn($this->emptySearchResponse());
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), new PerformanceLogger(new NullLogger()));
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), $this->createTracingServiceStub());
         $service->search('test', 1);
     }
 
@@ -229,7 +228,7 @@ final class DriverSearchServiceTest extends TestCase
         // Partially mock DriverSearchService to stub getSchoolIdsForDriver
         $em = $this->createStub(EntityManagerInterface::class);
         $service = $this->getMockBuilder(DriverSearchService::class)
-            ->setConstructorArgs([$client, self::INDEX_PREFIX, $em, new PerformanceLogger(new NullLogger())])
+            ->setConstructorArgs([$client, self::INDEX_PREFIX, $em, $this->createTracingServiceStub()])
             ->onlyMethods(['getSchoolIdsForDriver'])
             ->getMock();
         $service->expects($this->once())->method('getSchoolIdsForDriver')->willReturn([5, 8]);
@@ -247,7 +246,7 @@ final class DriverSearchServiceTest extends TestCase
                 'id' => '42',
             ]);
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), new PerformanceLogger(new NullLogger()));
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), $this->createTracingServiceStub());
         $service->delete(42);
     }
 
@@ -277,8 +276,18 @@ final class DriverSearchServiceTest extends TestCase
         $client = $this->createStub(Client::class);
         $client->method('indices')->willReturn($indices);
 
-        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), new PerformanceLogger(new NullLogger()));
+        $service = new DriverSearchService($client, self::INDEX_PREFIX, $this->createStub(EntityManagerInterface::class), $this->createTracingServiceStub());
         $service->createIndex();
+    }
+
+    private function createTracingServiceStub(): TracingService
+    {
+        $stub = $this->createStub(TracingService::class);
+        $stub->method('trace')->willReturnCallback(
+            static fn (string $name, callable $fn): mixed => $fn(),
+        );
+
+        return $stub;
     }
 
     /**
