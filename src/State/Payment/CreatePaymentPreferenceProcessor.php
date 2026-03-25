@@ -138,7 +138,7 @@ final readonly class CreatePaymentPreferenceProcessor implements ProcessorInterf
         }
 
         // ── 7. Create Mercado Pago preference ───────────────────────────────
-        $backUrl = $this->urlGenerator->generate('app_home', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $backUrl = $this->urlGenerator->generate('app_payment_result', [], UrlGeneratorInterface::ABSOLUTE_URL);
         $notificationUrl = rtrim($request?->getSchemeAndHttpHost() ?? '', '/') . '/api/webhooks/mercadopago';
 
         try {

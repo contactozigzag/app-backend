@@ -6,7 +6,6 @@ namespace App\Service\Payment;
 
 use App\Entity\Payment;
 use App\Entity\User;
-use App\Service\Logging\PerformanceLogger;
 use DateTime;
 use DateTimeInterface;
 use Exception;
@@ -41,7 +40,6 @@ class MercadoPagoService
         #[Autowire(service: 'cache.app')]
         private readonly CacheInterface $cache,
         private readonly LoggerInterface $logger,
-        private readonly PerformanceLogger $performanceLogger,
         #[Autowire(env: 'float:MERCADOPAGO_MARKETPLACE_FEE_PERCENT')]
         private readonly float $marketplaceFeePercent = 0.0,
     ) {
@@ -127,13 +125,7 @@ class MercadoPagoService
             ]);
 
             /** @var Preference $preference */
-            $preference = $this->performanceLogger->measure(
-                'mercadopago.create_preference',
-                fn (): Preference => $this->preferenceClient->create($preferenceData, $requestOptions),
-                [
-                    'payment_id' => $payment->getId(),
-                ],
-            );
+            $preference = $this->preferenceClient->create($preferenceData, $requestOptions);
 
             $this->logger->info('Mercado Pago preference created', [
                 'payment_id' => $payment->getId(),
@@ -192,13 +184,7 @@ class MercadoPagoService
                 ]);
 
                 /** @var MPPayment $mpPayment */
-                $mpPayment = $this->performanceLogger->measure(
-                    'mercadopago.get_payment_status',
-                    fn (): \MercadoPago\Resources\Payment => $this->paymentClient->get((int) $paymentProviderId),
-                    [
-                        'payment_provider_id' => $paymentProviderId,
-                    ],
-                );
+                $mpPayment = $this->paymentClient->get((int) $paymentProviderId);
 
                 return $this->mapPaymentToArray($mpPayment);
             });
@@ -219,13 +205,7 @@ class MercadoPagoService
     {
         try {
             /** @var MPPayment */
-            return $this->performanceLogger->measure(
-                'mercadopago.get_payment_details',
-                fn (): \MercadoPago\Resources\Payment => $this->paymentClient->get((int) $paymentProviderId),
-                [
-                    'payment_provider_id' => $paymentProviderId,
-                ],
-            );
+            return $this->paymentClient->get((int) $paymentProviderId);
         } catch (MPApiException $mpApiException) {
             $this->logger->error('Mercado Pago API error fetching payment details', [
                 'payment_provider_id' => $paymentProviderId,
@@ -257,13 +237,7 @@ class MercadoPagoService
             }
 
             /** @var object{id: mixed, status: mixed, amount: mixed} $refund */
-            $refund = $this->performanceLogger->measure(
-                'mercadopago.refund_payment',
-                fn () => $this->paymentClient->refund((int) $paymentProviderId, $refundData),
-                [
-                    'payment_provider_id' => $paymentProviderId,
-                ],
-            );
+            $refund = $this->paymentClient->refund((int) $paymentProviderId, $refundData);
 
             $this->logger->info('Mercado Pago refund processed', [
                 'payment_provider_id' => $paymentProviderId,

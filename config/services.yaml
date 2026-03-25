@@ -35,6 +35,9 @@ services:
     App\Service\Logging\CorrelationIdProcessor:
         tags: ['monolog.processor']
 
+    App\Service\Logging\TraceContextProcessor:
+        tags: ['monolog.processor']
+
     # Named logger injections for dedicated channels
     App\EventSubscriber\SecurityAuditSubscriber:
         arguments:
@@ -49,4 +52,3 @@ services:
     App\Service\OpenSearch\DriverSearchService:
         arguments:
             $indexPrefix: '%env(OPENSEARCH_INDEX_PREFIX)%'
-            $performanceLogger: '@App\Service\Logging\PerformanceLogger'
