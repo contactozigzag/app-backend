@@ -197,6 +197,7 @@ services:
       OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
       OTEL_TRACES_SAMPLER_ARG: "1.0"
       OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=prod,service.version=${APP_VERSION:-1.0.0}"
+      OTEL_PHP_EXCLUDED_URLS: "health,health/ready,health/live,_profiler,_wdt"
     depends_on:
       database:
         condition: service_healthy
@@ -382,6 +383,7 @@ services:
       OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
       OTEL_TRACES_SAMPLER_ARG: "1.0"
       OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=prod,service.version=${APP_VERSION:-1.0.0}"
+      OTEL_PHP_EXCLUDED_URLS: "health,health/ready,health/live,_profiler,_wdt"
     depends_on:
       database:
         condition: service_healthy
