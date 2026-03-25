@@ -9,15 +9,20 @@ use Symfony\Component\Scheduler\Attribute\AsSchedule;
 use Symfony\Component\Scheduler\RecurringMessage;
 use Symfony\Component\Scheduler\Schedule;
 use Symfony\Component\Scheduler\ScheduleProviderInterface;
+use Symfony\Contracts\Cache\CacheInterface;
 
 #[AsSchedule('subscription_processing')]
 class SubscriptionScheduleProvider implements ScheduleProviderInterface
 {
+    public function __construct(
+        private readonly CacheInterface $cache,
+    ) {
+    }
+
     public function getSchedule(): Schedule
     {
         return new Schedule()
             ->add(
-                // Process subscriptions every 5 minutes
                 RecurringMessage::every(
                     '5 minutes',
                     new ProcessSubscriptionsMessage(
@@ -26,9 +31,6 @@ class SubscriptionScheduleProvider implements ScheduleProviderInterface
                     )
                 )
             )
-            ->stateful(
-                // Persist schedule state to avoid duplicate execution
-                store: 'cache.app'
-            );
+            ->stateful($this->cache);
     }
 }
