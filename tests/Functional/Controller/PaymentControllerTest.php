@@ -156,6 +156,61 @@ final class PaymentControllerTest extends AbstractApiTestCase
         $this->assertSame('pending', $body['status']);
     }
 
+    // ── createPreference: duplicate prevention ──────────────────────────────────
+
+    public function testCreatePreferenceCancelsPreviousPendingPayment(): void
+    {
+        $client = $this->createApiClient();
+        $user = UserFactory::createOne();
+        $driver = DriverFactory::new()->withMpAuthorized()->with([
+            'pricingModel' => PricingModel::FLAT,
+        ])->create();
+        DriverRateFactory::new()->flat('150.00')->with([
+            'driver' => $driver,
+        ])->create();
+        $student = StudentFactory::new()->withParent($user)->create();
+
+        // Create an existing pending payment for same user+driver
+        $existingPayment = PaymentFactory::createOne([
+            'user' => $user,
+            'driver' => $driver,
+            'status' => PaymentStatus::PENDING,
+            'expiresAt' => new \DateTimeImmutable('+12 hours'),
+        ]);
+
+        // Mock MP services
+        $mpMock = $this->createStub(MercadoPagoService::class);
+        $mpMock->method('createPreference')->willReturn([
+            'preference_id' => 'pref-new',
+            'init_point' => 'https://mp.example.com/checkout-new',
+            'sandbox_init_point' => 'https://sandbox.mp.example.com/checkout-new',
+        ]);
+        self::getContainer()->set(MercadoPagoService::class, $mpMock);
+
+        $oauthMock = $this->createStub(MercadoPagoOAuthService::class);
+        $oauthMock->method('getAccessToken')->willReturn('fake-access-token');
+        self::getContainer()->set(MercadoPagoOAuthService::class, $oauthMock);
+
+        $this->loginUser($client, $user);
+
+        $body = $this->postJson($client, '/api/payments/preference', [
+            'driverId' => $driver->getId(),
+            'studentIds' => [$student->getId()],
+            'description' => 'School transport fee',
+            'idempotencyKey' => 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+
+        // The new payment should be different from the existing one
+        $this->assertNotSame($existingPayment->getId(), $body['paymentId']);
+
+        // The old pending payment should now be cancelled
+        $em = self::getContainer()->get('doctrine.orm.entity_manager');
+        $em->refresh($existingPayment);
+        $this->assertSame(PaymentStatus::CANCELLED, $existingPayment->getStatus());
+    }
+
     // ── getStatus ─────────────────────────────────────────────────────────────
 
     public function testGetStatusReturnsPaymentData(): void

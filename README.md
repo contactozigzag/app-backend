@@ -1098,6 +1098,10 @@ php bin/console app:payment:sync <payment-id>
 
 # Dry run — preview without making changes
 php bin/console app:payment:sync <payment-id> --dry-run
+
+# Expire stale pending payments (also runs automatically every hour via Scheduler)
+php bin/console app:payment:expire-stale
+php bin/console app:payment:expire-stale --batch-size=200
 ```
 
 ## 🔧 Installation & Setup

@@ -9,8 +9,10 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Dto\Payment\CreatePaymentPreferenceInput;
 use App\Dto\Payment\PaymentPreferenceOutput;
 use App\Entity\User;
+use App\Enum\PaymentStatus;
 use App\Event\Payment\PaymentCreatedEvent;
 use App\Repository\DriverRepository;
+use App\Repository\PaymentRepository;
 use App\Repository\RouteRepository;
 use App\Service\Payment\DriverRateCalculator;
 use App\Service\Payment\PaymentProcessor;
@@ -47,6 +49,7 @@ final readonly class CreatePaymentPreferenceProcessor implements ProcessorInterf
         private PaymentProcessor $paymentProcessor,
         private DriverRepository $driverRepository,
         private RouteRepository $routeRepository,
+        private PaymentRepository $paymentRepository,
         private DriverRateCalculator $driverRateCalculator,
         private EventDispatcherInterface $eventDispatcher,
         private Security $security,
@@ -105,7 +108,19 @@ final readonly class CreatePaymentPreferenceProcessor implements ProcessorInterf
             throw new UnprocessableEntityHttpException($invalidArgumentException->getMessage(), $invalidArgumentException);
         }
 
-        // ── 5. Create payment (idempotency-protected) ───────────────────────
+        // ── 5. Cancel any existing unexpired pending payment for this user+driver ─
+        $existingPending = $this->paymentRepository->findActivePendingPayment($user, $driver);
+
+        if ($existingPending !== null) {
+            $existingPending->setStatus(PaymentStatus::CANCELLED);
+            $this->logger->info('Cancelled stale pending payment before creating new one', [
+                'cancelled_payment_id' => $existingPending->getId(),
+                'user_id' => $user->getId(),
+                'driver_id' => $driver->getId(),
+            ]);
+        }
+
+        // ── 6. Create payment (idempotency-protected) ───────────────────────
         try {
             $payment = $this->paymentProcessor->createPayment(
                 user: $user,
@@ -121,7 +136,7 @@ final readonly class CreatePaymentPreferenceProcessor implements ProcessorInterf
             throw new UnprocessableEntityHttpException($invalidArgumentException->getMessage(), $invalidArgumentException);
         }
 
-        // ── 5. Create Mercado Pago preference ───────────────────────────────
+        // ── 7. Create Mercado Pago preference ───────────────────────────────
         $backUrl = $this->urlGenerator->generate('app_home', [], UrlGeneratorInterface::ABSOLUTE_URL);
         $notificationUrl = rtrim($request?->getSchemeAndHttpHost() ?? '', '/') . '/api/webhooks/mercadopago';
 
@@ -137,7 +152,7 @@ final readonly class CreatePaymentPreferenceProcessor implements ProcessorInterf
             throw new HttpException(502, 'Failed to create payment preference with Mercado Pago. Please try again.', $exception);
         }
 
-        // ── 6. Dispatch event (Mercure publish + notifications) ─────────────
+        // ── 8. Dispatch event (Mercure publish + notifications) ─────────────
         $this->eventDispatcher->dispatch(
             new PaymentCreatedEvent($payment),
             PaymentCreatedEvent::NAME,
@@ -149,7 +164,7 @@ final readonly class CreatePaymentPreferenceProcessor implements ProcessorInterf
             'preference_id' => $preference['preference_id'],
         ]);
 
-        // ── 7. Return output DTO ────────────────────────────────────────────
+        // ── 9. Return output DTO ────────────────────────────────────────────
         return new PaymentPreferenceOutput(
             paymentId: (int) $payment->getId(),
             preferenceId: $preference['preference_id'],

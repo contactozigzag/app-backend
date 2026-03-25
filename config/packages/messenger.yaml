@@ -85,6 +85,9 @@ framework:
             # Scheduled billing
             App\Message\ProcessSubscriptionsMessage: async
 
+            # Payment maintenance (expire stale pending payments)
+            App\Message\ExpireStalePaymentsMessage: async
+
             # Payment webhooks — isolated RabbitMQ queue via phpamqplib
             App\Message\ProcessWebhookMessage: async_webhooks
 

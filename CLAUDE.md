@@ -66,6 +66,10 @@ php bin/console app:payment:sync <payment-id> --provider-id=<mp-payment-id> --dr
 
 This runs the full flow: fetches status from MP API → updates payment entity → dispatches events (Mercure notifications, etc.).
 
+### Payment Maintenance
+- **Duplicate prevention:** `CreatePaymentPreferenceProcessor` auto-cancels any existing unexpired pending payment for the same user+driver before creating a new one.
+- **Stale payment expiration:** `PaymentScheduleProvider` (`#[AsSchedule('payment_maintenance')]`) dispatches `ExpireStalePaymentsMessage` every hour to cancel pending payments past their `expiresAt`. CLI fallback: `php bin/console app:payment:expire-stale`.
+
 ### API Platform
 Entities use `#[ApiResource]` with attribute-based Doctrine mapping. Custom controllers handle complex operations. If a custom controller handles `GET /api/{entity}` or `GET /api/{entity}/{id}`, remove the corresponding `Get`/`GetCollection` operations from `#[ApiResource]` to avoid route conflicts.
 

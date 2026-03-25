@@ -142,6 +142,44 @@ class PaymentRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find an active (unexpired) pending payment for a given user+driver pair.
+     */
+    public function findActivePendingPayment(User $user, Driver $driver): ?Payment
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.user = :user')
+            ->andWhere('p.driver = :driver')
+            ->andWhere('p.status = :status')
+            ->andWhere('p.expiresAt > :now')
+            ->setParameter('user', $user)
+            ->setParameter('driver', $driver)
+            ->setParameter('status', PaymentStatus::PENDING)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * Find all pending payments that have passed their expiration date.
+     *
+     * @return Payment[]
+     */
+    public function findExpiredPendingPayments(int $limit = 500): array
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.status = :status')
+            ->andWhere('p.expiresAt <= :now')
+            ->setParameter('status', PaymentStatus::PENDING)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->orderBy('p.expiresAt', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Count payments by status for a date range
      */
     public function countByStatusAndDateRange(
