@@ -78,7 +78,7 @@ jobs:
           restore-keys: ${{ runner.os }}-phpstan-
 
       - name: Install Composer dependencies
-        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts
+        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry
 
       - name: Generate JWT keypair
         run: |
@@ -130,7 +130,7 @@ jobs:
           restore-keys: ${{ runner.os }}-composer-
 
       - name: Install Composer dependencies
-        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts
+        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry
 
       - name: Run Rector (dry-run)
         run: vendor/bin/rector process --dry-run --no-progress-bar
@@ -167,7 +167,7 @@ jobs:
           restore-keys: ${{ runner.os }}-composer-
 
       - name: Install Composer dependencies
-        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts
+        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry
 
       - name: Run ECS
         run: vendor/bin/ecs check --no-progress-bar
@@ -204,7 +204,7 @@ jobs:
           restore-keys: ${{ runner.os }}-composer-
 
       - name: Install Composer dependencies
-        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts
+        run: php -d memory_limit=-1 $(which composer) install --prefer-dist --no-progress --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry
 
       - name: Generate JWT keypair
         run: |
