@@ -1,0 +1,56 @@
+// ============================================================================
+// Grafana Alloy Configuration — ZigZag Production
+//
+// Receives OTLP data (traces + metrics) from PHP/Symfony app and forwards
+// to Grafana Cloud (Tempo for traces, Mimir for metrics).
+//
+// Required env vars:
+//   GRAFANA_CLOUD_OTLP_ENDPOINT  — e.g. https://otlp-gateway-prod-us-east-0.grafana.net/otlp
+//   GRAFANA_CLOUD_INSTANCE_ID    — Your Grafana Cloud instance/stack ID (numeric)
+//   GRAFANA_CLOUD_API_KEY        — API token with MetricsPublisher role
+// ============================================================================
+
+// ── Authentication ──────────────────────────────────────────────────────────
+otelcol.auth.basic "grafana_cloud" {
+	username = sys.env("GRAFANA_CLOUD_INSTANCE_ID")
+	password = sys.env("GRAFANA_CLOUD_API_KEY")
+}
+
+// ── OTLP Receiver ───────────────────────────────────────────────────────────
+// Listens for OTLP HTTP (port 4318) from your PHP/Symfony app.
+// gRPC (4317) also available if you need it later.
+otelcol.receiver.otlp "default" {
+	grpc {
+		endpoint = "0.0.0.0:4317"
+	}
+	http {
+		endpoint = "0.0.0.0:4318"
+	}
+
+	output {
+		traces  = [otelcol.processor.batch.default.input]
+		metrics = [otelcol.processor.batch.default.input]
+	}
+}
+
+// ── Batch Processor ─────────────────────────────────────────────────────────
+// Batches spans/metrics to reduce outbound requests and improve compression.
+otelcol.processor.batch "default" {
+	send_batch_size     = 512
+	send_batch_max_size = 1024
+	timeout             = "5s"
+
+	output {
+		traces  = [otelcol.exporter.otlphttp.grafana_cloud.input]
+		metrics = [otelcol.exporter.otlphttp.grafana_cloud.input]
+	}
+}
+
+// ── OTLP HTTP Exporter → Grafana Cloud ──────────────────────────────────────
+// Sends traces to Tempo and metrics to Mimir via the unified OTLP gateway.
+otelcol.exporter.otlphttp "grafana_cloud" {
+	client {
+		endpoint = sys.env("GRAFANA_CLOUD_OTLP_ENDPOINT")
+		auth     = otelcol.auth.basic.grafana_cloud.handler
+	}
+}

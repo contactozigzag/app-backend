@@ -4,12 +4,19 @@
 # Usage: docker compose -f compose.yaml -f compose.deploy.yaml --env-file .env.prod --profile infra --profile <blue|green> up -d
 #
 # Profiles:
-#   infra  — shared stateful services (database, rabbitmq, redis, opensearch, traefik, fluent-bit)
+#   infra  — shared stateful services (database, rabbitmq, redis, opensearch, traefik, fluent-bit, alloy)
 #   blue   — blue slot application services (php-blue, workers)
 #   green  — green slot application services (php-green, workers)
 #
 # Traefik routing is controlled by the file provider watching traefik/dynamic/routing.yaml.
 # The deploy script (scripts/deploy.sh) writes the active slot to that file.
+#
+# Required env vars in .env.prod for observability (Grafana Cloud):
+#   GRAFANA_CLOUD_LOKI_HOST=logs-prod-XXX.grafana.net  (hostname only, no https://)
+#   GRAFANA_CLOUD_LOKI_USER=123456
+#   GRAFANA_CLOUD_API_KEY=glc_xxxxxxxxxxxxx
+#   GRAFANA_CLOUD_OTLP_ENDPOINT=https://otlp-gateway-prod-us-east-0.grafana.net/otlp
+#   GRAFANA_CLOUD_INSTANCE_ID=123456
 
 services:
   # ══════════════════════════════════════════════════════════════════════════
@@ -109,15 +116,43 @@ services:
     profiles: [infra]
     image: fluent/fluent-bit:4.0
     container_name: zigzag_fluent_bit
+    restart: unless-stopped
     volumes:
       - ./fluent-bit:/fluent-bit/etc:ro
+      - fluent_bit_cache:/fluent-bit/cache
     ports:
       - "127.0.0.1:24224:24224"
       - "127.0.0.1:2020:2020"
     environment:
-      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
-      APP_ENV: prod
+      GRAFANA_CLOUD_LOKI_HOST: ${GRAFANA_CLOUD_LOKI_HOST}
+      GRAFANA_CLOUD_LOKI_USER: ${GRAFANA_CLOUD_LOKI_USER}
+      GRAFANA_CLOUD_API_KEY: ${GRAFANA_CLOUD_API_KEY}
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+
+  # ── Grafana Alloy: OTLP collector for traces & metrics ─────────────────────
+  alloy:
+    profiles: [infra]
+    image: grafana/alloy:latest
+    container_name: zigzag_alloy
     restart: unless-stopped
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+    ports:
+      - "127.0.0.1:4317:4317"   # OTLP gRPC
+      - "127.0.0.1:4318:4318"   # OTLP HTTP
+      - "127.0.0.1:12345:12345" # Alloy debug UI
+    environment:
+      GRAFANA_CLOUD_OTLP_ENDPOINT: ${GRAFANA_CLOUD_OTLP_ENDPOINT}
+      GRAFANA_CLOUD_INSTANCE_ID: ${GRAFANA_CLOUD_INSTANCE_ID}
+      GRAFANA_CLOUD_API_KEY: ${GRAFANA_CLOUD_API_KEY}
+    command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "/etc/alloy/config.alloy"]
+    deploy:
+      resources:
+        limits:
+          memory: 64M
 
   # ══════════════════════════════════════════════════════════════════════════
   # Blue Slot (profile: blue)
@@ -415,3 +450,4 @@ volumes:
   caddy_config_blue:
   caddy_data_green:
   caddy_config_green:
+  fluent_bit_cache:
