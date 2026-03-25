@@ -49,5 +49,4 @@ final class TracingServiceTest extends TestCase
             throw new RuntimeException('boom');
         });
     }
-
 }
