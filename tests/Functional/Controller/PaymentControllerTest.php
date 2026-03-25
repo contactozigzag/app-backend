@@ -14,6 +14,7 @@ use App\Tests\Factory\DriverRateFactory;
 use App\Tests\Factory\PaymentFactory;
 use App\Tests\Factory\StudentFactory;
 use App\Tests\Factory\UserFactory;
+use DateTimeImmutable;
 
 final class PaymentControllerTest extends AbstractApiTestCase
 {
@@ -175,7 +176,7 @@ final class PaymentControllerTest extends AbstractApiTestCase
             'user' => $user,
             'driver' => $driver,
             'status' => PaymentStatus::PENDING,
-            'expiresAt' => new \DateTimeImmutable('+12 hours'),
+            'expiresAt' => new DateTimeImmutable('+12 hours'),
         ]);
 
         // Mock MP services

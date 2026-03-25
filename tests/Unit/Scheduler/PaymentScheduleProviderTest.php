@@ -17,6 +17,6 @@ final class PaymentScheduleProviderTest extends TestCase
 
         $schedule = $provider->getSchedule();
 
-        self::assertCount(1, $schedule->getRecurringMessages());
+        $this->assertCount(1, $schedule->getRecurringMessages());
     }
 }

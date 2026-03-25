@@ -8,6 +8,7 @@ use App\Entity\Driver;
 use App\Entity\Payment;
 use App\Entity\User;
 use App\Enum\PaymentStatus;
+use DateTimeImmutable;
 use DateTimeInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -154,7 +155,7 @@ class PaymentRepository extends ServiceEntityRepository
             ->setParameter('user', $user)
             ->setParameter('driver', $driver)
             ->setParameter('status', PaymentStatus::PENDING)
-            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('now', new DateTimeImmutable())
             ->orderBy('p.createdAt', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
@@ -172,7 +173,7 @@ class PaymentRepository extends ServiceEntityRepository
             ->where('p.status = :status')
             ->andWhere('p.expiresAt <= :now')
             ->setParameter('status', PaymentStatus::PENDING)
-            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('now', new DateTimeImmutable())
             ->orderBy('p.expiresAt', 'ASC')
             ->setMaxResults($limit)
             ->getQuery()

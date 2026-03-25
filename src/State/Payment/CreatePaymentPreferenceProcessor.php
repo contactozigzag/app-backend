@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Dto\Payment\CreatePaymentPreferenceInput;
 use App\Dto\Payment\PaymentPreferenceOutput;
+use App\Entity\Payment;
 use App\Entity\User;
 use App\Enum\PaymentStatus;
 use App\Event\Payment\PaymentCreatedEvent;
@@ -111,7 +112,7 @@ final readonly class CreatePaymentPreferenceProcessor implements ProcessorInterf
         // ── 5. Cancel any existing unexpired pending payment for this user+driver ─
         $existingPending = $this->paymentRepository->findActivePendingPayment($user, $driver);
 
-        if ($existingPending !== null) {
+        if ($existingPending instanceof Payment) {
             $existingPending->setStatus(PaymentStatus::CANCELLED);
             $this->logger->info('Cancelled stale pending payment before creating new one', [
                 'cancelled_payment_id' => $existingPending->getId(),

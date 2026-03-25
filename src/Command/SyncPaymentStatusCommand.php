@@ -19,6 +19,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Throwable;
 
 #[AsCommand(
     name: 'app:payment:sync',
@@ -47,7 +48,9 @@ class SyncPaymentStatusCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $paymentId = (int) $input->getArgument('payment-id');
+        /** @var string $paymentIdArg */
+        $paymentIdArg = $input->getArgument('payment-id');
+        $paymentId = (int) $paymentIdArg;
         $providerIdOption = $input->getOption('provider-id');
         $dryRun = $input->getOption('dry-run');
 
@@ -78,7 +81,7 @@ class SyncPaymentStatusCommand extends Command
                 ['Provider ID', $payment->getPaymentProviderId() ?? '—'],
                 ['Status', $oldStatus->value],
                 ['Amount', $payment->getAmount() . ' ' . $payment->getCurrency()],
-                ['Created', $payment->getCreatedAt()?->format('Y-m-d H:i:s') ?? '—'],
+                ['Created', $payment->getCreatedAt()->format('Y-m-d H:i:s')],
             ],
         );
 
@@ -94,14 +97,17 @@ class SyncPaymentStatusCommand extends Command
             $payment = $this->paymentProcessor->updatePaymentFromWebhook(
                 $payment,
                 $providerId,
-                ['source' => 'cli', 'command' => 'app:payment:sync'],
+                [
+                    'source' => 'cli',
+                    'command' => 'app:payment:sync',
+                ],
             );
-        } catch (\Throwable $e) {
-            $io->error(sprintf('Failed to sync: %s', $e->getMessage()));
+        } catch (Throwable $throwable) {
+            $io->error(sprintf('Failed to sync: %s', $throwable->getMessage()));
             $this->logger->error('app:payment:sync failed', [
                 'payment_id' => $paymentId,
                 'provider_id' => $providerId,
-                'error' => $e->getMessage(),
+                'error' => $throwable->getMessage(),
             ]);
 
             return Command::FAILURE;

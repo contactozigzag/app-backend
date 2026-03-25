@@ -21,7 +21,7 @@ final class ExpireStalePaymentsMessageHandlerTest extends TestCase
         $repo->method('findExpiredPendingPayments')->willReturn([]);
 
         $em = $this->createMock(EntityManagerInterface::class);
-        $em->expects(self::never())->method('flush');
+        $em->expects($this->never())->method('flush');
 
         $handler = new ExpireStalePaymentsMessageHandler($repo, $em, new NullLogger());
         $handler(new ExpireStalePaymentsMessage());
@@ -30,16 +30,16 @@ final class ExpireStalePaymentsMessageHandlerTest extends TestCase
     public function testExpiredPaymentsAreCancelled(): void
     {
         $payment1 = $this->createMock(Payment::class);
-        $payment1->expects(self::once())->method('setStatus')->with(PaymentStatus::CANCELLED);
+        $payment1->expects($this->once())->method('setStatus')->with(PaymentStatus::CANCELLED);
 
         $payment2 = $this->createMock(Payment::class);
-        $payment2->expects(self::once())->method('setStatus')->with(PaymentStatus::CANCELLED);
+        $payment2->expects($this->once())->method('setStatus')->with(PaymentStatus::CANCELLED);
 
         $repo = $this->createStub(PaymentRepository::class);
         $repo->method('findExpiredPendingPayments')->willReturn([$payment1, $payment2]);
 
         $em = $this->createMock(EntityManagerInterface::class);
-        $em->expects(self::once())->method('flush');
+        $em->expects($this->once())->method('flush');
 
         $handler = new ExpireStalePaymentsMessageHandler($repo, $em, new NullLogger());
         $handler(new ExpireStalePaymentsMessage());
@@ -48,7 +48,7 @@ final class ExpireStalePaymentsMessageHandlerTest extends TestCase
     public function testBatchSizeIsPassedToRepository(): void
     {
         $repo = $this->createMock(PaymentRepository::class);
-        $repo->expects(self::once())
+        $repo->expects($this->once())
             ->method('findExpiredPendingPayments')
             ->with(200)
             ->willReturn([]);
