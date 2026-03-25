@@ -304,10 +304,10 @@ class MercadoPagoService
             'date_created' => $payment->date_created,
             'date_approved' => $payment->date_approved,
             'external_reference' => $payment->external_reference,
-            'payer' => [
-                'id' => $payment->payer?->id,
-                'email' => $payment->payer?->email,
-            ],
+            'payer' => isset($payment->payer) ? [
+                'id' => $payment->payer->id ?? null,
+                'email' => $payment->payer->email ?? null,
+            ] : null,
         ];
     }
 
