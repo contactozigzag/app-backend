@@ -42,9 +42,13 @@ class MercadoPagoService
         private readonly LoggerInterface $logger,
         #[Autowire(env: 'float:MERCADOPAGO_MARKETPLACE_FEE_PERCENT')]
         private readonly float $marketplaceFeePercent = 0.0,
+        #[Autowire(param: 'kernel.environment')]
+        private readonly string $appEnv = 'dev',
     ) {
         MercadoPagoConfig::setAccessToken($this->accessToken);
-        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
+        MercadoPagoConfig::setRuntimeEnviroment(
+            $this->appEnv === 'prod' ? MercadoPagoConfig::SERVER : MercadoPagoConfig::LOCAL,
+        );
 
         $this->preferenceClient = new PreferenceClient();
         $this->paymentClient = new PaymentClient();
