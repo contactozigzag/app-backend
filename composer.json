@@ -21,7 +21,6 @@
         "nelmio/cors-bundle": "^2.6.1",
         "open-telemetry/exporter-otlp": "*",
         "open-telemetry/opentelemetry-auto-guzzle": "*",
-        "open-telemetry/opentelemetry-auto-io": "*",
         "open-telemetry/opentelemetry-auto-pdo": "*",
         "open-telemetry/opentelemetry-auto-psr18": "*",
         "open-telemetry/opentelemetry-auto-symfony": "*",
