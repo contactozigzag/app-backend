@@ -34,13 +34,18 @@ class DetectGpsAnomalyHandler
 
     public function __invoke(DetectGpsAnomalyMessage $message): void
     {
+        $inProgressRoutes = $this->activeRouteRepository->findInProgress();
+
+        if ($inProgressRoutes === []) {
+            return;
+        }
+
         $startTime = microtime(true);
 
-        $this->logger->info('Handler started', [
-            'handler' => self::class,
+        $this->logger->info('GPS anomaly detection started', [
+            'active_routes' => count($inProgressRoutes),
         ]);
 
-        $inProgressRoutes = $this->activeRouteRepository->findInProgress();
         $now = new DateTimeImmutable();
         $alertsCreated = 0;
 
@@ -114,8 +119,8 @@ class DetectGpsAnomalyHandler
 
         $elapsed = (int) ((microtime(true) - $startTime) * 1000);
 
-        $this->logger->info('Handler completed', [
-            'handler' => self::class,
+        $this->logger->info('GPS anomaly detection completed', [
+            'active_routes' => count($inProgressRoutes),
             'alerts_created' => $alertsCreated,
             'duration_ms' => $elapsed,
         ]);
