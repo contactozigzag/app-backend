@@ -188,6 +188,7 @@ services:
       JWT_PASSPHRASE: "${JWT_PASSPHRASE}"
       TRUSTED_PROXIES: "REMOTE_ADDR"
       OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_PHP_DISABLED_INSTRUMENTATIONS: ""
       OTEL_SERVICE_NAME: "zigzag-api"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "otlp"
@@ -231,6 +232,7 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
       OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_PHP_DISABLED_INSTRUMENTATIONS: ""
       OTEL_SERVICE_NAME: "zigzag-worker-async"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "otlp"
@@ -275,6 +277,7 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
       OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_PHP_DISABLED_INSTRUMENTATIONS: ""
       OTEL_SERVICE_NAME: "zigzag-worker-webhooks"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "otlp"
@@ -317,6 +320,7 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
       OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_PHP_DISABLED_INSTRUMENTATIONS: ""
       OTEL_SERVICE_NAME: "zigzag-worker-tracking"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "otlp"
@@ -377,6 +381,7 @@ services:
       JWT_PASSPHRASE: "${JWT_PASSPHRASE}"
       TRUSTED_PROXIES: "REMOTE_ADDR"
       OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_PHP_DISABLED_INSTRUMENTATIONS: ""
       OTEL_SERVICE_NAME: "zigzag-api"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "otlp"
@@ -419,6 +424,7 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
       OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_PHP_DISABLED_INSTRUMENTATIONS: ""
       OTEL_SERVICE_NAME: "zigzag-worker-async"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "otlp"
@@ -463,6 +469,7 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
       OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_PHP_DISABLED_INSTRUMENTATIONS: ""
       OTEL_SERVICE_NAME: "zigzag-worker-webhooks"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "otlp"
@@ -505,6 +512,7 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
       OTEL_PHP_AUTOLOAD_ENABLED: "true"
+      OTEL_PHP_DISABLED_INSTRUMENTATIONS: ""
       OTEL_SERVICE_NAME: "zigzag-worker-tracking"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "otlp"
