@@ -1641,6 +1641,256 @@ export const getMercureUserToken = (userId) =>
     .then((r) => r.data);
 ```
 
+### Subscribe to User Notifications (Parent & Driver App)
+
+All real-time events for a user (trip updates, stop link requests, payments) are delivered on a **single private topic**: `/api/users/{userId}/notifications`. The app connects once at login and routes events by the `event` field.
+
+```javascript
+// hooks/useUserNotifications.js — single SSE connection for all user events
+import { useEffect, useRef, useCallback } from 'react';
+import { EventSource } from 'react-native-sse';
+import { getMercureUserToken } from '../api/payment';
+
+const HUB_URL = 'https://your-api.com/.well-known/mercure';
+
+/**
+ * Subscribes to /api/users/{userId}/notifications (private topic).
+ * Requires a Mercure subscriber JWT obtained via GET /api/mercure/token?user_id={id}.
+ *
+ * @param {number} userId - The authenticated user's ID
+ * @param {object} handlers - Map of event type → callback function
+ *
+ * Example handlers:
+ *   {
+ *     bus_arriving:          (data) => showBusAlert(data),
+ *     student_picked_up:     (data) => updateStudentStatus(data),
+ *     route_stop_requested:  (data) => showNewStopRequest(data),
+ *     route_stop_confirmed:  (data) => showConfirmation(data),
+ *   }
+ */
+export const useUserNotifications = (userId, handlers) => {
+  const esRef = useRef(null);
+  const handlersRef = useRef(handlers);
+  handlersRef.current = handlers;
+
+  const connect = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      const { token } = await getMercureUserToken(userId);
+
+      const url = new URL(HUB_URL);
+      url.searchParams.append('topic', `/api/users/${userId}/notifications`);
+
+      const es = new EventSource(url.toString(), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      es.addEventListener('message', (e) => {
+        const data = JSON.parse(e.data);
+        const handler = handlersRef.current[data.event];
+        if (handler) handler(data);
+      });
+
+      es.addEventListener('error', () => {
+        // Reconnect after 5s on connection loss
+        es.close();
+        setTimeout(() => connect(), 5000);
+      });
+
+      esRef.current = es;
+    } catch (err) {
+      // Token fetch failed — retry after 10s
+      setTimeout(() => connect(), 10000);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    connect();
+    return () => esRef.current?.close();
+  }, [connect]);
+};
+```
+
+Usage in a screen component:
+
+```javascript
+// screens/ParentDashboard.js
+import { useUserNotifications } from '../hooks/useUserNotifications';
+
+const ParentDashboard = ({ user }) => {
+  useUserNotifications(user.id, {
+    // Trip events (active route)
+    bus_arriving:       (d) => showAlert(`Bus arriving in ${d.estimatedMinutes} min for ${d.studentName}`),
+    bus_arrived:        (d) => showAlert(`Bus arrived for ${d.studentName}`),
+    student_picked_up:  (d) => updateStatus(d.studentId, 'picked_up'),
+    student_dropped_off:(d) => updateStatus(d.studentId, 'dropped_off'),
+    route_started:      (d) => showAlert(`Route started — driver: ${d.driverName}`),
+    route_completed:    (d) => showAlert('Route completed'),
+
+    // Stop link requests
+    route_stop_confirmed: (d) => showAlert(`${d.studentName} confirmed on ${d.routeName} by ${d.driverName}`),
+    route_stop_rejected:  (d) => showAlert(`${d.studentName} rejected from ${d.routeName}`),
+
+    // Payments
+    payment_approved:   (d) => showPaymentStatus(d, 'approved'),
+    payment_rejected:   (d) => showPaymentStatus(d, 'rejected'),
+  });
+};
+```
+
+```javascript
+// screens/DriverDashboard.js
+import { useUserNotifications } from '../hooks/useUserNotifications';
+
+const DriverDashboard = ({ user }) => {
+  useUserNotifications(user.id, {
+    // Stop link requests from parents
+    route_stop_requested: (d) => showNewRequest(`${d.studentName} wants to join ${d.routeName}`),
+  });
+};
+```
+
+### Event Payload Reference
+
+All events are JSON objects with an `event` field for routing. Timestamps are ISO 8601.
+
+#### Trip Events → `/api/users/{parentId}/notifications` (private)
+
+```jsonc
+// bus_arriving — bus is approaching the child's stop
+{
+  "event": "bus_arriving",
+  "routeId": 42,
+  "stopId": 7,
+  "studentId": 5,
+  "studentName": "Maria Garcia",
+  "estimatedMinutes": 3,
+  "timestamp": "2026-03-27T08:15:00-03:00"
+}
+
+// bus_arrived — bus has arrived at the child's stop
+{
+  "event": "bus_arrived",
+  "routeId": 42,
+  "stopId": 7,
+  "studentId": 5,
+  "studentName": "Maria Garcia",
+  "timestamp": "2026-03-27T08:18:00-03:00"
+}
+
+// student_picked_up
+{
+  "event": "student_picked_up",
+  "routeId": 42,
+  "stopId": 7,
+  "studentId": 5,
+  "studentName": "Maria Garcia",
+  "pickedUpAt": "2026-03-27T08:19:30-03:00",
+  "timestamp": "2026-03-27T08:19:30-03:00"
+}
+
+// student_dropped_off
+{
+  "event": "student_dropped_off",
+  "routeId": 42,
+  "stopId": 7,
+  "studentId": 5,
+  "studentName": "Maria Garcia",
+  "droppedOffAt": "2026-03-27T08:45:00-03:00",
+  "timestamp": "2026-03-27T08:45:00-03:00"
+}
+
+// route_started — all parents on the route receive this
+{
+  "event": "route_started",
+  "routeId": 42,
+  "driverName": "Carlos Lopez",
+  "startedAt": "2026-03-27T07:30:00-03:00",
+  "timestamp": "2026-03-27T07:30:00-03:00"
+}
+
+// route_completed — all parents on the route receive this
+{
+  "event": "route_completed",
+  "routeId": 42,
+  "completedAt": "2026-03-27T09:00:00-03:00",
+  "timestamp": "2026-03-27T09:00:00-03:00"
+}
+```
+
+#### Trip Events → `/tracking/route/{activeRouteId}` (public)
+
+```jsonc
+// stop_status_changed — status: "approaching" | "arrived" | "picked_up" | "dropped_off"
+{
+  "event": "stop_status_changed",
+  "stopId": 7,
+  "status": "approaching",
+  "studentId": 5,
+  "timestamp": "2026-03-27T08:15:00-03:00"
+}
+
+// route_started / route_completed
+{
+  "event": "route_started",
+  "routeId": 42,
+  "timestamp": "2026-03-27T07:30:00-03:00"
+}
+```
+
+#### Stop Link Request Events → `/api/users/{userId}/notifications` (private)
+
+```jsonc
+// route_stop_requested — sent to the DRIVER when a parent requests a stop
+{
+  "event": "route_stop_requested",
+  "routeStopId": 10,
+  "routeId": 42,
+  "routeName": "Morning Route - School A",
+  "studentId": 5,
+  "studentName": "Maria Garcia",
+  "timestamp": "2026-03-27T14:00:00-03:00"
+}
+
+// route_stop_confirmed — sent to each PARENT of the student
+{
+  "event": "route_stop_confirmed",
+  "routeStopId": 10,
+  "routeId": 42,
+  "routeName": "Morning Route - School A",
+  "studentId": 5,
+  "studentName": "Maria Garcia",
+  "driverName": "Carlos Lopez",
+  "timestamp": "2026-03-27T15:30:00-03:00"
+}
+
+// route_stop_rejected — sent to each PARENT of the student
+{
+  "event": "route_stop_rejected",
+  "routeStopId": 10,
+  "routeId": 42,
+  "routeName": "Morning Route - School A",
+  "studentId": 5,
+  "studentName": "Maria Garcia",
+  "driverName": "Carlos Lopez",
+  "timestamp": "2026-03-27T15:30:00-03:00"
+}
+```
+
+### Polling Removal Guide
+
+The following polling endpoints can now be replaced with the SSE connection above:
+
+| Old Polling Pattern | Replacement SSE Event | Notes |
+|---|---|---|
+| Poll `GET /api/active-route-stops` for stop status changes | `stop_status_changed` on `/tracking/route/{id}` | Public topic, no JWT needed |
+| Poll `GET /api/route-stops?isConfirmed=false` for pending requests (driver) | `route_stop_requested` on `/api/users/{driverId}/notifications` | Private topic |
+| Poll for stop confirmation status (parent) | `route_stop_confirmed` / `route_stop_rejected` on `/api/users/{parentId}/notifications` | Private topic |
+| Poll `GET /api/payments/{id}/status` for payment result | `payment_approved` / `payment_rejected` on `/api/users/{userId}/notifications` | Private topic |
+
+**Connection strategy:** Open one `EventSource` per authenticated user at app startup (via `useUserNotifications`). For public route tracking, open a second connection to `/tracking/route/{id}` only while viewing the live map (no JWT needed). Close both on logout.
+
 ## 🔒 Security Features
 
 - JWT-based stateless authentication for all `/api/*` routes
