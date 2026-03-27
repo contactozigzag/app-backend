@@ -223,11 +223,12 @@ SpecialEventRoutes                               ← NEW
 | Topic | Privacy | Published by | Subscribers |
 |-------|---------|--------------|-------------|
 | `/tracking/driver/{driverId}` | public | `MercurePublishHandler` | parents, admins |
-| `/tracking/route/{routeId}` | public | `MercurePublishHandler` | parents on that route |
+| `/tracking/route/{routeId}` | public | `MercurePublishHandler`, `TripMercureSubscriber` | parents on that route |
 | `/alerts/driver/{driverId}` | public | `DriverDistressHandler`, `DriverAlertController` | affected drivers |
 | `/alerts/admin/{schoolId}` | public | `DriverDistressHandler` | school admins |
 | `/chat/alert/{alertId}` | private | `ChatMessagePublishHandler` | alert participants only |
 | `/payments/{paymentId}` | private | `PaymentEventSubscriber` | paying parent |
+| `/api/users/{userId}/notifications` | private | `TripMercureSubscriber`, `PaymentEventSubscriber`, `RouteStopNotificationPublisher` | authenticated user (own topic only) |
 
 ### Multi-tenant Data Isolation
 
@@ -477,6 +478,79 @@ php bin/console app:opensearch:index-drivers [--force] [--batch-size=100] [--sch
 - `src/ApiResource/DriverSearchResult.php` — virtual API Platform resource
 - `src/State/DriverSearch/DriverSearchProvider.php` — provider with OpenSearch + Doctrine fallback
 - `src/Command/OpenSearchIndexDriversCommand.php` — bulk index hydration command
+
+### Phase 12: Real-Time Trip Notifications (SSE) ✅
+
+Replaces 15-second polling on the parent tracking screen with Mercure Server-Sent Events for all active trip lifecycle events.
+
+**Events published to `/api/users/{parentId}/notifications`** (private):
+- `bus_arriving` — bus approaching child's stop (estimated minutes)
+- `bus_arrived` — bus arrived at child's stop
+- `student_picked_up` — child picked up by driver
+- `student_dropped_off` — child safely dropped off
+- `route_started` — route has begun, all parents on route notified
+- `route_completed` — route finished
+
+**Events published to `/tracking/route/{activeRouteId}`** (public):
+- `stop_status_changed` — stop transitions (approaching, arrived, picked_up, dropped_off)
+- `route_started` / `route_completed` — route lifecycle
+
+**Event Pipeline:**
+```
+GeofencingService → StopApproachingEvent/StopArrivedEvent
+  └→ GeofencingBridgeSubscriber → BusArrivingEvent
+       └→ TripMercureSubscriber → Mercure /api/users/{id}/notifications + /tracking/route/{id}
+       └→ RouteNotificationSubscriber → email/SMS/push
+
+AttendanceController → StudentPickedUpEvent/StudentDroppedOffEvent
+  └→ TripMercureSubscriber → Mercure
+  └→ RouteNotificationSubscriber → email/SMS/push
+
+ActiveRoute PATCH (Doctrine) → ActiveRouteStatusListener
+  └→ RouteStartedEvent/RouteCompletedEvent
+       └→ TripMercureSubscriber → Mercure
+       └→ RouteNotificationSubscriber → email/SMS/push
+```
+
+**Resilience:** All Mercure publishes are wrapped in try/catch — failures are logged but never break the main request. Event dispatch in `AttendanceController` is also non-fatal.
+
+**Key Files:**
+- `src/EventSubscriber/TripMercureSubscriber.php` — Mercure publisher for all trip events
+- `src/EventSubscriber/GeofencingBridgeSubscriber.php` — bridges geofence → domain events
+- `src/EventListener/ActiveRouteStatusListener.php` — Doctrine listener for route start/complete
+- `src/Event/StopApproachingEvent.php`, `src/Event/StopArrivedEvent.php` — extracted from GeofencingService
+
+### Phase 12b: Stop Link Request Notifications (SSE) ✅
+
+Real-time Mercure notifications for the route-stop link request lifecycle — when a parent requests to add their child to a driver's route, and the driver confirms or rejects.
+
+**Events published to `/api/users/{userId}/notifications`** (private):
+- `route_stop_requested` → driver notified when parent creates an unconfirmed stop
+- `route_stop_confirmed` → parent(s) notified when driver confirms the stop
+- `route_stop_rejected` → parent(s) notified when driver rejects the stop
+
+**Notification Pipeline:**
+```
+Parent creates RouteStop (unconfirmed) → Doctrine postPersist/postFlush
+  └→ RouteStopCreatedListener → RouteStopNotificationPublisher.notifyDriverOfNewRequest()
+       └→ Mercure /api/users/{driverUserId}/notifications
+
+Driver PATCH /api/route-stops/{id}/confirm → RouteStopConfirmProcessor
+  └→ RouteStopNotificationPublisher.notifyParentsOfConfirmation()
+       └→ Mercure /api/users/{parentId}/notifications (each parent)
+
+Driver PATCH /api/route-stops/{id}/reject → RouteStopRejectProcessor
+  └→ RouteStopNotificationPublisher.notifyParentsOfRejection()
+       └→ Mercure /api/users/{parentId}/notifications (each parent)
+```
+
+**Resilience:** All Mercure publishes are wrapped in try/catch — failures are logged but never break the main request.
+
+**Key Files:**
+- `src/Service/RouteStopNotificationPublisher.php` — Mercure publisher for all stop link events
+- `src/EventListener/RouteStopCreatedListener.php` — Doctrine listener for new unconfirmed stops
+- `src/State/RouteStop/RouteStopConfirmProcessor.php` — confirm endpoint with notification
+- `src/State/RouteStop/RouteStopRejectProcessor.php` — reject endpoint with notification
 
 ## 📚 API Documentation
 
@@ -1045,11 +1119,16 @@ Authorization: Bearer {api-jwt}
 
 #### Mercure Subscriber Token (exchange API JWT → Mercure JWT)
 ```http
+# Subscribe to payment status updates
 GET /api/mercure/token?payment_id={id}
+Authorization: Bearer {api-jwt}
+
+# Subscribe to user notifications
+GET /api/mercure/token?user_id={id}
 Authorization: Bearer {api-jwt}
 ```
 
-Returns `{ token, hub_url, topics }`. Use `token` only with the Mercure hub, never for API calls.
+Exactly one of `payment_id` or `user_id` must be provided. Users can only request tokens for their own resources (own payments, own user ID). Returns `{ token, hub_url, topics }`. Use `token` only with the Mercure hub, never for API calls.
 
 #### Driver: Connect Mercado Pago
 ```http
@@ -1552,8 +1631,13 @@ export const initiatePayment = async (driverId, studentIds, description, routeId
 };
 
 // Exchange API JWT → short-lived Mercure JWT for a single payment topic
-export const getMercureToken = (paymentId) =>
+export const getMercurePaymentToken = (paymentId) =>
   apiClient.get('/mercure/token', { params: { payment_id: paymentId } })
+    .then((r) => r.data);
+
+// Exchange API JWT → short-lived Mercure JWT for user notifications
+export const getMercureUserToken = (userId) =>
+  apiClient.get('/mercure/token', { params: { user_id: userId } })
     .then((r) => r.data);
 ```
 
@@ -1566,7 +1650,7 @@ export const getMercureToken = (paymentId) =>
 - TLS termination via Traefik (Let's Encrypt) in prod; Caddy embedded for Mercure; libsodium secretbox for token and message encryption
 - Webhook HMAC-SHA256 signature validation with replay-attack prevention
 - CSRF-protected MP OAuth flow (Redis-backed single-use state tokens, 10-min TTL)
-- Private Mercure topics for payments and emergency chat; subscribers require a valid JWT
+- Private Mercure topics for payments, user notifications, and emergency chat; subscribers require a valid JWT
 - Rate limiting on GPS ingestion (per driver) and payment endpoints (per IP)
 
 ## 📊 Performance Considerations

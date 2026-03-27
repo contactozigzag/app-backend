@@ -45,7 +45,7 @@ class RouteNotificationSubscriber implements EventSubscriberInterface
                 'Bus Arriving Soon',
                 sprintf(
                     'The bus will arrive at %s in approximately %d minutes to pick up %s.',
-                    $stop->getAddress()->getName(),
+                    $stop->getAddress()->getStreetAddress(),
                     $minutes,
                     $student->getFirstName()
                 ),
@@ -76,7 +76,7 @@ class RouteNotificationSubscriber implements EventSubscriberInterface
                 sprintf(
                     '%s has been picked up by the bus at %s.',
                     $student->getFirstName(),
-                    $stop->getAddress()->getName()
+                    $stop->getAddress()->getStreetAddress()
                 ),
                 [
                     'student_name' => $student->getFirstName() . ' ' . $student->getLastName(),
@@ -105,7 +105,7 @@ class RouteNotificationSubscriber implements EventSubscriberInterface
                 sprintf(
                     '%s has been safely dropped off at %s.',
                     $student->getFirstName(),
-                    $stop->getAddress()->getName()
+                    $stop->getAddress()->getStreetAddress()
                 ),
                 [
                     'student_name' => $student->getFirstName() . ' ' . $student->getLastName(),

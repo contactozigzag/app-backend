@@ -8,6 +8,8 @@ use App\Entity\ActiveRouteStop;
 use App\Entity\Attendance;
 use App\Entity\Driver;
 use App\Entity\Student;
+use App\Event\StudentDroppedOffEvent;
+use App\Event\StudentPickedUpEvent;
 use App\Repository\ActiveRouteStopRepository;
 use App\Repository\AttendanceRepository;
 use App\Repository\DriverRepository;
@@ -15,7 +17,9 @@ use App\Repository\StudentRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,7 +34,9 @@ class AttendanceController extends AbstractController
         private readonly AttendanceRepository $attendanceRepository,
         private readonly ActiveRouteStopRepository $stopRepository,
         private readonly StudentRepository $studentRepository,
-        private readonly DriverRepository $driverRepository
+        private readonly DriverRepository $driverRepository,
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -56,13 +62,14 @@ class AttendanceController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
-        // Check if already picked up
-        $existingAttendance = $this->attendanceRepository->findByStudentAndDate(
+        // Check if already picked up (take most recent for this student + date)
+        $existingRecords = $this->attendanceRepository->findByStudentAndDate(
             $stop->getStudent(),
             $stop->getActiveRoute()->getDate()
         );
+        $existingAttendance = $existingRecords[0] ?? null;
 
-        if ($existingAttendance && $existingAttendance->getStatus() === 'picked_up') {
+        if ($existingAttendance instanceof Attendance && $existingAttendance->getStatus() === 'picked_up') {
             return $this->json([
                 'error' => 'Student already picked up',
             ], Response::HTTP_CONFLICT);
@@ -71,7 +78,7 @@ class AttendanceController extends AbstractController
         $now = new DateTimeImmutable();
 
         // Create or update attendance record
-        if ($existingAttendance !== []) {
+        if ($existingAttendance instanceof Attendance) {
             $attendance = $existingAttendance;
         } else {
             $attendance = new Attendance();
@@ -103,11 +110,20 @@ class AttendanceController extends AbstractController
         $stop->setStatus('picked_up');
         $stop->setPickedUpAt($now);
 
-        if ($existingAttendance === []) {
+        if (! $existingAttendance instanceof Attendance) {
             $this->entityManager->persist($attendance);
         }
 
         $this->entityManager->flush();
+
+        $this->logger->info('AttendanceController: student picked up', [
+            'attendance_id' => $attendance->getId(),
+            'student_id' => $stop->getStudent()?->getId(),
+            'stop_id' => $stop->getId(),
+            'route_id' => $stop->getActiveRoute()?->getId(),
+        ]);
+
+        $this->dispatchPickedUpEvent($attendance, $stop);
 
         return $this->json([
             'success' => true,
@@ -139,13 +155,14 @@ class AttendanceController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
-        // Find attendance record
-        $attendance = $this->attendanceRepository->findByStudentAndDate(
+        // Find attendance record (take most recent for this student + date)
+        $attendanceRecords = $this->attendanceRepository->findByStudentAndDate(
             $stop->getStudent(),
             $stop->getActiveRoute()->getDate()
         );
+        $attendance = $attendanceRecords[0] ?? null;
 
-        if ($attendance === []) {
+        if (! $attendance instanceof Attendance) {
             return $this->json([
                 'error' => 'Student was not picked up',
             ], Response::HTTP_BAD_REQUEST);
@@ -176,6 +193,15 @@ class AttendanceController extends AbstractController
         $stop->setDroppedOffAt($now);
 
         $this->entityManager->flush();
+
+        $this->logger->info('AttendanceController: student dropped off', [
+            'attendance_id' => $attendance->getId(),
+            'student_id' => $stop->getStudent()?->getId(),
+            'stop_id' => $stop->getId(),
+            'route_id' => $stop->getActiveRoute()?->getId(),
+        ]);
+
+        $this->dispatchDroppedOffEvent($attendance, $stop);
 
         return $this->json([
             'success' => true,
@@ -366,5 +392,37 @@ class AttendanceController extends AbstractController
             'end_date' => $endDate->format('Y-m-d'),
             'statistics' => $stats,
         ]);
+    }
+
+    private function dispatchPickedUpEvent(Attendance $attendance, ActiveRouteStop $stop): void
+    {
+        try {
+            $this->eventDispatcher->dispatch(
+                new StudentPickedUpEvent($attendance, $stop),
+                StudentPickedUpEvent::NAME,
+            );
+        } catch (Exception $exception) {
+            $this->logger->error('AttendanceController: failed to dispatch StudentPickedUpEvent', [
+                'attendance_id' => $attendance->getId(),
+                'stop_id' => $stop->getId(),
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    private function dispatchDroppedOffEvent(Attendance $attendance, ActiveRouteStop $stop): void
+    {
+        try {
+            $this->eventDispatcher->dispatch(
+                new StudentDroppedOffEvent($attendance, $stop),
+                StudentDroppedOffEvent::NAME,
+            );
+        } catch (Exception $exception) {
+            $this->logger->error('AttendanceController: failed to dispatch StudentDroppedOffEvent', [
+                'attendance_id' => $attendance->getId(),
+                'stop_id' => $stop->getId(),
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 }

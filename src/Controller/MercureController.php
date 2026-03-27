@@ -72,7 +72,9 @@ class MercureController extends AbstractController
         }
 
         return new JsonResponse(
-            ['error' => 'Missing query parameter. Provide either payment_id or user_id.'],
+            [
+                'error' => 'Missing query parameter. Provide either payment_id or user_id.',
+            ],
             Response::HTTP_BAD_REQUEST,
         );
     }
@@ -83,7 +85,9 @@ class MercureController extends AbstractController
 
         if (! ctype_digit((string) $userId)) {
             return new JsonResponse(
-                ['error' => 'Invalid user_id query parameter.'],
+                [
+                    'error' => 'Invalid user_id query parameter.',
+                ],
                 Response::HTTP_BAD_REQUEST,
             );
         }
@@ -91,7 +95,9 @@ class MercureController extends AbstractController
         // Users can only subscribe to their own notification topic.
         if ((int) $userId !== $user->getId()) {
             return new JsonResponse(
-                ['error' => 'Access denied.'],
+                [
+                    'error' => 'Access denied.',
+                ],
                 Response::HTTP_FORBIDDEN,
             );
         }
@@ -107,7 +113,9 @@ class MercureController extends AbstractController
 
         if (! ctype_digit((string) $paymentId)) {
             return new JsonResponse(
-                ['error' => 'Invalid payment_id query parameter.'],
+                [
+                    'error' => 'Invalid payment_id query parameter.',
+                ],
                 Response::HTTP_BAD_REQUEST,
             );
         }
@@ -116,7 +124,9 @@ class MercureController extends AbstractController
 
         if ($payment === null) {
             return new JsonResponse(
-                ['error' => 'Payment not found.'],
+                [
+                    'error' => 'Payment not found.',
+                ],
                 Response::HTTP_NOT_FOUND,
             );
         }
@@ -124,7 +134,9 @@ class MercureController extends AbstractController
         // Only the payment owner may subscribe to its topic.
         if ($payment->getUser()?->getId() !== $user->getId()) {
             return new JsonResponse(
-                ['error' => 'Access denied.'],
+                [
+                    'error' => 'Access denied.',
+                ],
                 Response::HTTP_FORBIDDEN,
             );
         }
@@ -143,7 +155,9 @@ class MercureController extends AbstractController
 
         if (! $factory instanceof TokenFactoryInterface) {
             return new JsonResponse(
-                ['error' => 'Mercure hub is not configured with a token factory.'],
+                [
+                    'error' => 'Mercure hub is not configured with a token factory.',
+                ],
                 Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }

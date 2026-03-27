@@ -6,12 +6,13 @@ namespace App\Service;
 
 use App\Entity\ActiveRoute;
 use App\Entity\ActiveRouteStop;
+use App\Event\StopApproachingEvent;
+use App\Event\StopArrivedEvent;
 use App\Repository\ActiveRouteStopRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Contracts\EventDispatcher\Event;
 
 class GeofencingService
 {
@@ -109,10 +110,9 @@ class GeofencingService
                         'distance' => $distance,
                     ]);
 
-                    // Dispatch event
                     $this->eventDispatcher->dispatch(
                         new StopArrivedEvent($stop),
-                        'stop.arrived'
+                        StopArrivedEvent::NAME,
                     );
                 }
             }
@@ -127,10 +127,9 @@ class GeofencingService
                     'distance' => $distance,
                 ]);
 
-                // Dispatch event
                 $this->eventDispatcher->dispatch(
                     new StopApproachingEvent($stop),
-                    'stop.approaching'
+                    StopApproachingEvent::NAME,
                 );
             }
         }
@@ -204,37 +203,5 @@ class GeofencingService
             'stop_id' => $nextStop->getId(),
             'student_name' => $nextStop->getStudent()->getFirstName() . ' ' . $nextStop->getStudent()->getLastName(),
         ];
-    }
-}
-
-/**
- * Event dispatched when a stop is approaching
- */
-class StopApproachingEvent extends Event
-{
-    public function __construct(
-        private readonly ActiveRouteStop $stop
-    ) {
-    }
-
-    public function getStop(): ActiveRouteStop
-    {
-        return $this->stop;
-    }
-}
-
-/**
- * Event dispatched when a stop is arrived
- */
-class StopArrivedEvent extends Event
-{
-    public function __construct(
-        private readonly ActiveRouteStop $stop
-    ) {
-    }
-
-    public function getStop(): ActiveRouteStop
-    {
-        return $this->stop;
     }
 }

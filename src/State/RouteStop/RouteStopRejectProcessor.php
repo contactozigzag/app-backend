@@ -9,6 +9,7 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Dto\RouteStop\RouteStopActionOutput;
 use App\Entity\User;
 use App\Repository\RouteStopRepository;
+use App\Service\RouteStopNotificationPublisher;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -28,6 +29,7 @@ final readonly class RouteStopRejectProcessor implements ProcessorInterface
         private RouteStopRepository $routeStopRepository,
         private EntityManagerInterface $entityManager,
         private Security $security,
+        private RouteStopNotificationPublisher $notificationPublisher,
     ) {
     }
 
@@ -60,6 +62,8 @@ final readonly class RouteStopRejectProcessor implements ProcessorInterface
         $routeStop->setIsConfirmed(false);
 
         $this->entityManager->flush();
+
+        $this->notificationPublisher->notifyParentsOfRejection($routeStop);
 
         return new RouteStopActionOutput(
             success: true,

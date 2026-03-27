@@ -13,9 +13,6 @@
             "src/ApiResource/.gitignore"
         ]
     },
-    "checkthiscloud/phpamqplib-messenger": {
-        "version": "0.11.1"
-    },
     "dama/doctrine-test-bundle": {
         "version": "8.6",
         "recipe": {
@@ -108,6 +105,9 @@
         "files": [
             "config/packages/google_apiclient.yaml"
         ]
+    },
+    "jwage/phpamqplib-messenger": {
+        "version": "0.10.0"
     },
     "lexik/jwt-authentication-bundle": {
         "version": "3.2",

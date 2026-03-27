@@ -76,6 +76,10 @@ Entities use `#[ApiResource]` with attribute-based Doctrine mapping. Custom cont
 ### Real-Time
 Mercure hub (Caddy module) publishes live updates. `EventSubscriber` classes publish to topics; `MercureController` handles client subscriptions.
 
+**Trip event pipeline:** `GeofencingService` dispatches `StopApproachingEvent`/`StopArrivedEvent` → `GeofencingBridgeSubscriber` bridges to `BusArrivingEvent` → `TripMercureSubscriber` publishes to `/api/users/{parentId}/notifications` (private) and `/tracking/route/{id}` (public). `AttendanceController` dispatches `StudentPickedUpEvent`/`StudentDroppedOffEvent` after flush. `ActiveRouteStatusListener` (Doctrine postUpdate/postFlush) dispatches `RouteStartedEvent`/`RouteCompletedEvent`. All Mercure publishes are non-fatal (try/catch + log).
+
+**Stop link request pipeline:** `RouteStopCreatedListener` (Doctrine postPersist/postFlush) detects new unconfirmed stops → `RouteStopNotificationPublisher.notifyDriverOfNewRequest()`. `RouteStopConfirmProcessor`/`RouteStopRejectProcessor` call `notifyParentsOfConfirmation()`/`notifyParentsOfRejection()` after flush. All publish to `/api/users/{id}/notifications` (private, non-fatal).
+
 ## Testing Conventions
 
 ### Boot Order (critical)
