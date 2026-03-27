@@ -23,7 +23,7 @@ final class MercureControllerTest extends AbstractApiTestCase
 
     // ── validation ────────────────────────────────────────────────────────────
 
-    public function testTokenEndpointMissingPaymentIdReturns400(): void
+    public function testTokenEndpointMissingQueryParamReturns400(): void
     {
         $client = $this->createApiClient();
         $user = UserFactory::createOne();
@@ -100,6 +100,55 @@ final class MercureControllerTest extends AbstractApiTestCase
         $this->assertContains('/payments/' . $payment->getId(), $body['topics']);
 
         // The Mercure JWT must be a valid 3-part JWT
+        $this->assertCount(3, explode('.', (string) $body['token']));
+    }
+
+    // ── user_id: validation ────────────────────────────────────────────────
+
+    public function testTokenEndpointNonNumericUserIdReturns400(): void
+    {
+        $client = $this->createApiClient();
+        $user = UserFactory::createOne();
+        $this->loginUser($client, $user);
+
+        $this->getJson($client, '/api/mercure/token?user_id=abc');
+
+        self::assertResponseStatusCodeSame(400);
+    }
+
+    // ── user_id: access control ────────────────────────────────────────────
+
+    public function testTokenEndpointForbiddenForOtherUserReturns403(): void
+    {
+        $client = $this->createApiClient();
+        $user = UserFactory::createOne();
+        $other = UserFactory::createOne();
+        $this->loginUser($client, $user);
+
+        $body = $this->getJson($client, '/api/mercure/token?user_id=' . $other->getId());
+
+        self::assertResponseStatusCodeSame(403);
+        $this->assertStringContainsString('denied', (string) $body['error']);
+    }
+
+    // ── user_id: success ───────────────────────────────────────────────────
+
+    public function testTokenEndpointReturnsJwtForUserNotifications(): void
+    {
+        $client = $this->createApiClient();
+        $user = UserFactory::createOne();
+        $this->loginUser($client, $user);
+
+        $body = $this->getJson($client, '/api/mercure/token?user_id=' . $user->getId());
+
+        self::assertResponseIsSuccessful();
+        $this->assertArrayHasKey('token', $body);
+        $this->assertArrayHasKey('hub_url', $body);
+        $this->assertArrayHasKey('topics', $body);
+
+        $expectedTopic = '/api/users/' . $user->getId() . '/notifications';
+        $this->assertContains($expectedTopic, $body['topics']);
+
         $this->assertCount(3, explode('.', (string) $body['token']));
     }
 }

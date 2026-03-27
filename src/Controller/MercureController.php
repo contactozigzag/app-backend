@@ -17,12 +17,12 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * Issues short-lived Mercure subscriber JWTs to authenticated parents so they
- * can receive real-time payment status updates pushed by PaymentEventSubscriber.
+ * Issues short-lived Mercure subscriber JWTs so authenticated clients can
+ * receive real-time updates from the Mercure hub.
  *
- * The hub publishes private updates on the topic "/payments/{id}", so the
- * browser/app needs a signed subscribe JWT that matches that topic before the
- * Mercure hub will forward the event.
+ * Supported query parameters (mutually exclusive):
+ *   - payment_id → subscribes to /payments/{id}
+ *   - user_id    → subscribes to /api/users/{id}/notifications
  *
  * ── Two completely separate JWTs ─────────────────────────────────────────────
  *
@@ -57,33 +57,58 @@ class MercureController extends AbstractController
     ) {
     }
 
-    /**
-     * Returns a Mercure subscriber JWT scoped to a single payment topic.
-     *
-     * Query parameters:
-     *   payment_id  (int, required) — the payment the client wants to subscribe to.
-     *
-     * Response:
-     *   {
-     *     "token":   "<JWT>",
-     *     "hub_url": "<Mercure hub public URL>",
-     *     "topics":  ["/payments/{id}"]
-     *   }
-     */
     #[Route('/api/mercure/token', name: 'api_mercure_token', methods: ['GET'])]
     public function token(Request $request): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
 
+        if ($request->query->has('user_id')) {
+            return $this->handleUserToken($request, $user);
+        }
+
+        if ($request->query->has('payment_id')) {
+            return $this->handlePaymentToken($request, $user);
+        }
+
+        return new JsonResponse(
+            ['error' => 'Missing query parameter. Provide either payment_id or user_id.'],
+            Response::HTTP_BAD_REQUEST,
+        );
+    }
+
+    private function handleUserToken(Request $request, User $user): JsonResponse
+    {
+        $userId = $request->query->get('user_id');
+
+        if (! ctype_digit((string) $userId)) {
+            return new JsonResponse(
+                ['error' => 'Invalid user_id query parameter.'],
+                Response::HTTP_BAD_REQUEST,
+            );
+        }
+
+        // Users can only subscribe to their own notification topic.
+        if ((int) $userId !== $user->getId()) {
+            return new JsonResponse(
+                ['error' => 'Access denied.'],
+                Response::HTTP_FORBIDDEN,
+            );
+        }
+
+        $topic = sprintf('/api/users/%d/notifications', $user->getId());
+
+        return $this->createTokenResponse([$topic]);
+    }
+
+    private function handlePaymentToken(Request $request, User $user): JsonResponse
+    {
         $paymentId = $request->query->get('payment_id');
 
-        if ($paymentId === null || ! ctype_digit((string) $paymentId)) {
+        if (! ctype_digit((string) $paymentId)) {
             return new JsonResponse(
-                [
-                    'error' => 'Missing or invalid payment_id query parameter.',
-                ],
-                Response::HTTP_BAD_REQUEST
+                ['error' => 'Invalid payment_id query parameter.'],
+                Response::HTTP_BAD_REQUEST,
             );
         }
 
@@ -91,38 +116,40 @@ class MercureController extends AbstractController
 
         if ($payment === null) {
             return new JsonResponse(
-                [
-                    'error' => 'Payment not found.',
-                ],
-                Response::HTTP_NOT_FOUND
+                ['error' => 'Payment not found.'],
+                Response::HTTP_NOT_FOUND,
             );
         }
 
         // Only the payment owner may subscribe to its topic.
         if ($payment->getUser()?->getId() !== $user->getId()) {
             return new JsonResponse(
-                [
-                    'error' => 'Access denied.',
-                ],
-                Response::HTTP_FORBIDDEN
-            );
-        }
-
-        $factory = $this->hub->getFactory();
-
-        if (! $factory instanceof TokenFactoryInterface) {
-            return new JsonResponse(
-                [
-                    'error' => 'Mercure hub is not configured with a token factory.',
-                ],
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                ['error' => 'Access denied.'],
+                Response::HTTP_FORBIDDEN,
             );
         }
 
         $topic = '/payments/' . $payment->getId();
 
+        return $this->createTokenResponse([$topic]);
+    }
+
+    /**
+     * @param list<string> $topics
+     */
+    private function createTokenResponse(array $topics): JsonResponse
+    {
+        $factory = $this->hub->getFactory();
+
+        if (! $factory instanceof TokenFactoryInterface) {
+            return new JsonResponse(
+                ['error' => 'Mercure hub is not configured with a token factory.'],
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+            );
+        }
+
         $token = $factory->create(
-            subscribe: [$topic],
+            subscribe: $topics,
             publish: [],
             additionalClaims: [
                 'exp' => new DateTimeImmutable('+' . self::TOKEN_TTL . ' seconds'),
@@ -132,7 +159,7 @@ class MercureController extends AbstractController
         return new JsonResponse([
             'token' => $token,
             'hub_url' => $this->hub->getPublicUrl(),
-            'topics' => [$topic],
+            'topics' => $topics,
         ]);
     }
 }
