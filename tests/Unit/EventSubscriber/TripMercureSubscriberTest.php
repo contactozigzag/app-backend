@@ -16,6 +16,7 @@ use App\Event\RouteStartedEvent;
 use App\Event\StopArrivedEvent;
 use App\Event\StudentDroppedOffEvent;
 use App\Event\StudentPickedUpEvent;
+use App\EventSubscriber\TripMercureSubscriber;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;
@@ -28,28 +29,28 @@ final class TripMercureSubscriberTest extends TestCase
 {
     public function testGetSubscribedEventsReturnsAllEvents(): void
     {
-        $events = \App\EventSubscriber\TripMercureSubscriber::getSubscribedEvents();
+        $events = TripMercureSubscriber::getSubscribedEvents();
 
-        self::assertArrayHasKey(BusArrivingEvent::NAME, $events);
-        self::assertArrayHasKey(StopArrivedEvent::NAME, $events);
-        self::assertArrayHasKey(StudentPickedUpEvent::NAME, $events);
-        self::assertArrayHasKey(StudentDroppedOffEvent::NAME, $events);
-        self::assertArrayHasKey(RouteStartedEvent::NAME, $events);
-        self::assertArrayHasKey(RouteCompletedEvent::NAME, $events);
+        $this->assertArrayHasKey(BusArrivingEvent::NAME, $events);
+        $this->assertArrayHasKey(StopArrivedEvent::NAME, $events);
+        $this->assertArrayHasKey(StudentPickedUpEvent::NAME, $events);
+        $this->assertArrayHasKey(StudentDroppedOffEvent::NAME, $events);
+        $this->assertArrayHasKey(RouteStartedEvent::NAME, $events);
+        $this->assertArrayHasKey(RouteCompletedEvent::NAME, $events);
     }
 
     public function testOnBusArrivingPublishesToParentAndRoute(): void
     {
         $hub = $this->createMock(HubInterface::class);
-        $hub->expects(self::exactly(2))->method('publish')
+        $hub->expects($this->exactly(2))->method('publish')
             ->willReturnCallback(function (Update $update): string {
                 $topics = $update->getTopics();
-                self::assertCount(1, $topics);
+                $this->assertCount(1, $topics);
 
                 return 'id';
             });
 
-        $subscriber = new \App\EventSubscriber\TripMercureSubscriber($hub, new NullLogger());
+        $subscriber = new TripMercureSubscriber($hub, new NullLogger());
         $subscriber->onBusArriving(new BusArrivingEvent(
             $this->createStopWithParent(42, 7, 15, 99),
             5,
@@ -59,9 +60,9 @@ final class TripMercureSubscriberTest extends TestCase
     public function testOnStopArrivedPublishesToParentAndRoute(): void
     {
         $hub = $this->createMock(HubInterface::class);
-        $hub->expects(self::exactly(2))->method('publish');
+        $hub->expects($this->exactly(2))->method('publish');
 
-        $subscriber = new \App\EventSubscriber\TripMercureSubscriber($hub, new NullLogger());
+        $subscriber = new TripMercureSubscriber($hub, new NullLogger());
         $subscriber->onStopArrived(new StopArrivedEvent(
             $this->createStopWithParent(42, 7, 15, 99),
         ));
@@ -72,7 +73,7 @@ final class TripMercureSubscriberTest extends TestCase
         $hub = $this->createMock(HubInterface::class);
 
         $publishedTopics = [];
-        $hub->expects(self::exactly(2))->method('publish')
+        $hub->expects($this->exactly(2))->method('publish')
             ->willReturnCallback(function (Update $update) use (&$publishedTopics): string {
                 $publishedTopics[] = $update->getTopics()[0];
 
@@ -82,22 +83,22 @@ final class TripMercureSubscriberTest extends TestCase
         $stop = $this->createStopWithParent(42, 7, 15, 99);
         $attendance = $this->createAttendanceForStop($stop);
 
-        $subscriber = new \App\EventSubscriber\TripMercureSubscriber($hub, new NullLogger());
+        $subscriber = new TripMercureSubscriber($hub, new NullLogger());
         $subscriber->onStudentPickedUp(new StudentPickedUpEvent($attendance, $stop));
 
-        self::assertContains('/api/users/99/notifications', $publishedTopics);
-        self::assertContains('/tracking/route/42', $publishedTopics);
+        $this->assertContains('/api/users/99/notifications', $publishedTopics);
+        $this->assertContains('/tracking/route/42', $publishedTopics);
     }
 
     public function testOnStudentDroppedOffPublishesToParentAndRoute(): void
     {
         $hub = $this->createMock(HubInterface::class);
-        $hub->expects(self::exactly(2))->method('publish');
+        $hub->expects($this->exactly(2))->method('publish');
 
         $stop = $this->createStopWithParent(42, 7, 15, 99);
         $attendance = $this->createAttendanceForStop($stop);
 
-        $subscriber = new \App\EventSubscriber\TripMercureSubscriber($hub, new NullLogger());
+        $subscriber = new TripMercureSubscriber($hub, new NullLogger());
         $subscriber->onStudentDroppedOff(new StudentDroppedOffEvent($attendance, $stop));
     }
 
@@ -105,22 +106,22 @@ final class TripMercureSubscriberTest extends TestCase
     {
         $hub = $this->createMock(HubInterface::class);
         // 2 unique parents + 1 route topic = 3 publishes
-        $hub->expects(self::exactly(3))->method('publish');
+        $hub->expects($this->exactly(3))->method('publish');
 
         $route = $this->createRouteWithTwoStops();
 
-        $subscriber = new \App\EventSubscriber\TripMercureSubscriber($hub, new NullLogger());
+        $subscriber = new TripMercureSubscriber($hub, new NullLogger());
         $subscriber->onRouteStarted(new RouteStartedEvent($route));
     }
 
     public function testOnRouteCompletedPublishesToAllParentsAndRoute(): void
     {
         $hub = $this->createMock(HubInterface::class);
-        $hub->expects(self::exactly(3))->method('publish');
+        $hub->expects($this->exactly(3))->method('publish');
 
         $route = $this->createRouteWithTwoStops();
 
-        $subscriber = new \App\EventSubscriber\TripMercureSubscriber($hub, new NullLogger());
+        $subscriber = new TripMercureSubscriber($hub, new NullLogger());
         $subscriber->onRouteCompleted(new RouteCompletedEvent($route));
     }
 
@@ -129,7 +130,7 @@ final class TripMercureSubscriberTest extends TestCase
         $hub = $this->createMock(HubInterface::class);
         $hub->method('publish')->willThrowException(new RuntimeException('Hub down'));
 
-        $subscriber = new \App\EventSubscriber\TripMercureSubscriber($hub, new NullLogger());
+        $subscriber = new TripMercureSubscriber($hub, new NullLogger());
 
         // Must not throw
         $subscriber->onStopArrived(new StopArrivedEvent(
@@ -142,13 +143,13 @@ final class TripMercureSubscriberTest extends TestCase
     public function testSkipsWhenStudentIsNull(): void
     {
         $hub = $this->createMock(HubInterface::class);
-        $hub->expects(self::never())->method('publish');
+        $hub->expects($this->never())->method('publish');
 
         $stop = $this->createStub(ActiveRouteStop::class);
         $stop->method('getStudent')->willReturn(null);
         $stop->method('getActiveRoute')->willReturn($this->createStub(ActiveRoute::class));
 
-        $subscriber = new \App\EventSubscriber\TripMercureSubscriber($hub, new NullLogger());
+        $subscriber = new TripMercureSubscriber($hub, new NullLogger());
         $subscriber->onStopArrived(new StopArrivedEvent($stop));
     }
 

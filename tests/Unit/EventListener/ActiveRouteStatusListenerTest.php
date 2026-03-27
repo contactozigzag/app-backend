@@ -14,6 +14,7 @@ use Doctrine\ORM\Event\PostUpdateEventArgs;
 use Doctrine\ORM\UnitOfWork;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use stdClass;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 final class ActiveRouteStatusListenerTest extends TestCase
@@ -21,7 +22,7 @@ final class ActiveRouteStatusListenerTest extends TestCase
     public function testDispatchesRouteStartedOnStatusChangeToInProgress(): void
     {
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $dispatcher->expects(self::once())
+        $dispatcher->expects($this->once())
             ->method('dispatch')
             ->with(
                 self::isInstanceOf(RouteStartedEvent::class),
@@ -42,7 +43,7 @@ final class ActiveRouteStatusListenerTest extends TestCase
     public function testDispatchesRouteCompletedOnStatusChangeToCompleted(): void
     {
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $dispatcher->expects(self::once())
+        $dispatcher->expects($this->once())
             ->method('dispatch')
             ->with(
                 self::isInstanceOf(RouteCompletedEvent::class),
@@ -63,7 +64,7 @@ final class ActiveRouteStatusListenerTest extends TestCase
     public function testIgnoresNonStatusChanges(): void
     {
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $dispatcher->expects(self::never())->method('dispatch');
+        $dispatcher->expects($this->never())->method('dispatch');
 
         $listener = new ActiveRouteStatusListener($dispatcher, new NullLogger());
 
@@ -79,11 +80,11 @@ final class ActiveRouteStatusListenerTest extends TestCase
     public function testIgnoresNonActiveRouteEntities(): void
     {
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $dispatcher->expects(self::never())->method('dispatch');
+        $dispatcher->expects($this->never())->method('dispatch');
 
         $listener = new ActiveRouteStatusListener($dispatcher, new NullLogger());
 
-        $nonRouteEntity = new \stdClass();
+        $nonRouteEntity = new stdClass();
         $uow = $this->createStub(UnitOfWork::class);
         $em = $this->createStub(EntityManagerInterface::class);
         $em->method('getUnitOfWork')->willReturn($uow);
@@ -97,7 +98,7 @@ final class ActiveRouteStatusListenerTest extends TestCase
     public function testPendingTransitionsAreClearedAfterFlush(): void
     {
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $dispatcher->expects(self::once())->method('dispatch');
+        $dispatcher->expects($this->once())->method('dispatch');
 
         $listener = new ActiveRouteStatusListener($dispatcher, new NullLogger());
 

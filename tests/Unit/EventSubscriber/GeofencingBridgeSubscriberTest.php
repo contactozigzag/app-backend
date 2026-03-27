@@ -21,14 +21,14 @@ final class GeofencingBridgeSubscriberTest extends TestCase
     {
         $events = GeofencingBridgeSubscriber::getSubscribedEvents();
 
-        self::assertArrayHasKey(StopApproachingEvent::NAME, $events);
-        self::assertSame('onStopApproaching', $events[StopApproachingEvent::NAME]);
+        $this->assertArrayHasKey(StopApproachingEvent::NAME, $events);
+        $this->assertSame('onStopApproaching', $events[StopApproachingEvent::NAME]);
     }
 
     public function testOnStopApproachingDispatchesBusArrivingEvent(): void
     {
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $dispatcher->expects(self::once())
+        $dispatcher->expects($this->once())
             ->method('dispatch')
             ->with(
                 self::isInstanceOf(BusArrivingEvent::class),
@@ -42,14 +42,14 @@ final class GeofencingBridgeSubscriberTest extends TestCase
     public function testUsesDefaultMinutesWhenNoEta(): void
     {
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $dispatcher->expects(self::once())
+        $dispatcher->expects($this->once())
             ->method('dispatch')
             ->with(
                 self::callback(static fn (BusArrivingEvent $event): bool => $event->getEstimatedMinutes() === 5),
                 BusArrivingEvent::NAME,
             );
 
-        $stop = $this->createStopStub(null);
+        $stop = $this->createStopStub();
 
         $subscriber = new GeofencingBridgeSubscriber($dispatcher, new NullLogger());
         $subscriber->onStopApproaching(new StopApproachingEvent($stop));
@@ -58,7 +58,7 @@ final class GeofencingBridgeSubscriberTest extends TestCase
     public function testCalculatesMinutesFromEta(): void
     {
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $dispatcher->expects(self::once())
+        $dispatcher->expects($this->once())
             ->method('dispatch')
             ->with(
                 self::callback(static fn (BusArrivingEvent $event): bool => $event->getEstimatedMinutes() >= 1),
