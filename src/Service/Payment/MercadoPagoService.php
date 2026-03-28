@@ -86,14 +86,12 @@ class MercadoPagoService
 
             $preferenceData = [
                 'items' => $items,
-                'payer' => [
+                'payer' => array_filter([
                     'name' => $user->getFirstName(),
                     'surname' => $user->getLastName(),
                     'email' => $user->getEmail(),
-                    'phone' => [
-                        'number' => $user->getPhoneNumber(),
-                    ],
-                ],
+                    'phone' => $user->getPhoneNumber() !== null ? ['number' => $user->getPhoneNumber()] : null,
+                ]),
                 'back_urls' => [
                     'success' => $backUrl . '?status=success',
                     'failure' => $backUrl . '?status=failure',
