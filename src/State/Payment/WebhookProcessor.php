@@ -9,11 +9,13 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Payment;
 use App\Message\ProcessWebhookMessage;
 use App\Repository\PaymentRepository;
+use App\Service\Payment\MercadoPagoService;
 use App\Service\Payment\WebhookValidator;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Throwable;
 
 /**
  * Handles POST /api/webhooks/mercadopago.
@@ -38,6 +40,7 @@ final readonly class WebhookProcessor implements ProcessorInterface
     public function __construct(
         private WebhookValidator $webhookValidator,
         private PaymentRepository $paymentRepository,
+        private MercadoPagoService $mercadoPagoService,
         private MessageBusInterface $messageBus,
         private LoggerInterface $logger,
     ) {
@@ -99,9 +102,23 @@ final readonly class WebhookProcessor implements ProcessorInterface
         // ── 5. Resolve internal payment ─────────────────────────────────────
         $payment = $this->paymentRepository->findByPaymentProviderId($paymentProviderId);
 
-        $externalRef = $webhookData['data']['external_reference'] ?? null;
-        if (! $payment instanceof Payment && is_numeric($externalRef)) {
-            $payment = $this->paymentRepository->find((int) $externalRef);
+        // MP webhook body only contains data.id — external_reference lives on the
+        // payment object itself. Fetch it from MP when the provider ID isn't stored yet.
+        if (! $payment instanceof Payment) {
+            try {
+                $mpPayment = $this->mercadoPagoService->getPaymentDetails($paymentProviderId);
+                $externalRef = $mpPayment->external_reference ?? null;
+
+                if (is_numeric($externalRef)) {
+                    $payment = $this->paymentRepository->find((int) $externalRef);
+                }
+            } catch (Throwable $e) {
+                $this->logger->warning('MP webhook: could not fetch payment details from MP', [
+                    'request_id' => $requestId,
+                    'payment_provider_id' => $paymentProviderId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         if ($payment === null) {
