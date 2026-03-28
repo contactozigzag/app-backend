@@ -86,8 +86,6 @@ class MercadoPagoService
                 ];
             }
 
-            $marketplaceFee = $this->calculateMarketplaceFee((float) $payment->getAmount());
-
             $preferenceData = [
                 'items' => $items,
                 'payer' => [
@@ -107,8 +105,6 @@ class MercadoPagoService
                 'notification_url' => $notificationUrl,
                 'external_reference' => (string) $payment->getId(),
                 'statement_descriptor' => 'SCHOOL_TRANSPORT',
-                'marketplace' => 'MP',
-                'marketplace_fee' => $marketplaceFee,
                 'expires' => true,
                 'expiration_date_from' => new DateTime()->format('c'),
                 'expiration_date_to' => $payment->getExpiresAt()?->format('c')
