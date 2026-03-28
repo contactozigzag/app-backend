@@ -161,7 +161,7 @@ class Payment
     #[Assert\NotBlank]
     #[Assert\Currency]
     #[Groups(['payment:read', 'payment:list'])]
-    private string $currency = 'USD';
+    private string $currency = 'ARS';
 
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true, enumType: PaymentMethod::class)]
     #[Groups(['payment:read', 'payment:list'])]

@@ -53,7 +53,7 @@ class PaymentProcessor
         string $amount,
         string $description,
         string $idempotencyKey,
-        string $currency = 'USD',
+        string $currency = 'ARS',
         ?Driver $driver = null,
         ?array $rateSnapshot = null,
     ): Payment {
