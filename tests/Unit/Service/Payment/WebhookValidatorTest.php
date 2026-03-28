@@ -164,8 +164,12 @@ final class WebhookValidatorTest extends TestCase
         string $signature,
         string $dataId = '',
     ): Request {
-        $url = '/api/webhooks/mercadopago' . ($dataId !== '' && $dataId !== '0' ? '?id=' . $dataId : '');
-        $request = Request::create($url, Request::METHOD_POST);
+        $body = json_encode([
+            'data' => [
+                'id' => $dataId,
+            ],
+        ]) ?: '';
+        $request = Request::create('/api/webhooks/mercadopago', Request::METHOD_POST, [], [], [], [], $body);
         $request->headers->set('x-signature', sprintf('ts=%d,v1=%s', $timestamp, $signature));
         $request->headers->set('x-request-id', $requestId);
 
