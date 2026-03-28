@@ -40,8 +40,6 @@ class MercadoPagoService
         #[Autowire(service: 'cache.app')]
         private readonly CacheInterface $cache,
         private readonly LoggerInterface $logger,
-        #[Autowire(env: 'float:MERCADOPAGO_MARKETPLACE_FEE_PERCENT')]
-        private readonly float $marketplaceFeePercent = 0.0,
         #[Autowire(param: 'kernel.environment')]
         private readonly string $appEnv = 'dev',
     ) {
@@ -121,7 +119,6 @@ class MercadoPagoService
                 'user_id' => $user->getId(),
                 'driver_id' => $payment->getDriver()?->getId(),
                 'amount' => $payment->getAmount(),
-                'marketplace_fee' => $marketplaceFee,
             ]);
 
             /** @var Preference $preference */
@@ -153,15 +150,6 @@ class MercadoPagoService
 
             throw new RuntimeException('Failed to create payment preference', 0, $e);
         }
-    }
-
-    private function calculateMarketplaceFee(float $amount): float
-    {
-        if ($this->marketplaceFeePercent <= 0.0) {
-            return 0.0;
-        }
-
-        return round($amount * $this->marketplaceFeePercent / 100, 2);
     }
 
     /**
