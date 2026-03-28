@@ -64,7 +64,8 @@ class WebhookValidator
 
         // Extract data.id from JSON body — MP signs with this value, not the query string
         $body = json_decode($request->getContent(), true);
-        $dataId = is_array($body) ? ($body['data']['id'] ?? '') : '';
+        $rawDataId = is_array($body) ? ($body['data']['id'] ?? '') : '';
+        $dataId = is_scalar($rawDataId) ? (string) $rawDataId : '';
 
         $signedData = sprintf('id:%s;request-id:%s;ts:%d;', $dataId, $xRequestId, $timestamp);
 

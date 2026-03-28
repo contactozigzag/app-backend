@@ -90,7 +90,9 @@ class MercadoPagoService
                     'name' => $user->getFirstName(),
                     'surname' => $user->getLastName(),
                     'email' => $user->getEmail(),
-                    'phone' => $user->getPhoneNumber() !== null ? ['number' => $user->getPhoneNumber()] : null,
+                    'phone' => $user->getPhoneNumber() !== null ? [
+                        'number' => $user->getPhoneNumber(),
+                    ] : null,
                 ]),
                 'back_urls' => [
                     'success' => $backUrl . '?status=success',
