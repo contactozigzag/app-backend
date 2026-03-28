@@ -62,11 +62,10 @@ class WebhookValidator
             return false;
         }
 
-        // Get request body
-        $request->getContent();
+        // Extract data.id from JSON body — MP signs with this value, not the query string
+        $body = json_decode($request->getContent(), true);
+        $dataId = is_array($body) ? ($body['data']['id'] ?? '') : '';
 
-        // Construct signed data: id + request_id + timestamp + body
-        $dataId = $request->query->get('id') ?? $request->request->get('id') ?? '';
         $signedData = sprintf('id:%s;request-id:%s;ts:%d;', $dataId, $xRequestId, $timestamp);
 
         // Calculate expected signature
