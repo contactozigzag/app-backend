@@ -8,7 +8,7 @@ ZigZag is a school transportation management system built with PHP 8.5+, Symfony
 
 ## Common Commands
 
-All commands run inside Docker. The Makefile wraps `docker compose --env-file .env.local exec php`.
+All commands run inside Docker. The Makefile auto-detects `.env.local` (uses it if present, skips if not).
 
 ```bash
 make up dev            # Start containers
@@ -19,17 +19,20 @@ make fix               # Apply all auto-fixes (ECS + Rector)
 make phpstan           # Static analysis (level 9)
 make rector-dry        # Rector dry-run
 make ecs-dry           # ECS dry-run
+make db-reset          # Drop, create, and migrate database
+make db-diff           # Generate migration from entity changes
+make db-migrate        # Run pending migrations
 ```
 
 **Running a single test:**
 ```bash
-docker compose --env-file .env.local exec -e APP_ENV=test php bin/phpunit tests/Path/To/TestClass.php
-docker compose --env-file .env.local exec -e APP_ENV=test php bin/phpunit --filter testMethodName
+docker compose exec -e APP_ENV=test php bin/phpunit tests/Path/To/TestClass.php
+docker compose exec -e APP_ENV=test php bin/phpunit --filter testMethodName
 ```
 
 **Clearing test cache** (needed after config changes):
 ```bash
-docker compose --env-file .env.local exec -e APP_ENV=test php sh -c 'php -d memory_limit=512M bin/console cache:clear --env=test --no-warmup'
+docker compose exec -e APP_ENV=test php sh -c 'php -d memory_limit=512M bin/console cache:clear --env=test --no-warmup'
 ```
 
 ## Architecture
