@@ -37,6 +37,10 @@ class MercadoPagoService
     public function __construct(
         #[Autowire(env: 'MERCADOPAGO_ACCESS_TOKEN')]
         private readonly string $accessToken,
+        #[Autowire(env: 'MERCADOPAGO_APP_ID')]
+        private readonly string $appId,
+        #[Autowire(env: 'float:MERCADOPAGO_MARKETPLACE_FEE_PERCENT')]
+        private readonly float $marketplaceFeePercent,
         #[Autowire(service: 'cache.app')]
         private readonly CacheInterface $cache,
         private readonly LoggerInterface $logger,
@@ -103,6 +107,8 @@ class MercadoPagoService
                 'notification_url' => $notificationUrl,
                 'external_reference' => (string) $payment->getId(),
                 'statement_descriptor' => 'SCHOOL_TRANSPORT',
+                'marketplace' => $this->appId,
+                'marketplace_fee' => $this->calculateMarketplaceFee((float) $payment->getAmount()),
                 'expires' => true,
                 'expiration_date_from' => new DateTime()->format('c'),
                 'expiration_date_to' => $payment->getExpiresAt()?->format('c')
@@ -150,6 +156,15 @@ class MercadoPagoService
 
             throw new RuntimeException('Failed to create payment preference', 0, $e);
         }
+    }
+
+    private function calculateMarketplaceFee(float $amount): float
+    {
+        if ($this->marketplaceFeePercent <= 0.0) {
+            return 0.0;
+        }
+
+        return round($amount * $this->marketplaceFeePercent / 100, 2);
     }
 
     /**
