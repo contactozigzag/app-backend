@@ -2850,16 +2850,16 @@
         },
         {
             "name": "gesdinet/jwt-refresh-token-bundle",
-            "version": "2.0.0-beta",
+            "version": "v2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markitosgv/JWTRefreshTokenBundle.git",
-                "reference": "66ca63c84d931cbd8f4923aad594507342291b7a"
+                "reference": "453bf7338025984e51918f65fcc0ca50645a168c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markitosgv/JWTRefreshTokenBundle/zipball/66ca63c84d931cbd8f4923aad594507342291b7a",
-                "reference": "66ca63c84d931cbd8f4923aad594507342291b7a",
+                "url": "https://api.github.com/repos/markitosgv/JWTRefreshTokenBundle/zipball/453bf7338025984e51918f65fcc0ca50645a168c",
+                "reference": "453bf7338025984e51918f65fcc0ca50645a168c",
                 "shasum": ""
             },
             "require": {
@@ -2922,9 +2922,9 @@
             ],
             "support": {
                 "issues": "https://github.com/markitosgv/JWTRefreshTokenBundle/issues",
-                "source": "https://github.com/markitosgv/JWTRefreshTokenBundle/tree/2.0.0-beta"
+                "source": "https://github.com/markitosgv/JWTRefreshTokenBundle/tree/v2.0.0"
             },
-            "time": "2025-12-29T22:55:23+00:00"
+            "time": "2025-12-29T23:20:41+00:00"
         },
         {
             "name": "google/apiclient",
@@ -16006,9 +16006,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "gesdinet/jwt-refresh-token-bundle": 10
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
