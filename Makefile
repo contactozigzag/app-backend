@@ -2,15 +2,16 @@
 ENV := $(strip $(if $(filter prod,$(MAKECMDGOALS)),prod,$(if $(filter dev,$(MAKECMDGOALS)),dev,)))
 
 # Executables (local)
-ifeq ($(ENV),dev)
-    DOCKER_COMP = docker compose --env-file .env.local
-else ifeq ($(ENV),prod)
-    DOCKER_COMP = SERVER_NAME=${SERVER_NAME} APP_SECRET=${APP_SECRET} CADDY_MERCURE_JWT_SECRET=${CADDY_MERCURE_JWT_SECRET} NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY} docker compose
+# Use .env.local only if it exists, otherwise fall back to default compose behaviour
+ENV_FILE := $(shell test -f .env.local && echo "--env-file .env.local" || echo "")
+
+ifeq ($(ENV),prod)
+    DOCKER_COMP = docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod
 else
-    DOCKER_COMP = docker compose --env-file .env.local
+    DOCKER_COMP = docker compose $(ENV_FILE)
 endif
 
-DOCKER_COMP_DEBUG = XDEBUG_MODE=debug docker compose --env-file .env.local
+DOCKER_COMP_DEBUG = XDEBUG_MODE=debug docker compose $(ENV_FILE)
 
 # Docker containers
 PHP_CONT = $(DOCKER_COMP) exec php
@@ -22,7 +23,7 @@ SYMFONY  = $(PHP) bin/console
 
 # Misc
 .DEFAULT_GOAL = help
-.PHONY        : help build up start down logs sh composer vendor sf cc test dev prod check-env debug ps bash phpstan rector-dry rector ecs-dry ecs lint-twig lint-yaml lint-xliff lint-container lint-doctrine lint quality fix index-drivers openapi-export
+.PHONY        : help build up start down logs sh composer vendor sf cc test dev prod check-env debug ps bash phpstan rector-dry rector ecs-dry ecs lint-twig lint-yaml lint-xliff lint-container lint-doctrine lint quality fix index-drivers openapi-export db-create db-drop db-reset db-migrate db-diff
 
 ## —— 🎵 🐳 The Symfony Docker Makefile 🐳 🎵 ——————————————————————————————————
 help: ## Outputs this help screen
@@ -31,15 +32,15 @@ help: ## Outputs this help screen
 ## —— Docker 🐳 ————————————————————————————————————————————————————————————————
 build: check-env ## Builds the Docker images (make build dev|prod)
 ifeq ($(ENV),prod)
-	@$(DOCKER_COMP) -f compose.yaml -f compose.prod.yaml build --pull --no-cache
+	@$(DOCKER_COMP) --profile infra --profile blue build --pull --no-cache
 else
 	@$(DOCKER_COMP) build --pull --no-cache
 endif
 
 up: check-env ## Start the docker hub in detached mode (make up dev|prod)
 ifeq ($(ENV),prod)
-	@$(DOCKER_COMP) -f compose.yaml -f compose.prod.yaml --profile infra --profile blue down --remove-orphans
-	@$(DOCKER_COMP) -f compose.yaml -f compose.prod.yaml --profile infra --profile blue up --wait
+	@$(DOCKER_COMP) --profile infra --profile blue down --remove-orphans
+	@$(DOCKER_COMP) --profile infra --profile blue up --wait
 else
 	@$(DOCKER_COMP) --profile workers down --remove-orphans
 	@$(DOCKER_COMP) --profile workers up --detach
@@ -47,16 +48,16 @@ endif
 start: check-env build up ## Build and start the containers (make start dev|prod)
 
 debug: ## Start the docker hub in detached mode (no logs) with xdebug enabled for step debug
-	@$(DOCKER_COMP_DEBUG) up --detach
+	@$(DOCKER_COMP_DEBUG) --profile workers up --detach
 
 ps: ## List containers with status
-	@$(DOCKER_COMP) ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+	@$(DOCKER_COMP) --profile workers ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
 
 down: ## Stop the docker hub
 	@$(DOCKER_COMP) --profile workers down --remove-orphans
 
 logs: ## Show live logs
-	@$(DOCKER_COMP) logs --tail=0 --follow
+	@$(DOCKER_COMP) --profile workers logs --tail=0 --follow
 
 sh: ## Connect to the FrankenPHP container
 	@$(PHP_CONT) sh
@@ -68,6 +69,23 @@ test: ## Start tests with phpunit, pass the parameter "c=" to add options to php
 	@$(eval c ?=)
 	@$(DOCKER_COMP) exec -e APP_ENV=test php php -d memory_limit=512M bin/phpunit $(c)
 
+## —— Database 🐘 —————————————————————————————————————————————————————————————
+db-create: ## Create the database
+	@$(SYMFONY) doctrine:database:create --if-not-exists
+
+db-drop: ## Drop the database (DESTRUCTIVE)
+	@$(SYMFONY) doctrine:database:drop --force
+
+db-migrate: ## Run database migrations
+	@$(SYMFONY) doctrine:migrations:migrate --no-interaction
+
+db-diff: ## Generate a migration by comparing entities to the database schema
+	@$(SYMFONY) doctrine:migrations:diff
+
+db-reset: ## Drop, create, and migrate the database (DESTRUCTIVE)
+	@$(SYMFONY) doctrine:database:drop --force --if-exists
+	@$(SYMFONY) doctrine:database:create
+	@$(SYMFONY) doctrine:migrations:migrate --no-interaction
 
 ## —— API Docs 📖 ——————————————————————————————————————————————————————————————
 openapi-export: ## Export OpenAPI spec to docs/openapi.json
