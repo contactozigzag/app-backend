@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Enum\PaymentStatus;
+use App\Repository\PaymentRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,9 +20,24 @@ final class HomeController extends AbstractController
     }
 
     #[Route('/payment/result', name: 'app_payment_result')]
-    public function paymentResult(Request $request): Response
+    public function paymentResult(Request $request, PaymentRepository $paymentRepository): Response
     {
-        $status = $request->query->getString('status', 'failure');
+        // MP appends external_reference (our internal payment ID) to the back_url.
+        // Use it to read the authoritative status from DB rather than trusting
+        // the ?status= param, which reflects MP's state at redirect time and can
+        // be 'failure' even when the payment is ultimately approved.
+        $externalRef = $request->query->get('external_reference');
+        $payment = is_numeric($externalRef) ? $paymentRepository->find((int) $externalRef) : null;
+
+        if ($payment !== null) {
+            $status = match ($payment->getStatus()) {
+                PaymentStatus::APPROVED => 'success',
+                PaymentStatus::PENDING, PaymentStatus::PROCESSING => 'pending',
+                default => 'failure',
+            };
+        } else {
+            $status = $request->query->getString('status', 'failure');
+        }
 
         $titles = [
             'success' => 'Pago exitoso',
