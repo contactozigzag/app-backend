@@ -13,8 +13,9 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class HomeController extends AbstractController
 {
-    public function __construct(private readonly PaymentRepository $paymentRepository)
-    {
+    public function __construct(
+        private readonly PaymentRepository $paymentRepository
+    ) {
     }
 
     #[Route('/', name: 'app_home')]
