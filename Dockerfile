@@ -52,6 +52,77 @@ ENTRYPOINT ["docker-entrypoint"]
 HEALTHCHECK --start-period=60s CMD php -r 'exit(false === @file_get_contents("http://localhost:2019/metrics", context: stream_context_create(["http" => ["timeout" => 5]])) ? 1 : 0);'
 CMD [ "frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile" ]
 
+# Maximum-performance static binary image
+#
+# Builds a single static FrankenPHP executable that embeds the entire PHP
+# application (vendor, config, templates, public assets). This eliminates
+# ALL filesystem stat() calls during request handling — one of the most
+# overlooked performance killers in PHP.
+#
+# Build: docker build --target frankenphp_static -t app-static .
+# Run:   docker run -p 80:80 -p 443:443 app-static
+FROM frankenphp_prod_builder AS frankenphp_static_builder
+
+# Prepare the app directory for embedding — remove dev artifacts
+RUN <<-EOF
+	rm -rf var/cache/dev var/cache/test var/log/*.log
+	php bin/console cache:warmup --env=prod
+	chmod -R a+r /app
+EOF
+
+FROM dunglas/frankenphp:static-builder AS frankenphp_static_build
+
+# Copy the prepared app from the builder
+COPY --from=frankenphp_static_builder /app /go/src/app/dist/app
+
+# Build the static binary with embedded app and required extensions
+# The EMBED variable tells FrankenPHP to bundle the app directory into the binary
+RUN EMBED=/go/src/app/dist/app \
+	PHP_EXTENSIONS="apcu,intl,opcache,zip,pdo_pgsql,redis,sockets,opentelemetry" \
+	./build-static.sh
+
+# Final minimal image — just the static binary + CA certs
+FROM debian:13-slim AS frankenphp_static
+
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+
+ENV APP_ENV=prod
+ENV PHP_INI_SCAN_DIR=":/usr/local/etc/php/app.conf.d"
+ENV XDG_CONFIG_HOME=/config XDG_DATA_HOME=/data
+
+# Copy the single static binary (contains PHP + Caddy + app code + extensions)
+COPY --from=frankenphp_static_build /go/src/app/dist/frankenphp-linux-* /usr/local/bin/frankenphp
+RUN ln -s /usr/local/bin/frankenphp /usr/local/bin/php
+
+# PHP configuration
+COPY --from=frankenphp_prod_builder /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
+COPY --from=frankenphp_prod_builder /usr/local/etc/php/php.ini /usr/local/etc/php/php.ini
+COPY --from=frankenphp_prod_builder /usr/local/etc/php/app.conf.d /usr/local/etc/php/app.conf.d
+
+# Caddyfile and entrypoint
+COPY --from=frankenphp_prod_builder /etc/frankenphp/Caddyfile /etc/frankenphp/Caddyfile
+COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+
+# CA certificates for TLS
+COPY --from=frankenphp_prod_builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+
+RUN <<-EOF
+	mkdir -p /data/caddy /config/caddy /app/var/cache /app/var/log
+	# Create www-data user/group (debian-slim doesn't have it)
+	groupadd -r www-data 2>/dev/null || true
+	useradd -r -g www-data -s /usr/sbin/nologin www-data 2>/dev/null || true
+	chown -R www-data:www-data /data /config /app/var
+	find / -perm /6000 -type f -exec chmod a-s {} + 2>/dev/null || true
+EOF
+
+USER www-data
+WORKDIR /app
+
+ENTRYPOINT ["docker-entrypoint"]
+
+HEALTHCHECK --start-period=60s CMD php -r 'exit(false === @file_get_contents("http://localhost:2019/metrics", context: stream_context_create(["http" => ["timeout" => 5]])) ? 1 : 0);'
+CMD [ "frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile" ]
+
 # Dev FrankenPHP image
 FROM frankenphp_base AS frankenphp_dev
 
