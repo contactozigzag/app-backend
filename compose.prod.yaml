@@ -1,195 +1,387 @@
 ---
-# Production environment override
-services:
-  traefik:
-    restart: unless-stopped
-    command:
-      - --providers.docker=true
-      - --providers.docker.exposedByDefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      # ACME Let's Encrypt — TLS termination at Traefik
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
-      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
-      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
-      # Dashboard is NOT exposed in production
-    ports:
-      - "0.0.0.0:80:80"
-      - "0.0.0.0:443:443"
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: "localhost:24224"
-        fluentd-async: "true"
-        tag: "docker.{{.Name}}"
+# Production + Blue/Green deployment overlay
+#
+# Usage: docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod --profile infra --profile <blue|green> up -d
+#
+# Profiles:
+#   infra  — shared stateful services (database, rabbitmq, redis, opensearch, fluent-bit, alloy)
+#   blue   — blue slot application services (php-blue, workers)
+#   green  — green slot application services (php-green, workers)
+#
+# Caddy's admin API is used by the deploy script to switch routing between slots.
+# See scripts/deploy.sh for the full deployment flow.
+#
+# Required env vars in .env.prod for observability (Grafana Cloud):
+#   GRAFANA_CLOUD_LOKI_HOST=logs-prod-XXX.grafana.net  (hostname only, no https://)
+#   GRAFANA_CLOUD_LOKI_USER=123456
+#   GRAFANA_CLOUD_API_KEY=glc_xxxxxxxxxxxxx
+#   GRAFANA_CLOUD_OTLP_ENDPOINT=https://otlp-gateway-prod-us-east-0.grafana.net/otlp
+#   GRAFANA_CLOUD_INSTANCE_ID=123456
 
-  php:
-    image: ${IMAGES_PREFIX:-}app-php-prod
-    restart: unless-stopped
-    build:
-      context: .
-      target: frankenphp_prod
-    volumes:
-      - ./config/jwt:/app/config/jwt:rw,cached
-    environment:
-      APP_SECRET: ${APP_SECRET}
-      MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
-      MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
-      MERCURE_PUBLIC_URL: https://${TRAEFIK_DOMAIN}/.well-known/mercure
-    labels:
-      # Production: enable HTTPS entrypoint with Let's Encrypt
-      - traefik.http.routers.zigzag-app.entrypoints=web,websecure
-      - traefik.http.routers.zigzag-app.tls.certresolver=letsencrypt
-      # HTTP→HTTPS redirect middleware
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
-      - traefik.http.routers.zigzag-app-http.rule=Host(`${TRAEFIK_DOMAIN}`)
-      - traefik.http.routers.zigzag-app-http.entrypoints=web
-      - traefik.http.routers.zigzag-app-http.middlewares=redirect-to-https
-      # Mercure router also needs websecure entrypoint in prod
-      - traefik.http.routers.zigzag-mercure.entrypoints=web,websecure
-      - traefik.http.routers.zigzag-mercure.tls.certresolver=letsencrypt
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: "localhost:24224"
-        fluentd-async: "true"
-        fluentd-retry-wait: "1s"
-        fluentd-max-retries: "30"
-        tag: "docker.{{.Name}}"
+# ── Shared OTEL env block (YAML anchor) ────────────────────────────────────
+x-otel-env: &otel-env
+  OTEL_PHP_AUTOLOAD_ENABLED: "true"
+  OTEL_PHP_DISABLED_INSTRUMENTATIONS: ""
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_LOGS_EXPORTER: "none"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy:4318"
+  OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+  OTEL_TRACES_SAMPLER_ARG: "1.0"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=prod,service.version=${APP_VERSION:-1.0.0}"
+  OTEL_PHP_EXCLUDED_URLS: "health,health/ready,health/live,_profiler,_wdt"
+
+# ── Shared logging block (YAML anchor) ─────────────────────────────────────
+x-logging: &prod-logging
+  driver: fluentd
+  options:
+    fluentd-address: "localhost:24224"
+    fluentd-async: "true"
+    fluentd-retry-wait: "1s"
+    fluentd-max-retries: "30"
+    tag: "docker.{{.Name}}"
+
+# ── Shared worker env block (YAML anchor) ──────────────────────────────────
+x-worker-env: &worker-env
+  SERVER_NAME: ":80"
+  APP_SECRET: ${APP_SECRET}
+  APP_ENV: prod
+  DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18}&charset=utf8
+  RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
+
+# ── Shared php-slot env block (YAML anchor) ────────────────────────────────
+x-php-slot-env: &php-slot-env
+  FRANKENPHP_WORKER_CONFIG: "num 4"
+  SERVER_NAME: ":80"
+  APP_SECRET: ${APP_SECRET}
+  MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+  MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+  MERCURE_PUBLIC_URL: https://${PUBLIC_DOMAIN:-localhost}/.well-known/mercure
+  MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET}
+  DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18}&charset=utf8
+  GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+  GOOGLE_MAPS_FRONTEND_API_KEY: ${GOOGLE_MAPS_FRONTEND_API_KEY:-}
+  JWT_SECRET_KEY: "%kernel.project_dir%/config/jwt/private.pem"
+  JWT_PUBLIC_KEY: "%kernel.project_dir%/config/jwt/public.pem"
+  JWT_PASSPHRASE: "${JWT_PASSPHRASE}"
+  # Cloudflare is the only reverse proxy — trust its X-Forwarded-* headers
+  TRUSTED_PROXIES: "REMOTE_ADDR"
+
+services:
+  # ══════════════════════════════════════════════════════════════════════════
+  # Shared Infrastructure (profile: infra)
+  # ══════════════════════════════════════════════════════════════════════════
 
   database:
+    profiles: [infra]
     restart: unless-stopped
     command:
-      - --transaction-isolation=READ-COMMITTED
-      - --innodb_rollback_on_timeout=ON
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: "localhost:24224"
-        fluentd-async: "true"
-        tag: "docker.{{.Name}}"
+      # PostgreSQL production tuning (adjust for your VPS RAM)
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - work_mem=8MB
+      - -c
+      - effective_cache_size=768MB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - effective_io_concurrency=200
+      - -c
+      - max_connections=100
+    logging: *prod-logging
 
   rabbitmq:
+    profiles: [infra]
     restart: unless-stopped
-    labels:
-      # RabbitMQ management dashboard is NOT exposed in production —
-      # it contains sensitive operational data and should only be accessed
-      # via SSH tunnel or VPN in prod environments
-      - traefik.enable=false
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: "localhost:24224"
-        fluentd-async: "true"
-        tag: "docker.{{.Name}}"
+    logging: *prod-logging
 
   redis:
+    profiles: [infra]
     restart: unless-stopped
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: "localhost:24224"
-        fluentd-async: "true"
-        tag: "docker.{{.Name}}"
+    logging: *prod-logging
 
   opensearch:
+    profiles: [infra]
     restart: unless-stopped
     environment:
-      OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
-    labels:
-      # OpenSearch REST API is NOT exposed in production —
-      # the Symfony app accesses it internally via Docker networking (http://opensearch:9200).
-      # Direct external access would bypass application-level auth.
-      - traefik.enable=false
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: "localhost:24224"
-        fluentd-async: "true"
-        tag: "docker.{{.Name}}"
+      OPENSEARCH_JAVA_OPTS: "-Xms256m -Xmx256m"
+      DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI: "true"
+    logging: *prod-logging
 
   opensearch-dashboards:
+    profiles: [infra]
     restart: unless-stopped
-    labels:
-      # Dashboards NOT exposed in production — access via SSH tunnel or VPN only
-      - traefik.enable=false
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: "localhost:24224"
-        fluentd-async: "true"
-        tag: "docker.{{.Name}}"
+    logging: *prod-logging
 
   fluent-bit:
+    profiles: [infra]
     image: fluent/fluent-bit:4.0
     container_name: zigzag_fluent_bit
+    restart: unless-stopped
     volumes:
       - ./fluent-bit:/fluent-bit/etc:ro
+      - fluent_bit_cache:/fluent-bit/cache
     ports:
       - "127.0.0.1:24224:24224"
       - "127.0.0.1:2020:2020"
     environment:
-      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
-      APP_ENV: prod
+      GRAFANA_CLOUD_LOKI_HOST: ${GRAFANA_CLOUD_LOKI_HOST}
+      GRAFANA_CLOUD_LOKI_USER: ${GRAFANA_CLOUD_LOKI_USER}
+      GRAFANA_CLOUD_API_KEY: ${GRAFANA_CLOUD_API_KEY}
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+
+  # ── Grafana Alloy: OTLP collector for traces & metrics ─────────────────────
+  alloy:
+    profiles: [infra]
+    image: grafana/alloy:latest
+    container_name: zigzag_alloy
     restart: unless-stopped
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+    ports:
+      - "127.0.0.1:4317:4317"   # OTLP gRPC
+      - "127.0.0.1:4318:4318"   # OTLP HTTP
+      - "127.0.0.1:12345:12345" # Alloy debug UI
+    environment:
+      GRAFANA_CLOUD_OTLP_ENDPOINT: ${GRAFANA_CLOUD_OTLP_ENDPOINT}
+      GRAFANA_CLOUD_INSTANCE_ID: ${GRAFANA_CLOUD_INSTANCE_ID}
+      GRAFANA_CLOUD_API_KEY: ${GRAFANA_CLOUD_API_KEY}
+    command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "/etc/alloy/config.alloy"]
+    deploy:
+      resources:
+        limits:
+          memory: 64M
 
-  # Messenger worker services — production overrides
-  #
-  # Workers use the same prod image target as the php service.
-  # Logging mirrors the php service configuration: fluentd-async ensures
-  # worker logs are buffered and not lost if fluent-bit restarts briefly.
-  # fluentd-retry-wait and fluentd-max-retries are included because workers
-  # are long-running processes that need the same delivery guarantees as php.
+  # ══════════════════════════════════════════════════════════════════════════
+  # Blue Slot (profile: blue)
+  # ══════════════════════════════════════════════════════════════════════════
 
-  messenger_worker:
+  php-blue:
+    profiles: [blue]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_php_blue
     restart: unless-stopped
     build:
       context: .
       target: frankenphp_prod
+    ports:
+      - target: 80
+        published: ${HTTP_PORT:-80}
+      - target: 443
+        published: ${HTTPS_PORT:-443}
+      - target: 443
+        published: ${HTTP3_PORT:-443}
+        protocol: udp
+    volumes:
+      - ./config/jwt:/app/config/jwt:rw,cached
+      - caddy_data_blue:/data
+      - caddy_config_blue:/config
+    env_file: .env.prod
     environment:
-      APP_SECRET: ${APP_SECRET}
-      APP_ENV: prod
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: "localhost:24224"
-        fluentd-async: "true"
-        fluentd-retry-wait: "1s"
-        fluentd-max-retries: "30"
-        tag: "docker.{{.Name}}"
+      <<: [*php-slot-env, *otel-env]
+      OTEL_SERVICE_NAME: "zigzag-api"
+      MERCURE_URL: http://php-blue:80/.well-known/mercure
+    depends_on:
+      database:
+        condition: service_healthy
+      alloy:
+        condition: service_started
+    logging: *prod-logging
+
+  messenger_worker-blue:
+    profiles: [blue]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_messenger_worker_blue
+    restart: unless-stopped
+    command: ["php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv"]
+    healthcheck:
+      disable: true
+    env_file: .env.prod
+    environment:
+      <<: [*worker-env, *otel-env]
+      OTEL_SERVICE_NAME: "zigzag-worker-async"
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      alloy:
+        condition: service_started
+    logging: *prod-logging
+
+  messenger_worker_webhooks-blue:
+    profiles: [blue]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_messenger_worker_webhooks_blue
+    restart: unless-stopped
+    command: ["php", "bin/console", "messenger:consume", "async_webhooks", "--time-limit=3600", "--memory-limit=64M", "-vv"]
+    healthcheck:
+      disable: true
+    env_file: .env.prod
+    environment:
+      <<: [*worker-env, *otel-env]
+      OTEL_SERVICE_NAME: "zigzag-worker-webhooks"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      alloy:
+        condition: service_started
+    logging: *prod-logging
+
+  messenger_worker_tracking-blue:
+    profiles: [blue]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_messenger_worker_tracking_blue
+    restart: unless-stopped
+    command: ["php", "bin/console", "messenger:consume", "async_tracking", "--time-limit=3600", "--memory-limit=64M", "-vv"]
+    healthcheck:
+      disable: true
+    env_file: .env.prod
+    environment:
+      <<: [*worker-env, *otel-env]
+      OTEL_SERVICE_NAME: "zigzag-worker-tracking"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      alloy:
+        condition: service_started
+    logging: *prod-logging
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Green Slot (profile: green)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  php-green:
+    profiles: [green]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_php_green
+    restart: unless-stopped
+    build:
+      context: .
+      target: frankenphp_prod
+    ports:
+      - target: 80
+        published: ${HTTP_PORT:-80}
+      - target: 443
+        published: ${HTTPS_PORT:-443}
+      - target: 443
+        published: ${HTTP3_PORT:-443}
+        protocol: udp
+    volumes:
+      - ./config/jwt:/app/config/jwt:rw,cached
+      - caddy_data_green:/data
+      - caddy_config_green:/config
+    env_file: .env.prod
+    environment:
+      <<: [*php-slot-env, *otel-env]
+      OTEL_SERVICE_NAME: "zigzag-api"
+      MERCURE_URL: http://php-green:80/.well-known/mercure
+    depends_on:
+      database:
+        condition: service_healthy
+      alloy:
+        condition: service_started
+    logging: *prod-logging
+
+  messenger_worker-green:
+    profiles: [green]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_messenger_worker_green
+    restart: unless-stopped
+    command: ["php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv"]
+    healthcheck:
+      disable: true
+    env_file: .env.prod
+    environment:
+      <<: [*worker-env, *otel-env]
+      OTEL_SERVICE_NAME: "zigzag-worker-async"
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      alloy:
+        condition: service_started
+    logging: *prod-logging
+
+  messenger_worker_webhooks-green:
+    profiles: [green]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_messenger_worker_webhooks_green
+    restart: unless-stopped
+    command: ["php", "bin/console", "messenger:consume", "async_webhooks", "--time-limit=3600", "--memory-limit=64M", "-vv"]
+    healthcheck:
+      disable: true
+    env_file: .env.prod
+    environment:
+      <<: [*worker-env, *otel-env]
+      OTEL_SERVICE_NAME: "zigzag-worker-webhooks"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      alloy:
+        condition: service_started
+    logging: *prod-logging
+
+  messenger_worker_tracking-green:
+    profiles: [green]
+    image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
+    container_name: zigzag_messenger_worker_tracking_green
+    restart: unless-stopped
+    command: ["php", "bin/console", "messenger:consume", "async_tracking", "--time-limit=3600", "--memory-limit=64M", "-vv"]
+    healthcheck:
+      disable: true
+    env_file: .env.prod
+    environment:
+      <<: [*worker-env, *otel-env]
+      OTEL_SERVICE_NAME: "zigzag-worker-tracking"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      alloy:
+        condition: service_started
+    logging: *prod-logging
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Override base compose.yaml services that are NOT used in deploy mode
+  # ══════════════════════════════════════════════════════════════════════════
+
+  # The base php service from compose.yaml is not used — blue/green slots replace it
+  php:
+    profiles: [disabled]
+
+  # Base worker services from compose.yaml are not used — blue/green slots replace them
+  messenger_worker:
+    profiles: [disabled]
 
   messenger_worker_webhooks:
-    restart: unless-stopped
-    build:
-      context: .
-      target: frankenphp_prod
-    environment:
-      APP_SECRET: ${APP_SECRET}
-      APP_ENV: prod
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: "localhost:24224"
-        fluentd-async: "true"
-        fluentd-retry-wait: "1s"
-        fluentd-max-retries: "30"
-        tag: "docker.{{.Name}}"
+    profiles: [disabled]
 
   messenger_worker_tracking:
-    restart: unless-stopped
-    build:
-      context: .
-      target: frankenphp_prod
-    environment:
-      APP_SECRET: ${APP_SECRET}
-      APP_ENV: prod
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: "localhost:24224"
-        fluentd-async: "true"
-        fluentd-retry-wait: "1s"
-        fluentd-max-retries: "30"
-        tag: "docker.{{.Name}}"
+    profiles: [disabled]
+
+volumes:
+  caddy_data_blue:
+  caddy_config_blue:
+  caddy_data_green:
+  caddy_config_green:
+  fluent_bit_cache:

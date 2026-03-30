@@ -30,10 +30,10 @@ RUN <<-EOF
 		intl \
 		opcache \
 		zip \
-        pdo_mysql \
-        redis \
-        sockets \
-        opentelemetry
+		pdo_pgsql \
+		redis \
+		sockets \
+		opentelemetry
 	rm -rf /var/lib/apt/lists/*
 EOF
 

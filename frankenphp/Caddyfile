@@ -26,6 +26,9 @@
 		}
 	}
 
+	# Trust Cloudflare and private-range proxies for X-Forwarded-* headers
+	trusted_proxies private_ranges
+
 	root /app/public
 	encode zstd br gzip
 
