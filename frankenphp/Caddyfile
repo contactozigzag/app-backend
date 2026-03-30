@@ -38,6 +38,8 @@
 		anonymous
 		# Enable the subscription API (double-check that it's what you want)
 		subscriptions
+		# Keepalive heartbeat to prevent Cloudflare's 100s idle timeout from dropping SSE connections
+		heartbeat_interval 45s
 		# Extra directives
 		{$MERCURE_EXTRA_DIRECTIVES}
 	}
