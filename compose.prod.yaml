@@ -44,7 +44,7 @@ x-logging: &prod-logging
 
 # ── Shared worker env block (YAML anchor) ──────────────────────────────────
 x-worker-env: &worker-env
-  SERVER_NAME: ":80"
+  SERVER_NAME: zigzaguealo.com
   APP_SECRET: ${APP_SECRET}
   APP_ENV: prod
   DEFAULT_URI: https://zigzaguealo.com
@@ -54,7 +54,7 @@ x-worker-env: &worker-env
 # ── Shared php-slot env block (YAML anchor) ────────────────────────────────
 x-php-slot-env: &php-slot-env
   FRANKENPHP_WORKER_CONFIG: "num 4"
-  SERVER_NAME: ":80"
+  SERVER_NAME: zigzaguealo.com
   APP_SECRET: ${APP_SECRET}
   DEFAULT_URI: https://zigzaguealo.com
   MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
