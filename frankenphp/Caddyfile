@@ -22,6 +22,10 @@
 {$CADDY_EXTRA_CONFIG}
 
 {$SERVER_NAME:localhost} {
+	# TLS with Cloudflare Origin Certificate (prod) or auto/internal (dev)
+	# Set CADDY_TLS_CONFIG env var in production to: /etc/caddy/certs/origin.pem /etc/caddy/certs/origin-key.pem
+	tls {$CADDY_TLS_CONFIG:internal}
+
 	log {
 		{$CADDY_SERVER_LOG_OPTIONS}
 		# Redact the authorization query parameter that can be set by Mercure
