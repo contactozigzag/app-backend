@@ -49,7 +49,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ]
 )]
 #[ApiFilter(SearchFilter::class, properties: [
-    'nickname' => 'start',
+    'nickname' => 'istart',
 ])]
 class Driver
 {

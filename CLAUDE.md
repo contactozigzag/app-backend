@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ZigZag is a school transportation management system built with PHP 8.4+, Symfony 8.0, API Platform 4.2, and Doctrine ORM. It features multi-tenancy (school-based data isolation), real-time GPS tracking, an async messaging pipeline, driver distress alerts, emergency chat, and MercadoPago payment integration.
+ZigZag is a school transportation management system built with PHP 8.5+, Symfony 8.0, API Platform 4.2, and Doctrine ORM. It features multi-tenancy (school-based data isolation), real-time GPS tracking, an async messaging pipeline, driver distress alerts, emergency chat, and MercadoPago payment integration.
 
 ## Common Commands
 
-All commands run inside Docker. The Makefile wraps `docker compose --env-file .env.local exec php`.
+All commands run inside Docker. The Makefile auto-detects `.env.local` (uses it if present, skips if not).
 
 ```bash
 make up dev            # Start containers
@@ -19,20 +19,43 @@ make fix               # Apply all auto-fixes (ECS + Rector)
 make phpstan           # Static analysis (level 9)
 make rector-dry        # Rector dry-run
 make ecs-dry           # ECS dry-run
+make db-reset          # Drop, create, and migrate database
+make db-diff           # Generate migration from entity changes
+make db-migrate        # Run pending migrations
 ```
 
 **Running a single test:**
 ```bash
-docker compose --env-file .env.local exec -e APP_ENV=test php bin/phpunit tests/Path/To/TestClass.php
-docker compose --env-file .env.local exec -e APP_ENV=test php bin/phpunit --filter testMethodName
+docker compose exec -e APP_ENV=test php bin/phpunit tests/Path/To/TestClass.php
+docker compose exec -e APP_ENV=test php bin/phpunit --filter testMethodName
 ```
 
 **Clearing test cache** (needed after config changes):
 ```bash
-docker compose --env-file .env.local exec -e APP_ENV=test php sh -c 'php -d memory_limit=512M bin/console cache:clear --env=test --no-warmup'
+docker compose exec -e APP_ENV=test php sh -c 'php -d memory_limit=512M bin/console cache:clear --env=test --no-warmup'
 ```
 
 ## Architecture
+
+### Infrastructure Stack
+
+```
+Client → Cloudflare (edge TLS, DDoS, CDN) → FrankenPHP/Caddy (ports 80/443)
+                                              ├── Mercure SSE hub (built-in, heartbeat 45s)
+                                              ├── Vulcain (HTTP/2 preload)
+                                              └── PHP worker mode
+```
+
+No reverse proxy between Cloudflare and FrankenPHP — Caddy serves directly with `trusted_proxies private_ranges` for X-Forwarded-* headers.
+
+### Compose File Structure (3-file, upstream symfony-docker pattern)
+
+- **`compose.yaml`** — base services (php, database, rabbitmq, redis, opensearch, workers)
+- **`compose.override.yaml`** — dev overrides (auto-loaded by `docker compose up`)
+- **`compose.prod.yaml`** — production + blue/green deploy (profiles: infra, blue, green)
+
+Dev: `docker compose up` (auto-loads override)
+Prod: `docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod --profile infra --profile <slot> up -d`
 
 ### Multi-Tenancy
 `App\Doctrine\Filter\SchoolFilter` is a Doctrine filter applied globally for school-scoped data isolation. All entities belonging to a school are filtered automatically once the filter is enabled with a school ID.
@@ -43,11 +66,12 @@ docker compose --env-file .env.local exec -e APP_ENV=test php sh -c 'php -d memo
 - Use `$client->loginUser()` (not JWT) for `main` firewall tests
 
 ### Async Messaging Pipeline
-Three Symfony Messenger transports:
-- `async` (Doctrine): general messages — email, SMS, chat, subscription processing
-- `async_webhooks` (RabbitMQ): payment webhook processing, isolated for fast turnaround
-- `async_tracking` (RabbitMQ): GPS events (`DriverLocationUpdatedMessage`), isolated from webhooks
+Three Symfony Messenger transports (all RabbitMQ via phpamqplib):
+- `async`: general messages — email, SMS, chat, subscription processing
+- `async_webhooks`: payment webhook processing, isolated for fast turnaround
+- `async_tracking`: GPS events (`DriverLocationUpdatedMessage`), isolated from webhooks
 
+Each transport requires its own dedicated worker process (phpamqplib blocking consumer).
 In `test` environment all transports use `test://` (synchronous, assertable).
 
 ### Payment Sync
@@ -74,7 +98,7 @@ This runs the full flow: fetches status from MP API → updates payment entity �
 Entities use `#[ApiResource]` with attribute-based Doctrine mapping. Custom controllers handle complex operations. If a custom controller handles `GET /api/{entity}` or `GET /api/{entity}/{id}`, remove the corresponding `Get`/`GetCollection` operations from `#[ApiResource]` to avoid route conflicts.
 
 ### Real-Time
-Mercure hub (Caddy module) publishes live updates. `EventSubscriber` classes publish to topics; `MercureController` handles client subscriptions.
+Mercure hub (Caddy module) publishes live updates with 45s heartbeat (prevents Cloudflare's 100s idle timeout from dropping SSE connections). Vulcain is enabled for HTTP/2 resource preloading. `EventSubscriber` classes publish to topics; `MercureController` handles client subscriptions.
 
 **Trip event pipeline:** `GeofencingService` dispatches `StopApproachingEvent`/`StopArrivedEvent` → `GeofencingBridgeSubscriber` bridges to `BusArrivingEvent` → `TripMercureSubscriber` publishes to `/api/users/{parentId}/notifications` (private) and `/tracking/route/{id}` (public). `AttendanceController` dispatches `StudentPickedUpEvent`/`StudentDroppedOffEvent` after flush. `ActiveRouteStatusListener` (Doctrine postUpdate/postFlush) dispatches `RouteStartedEvent`/`RouteCompletedEvent`. All Mercure publishes are non-fatal (try/catch + log).
 
@@ -124,22 +148,36 @@ Always: `createApiClient()` → create Foundry factories → `loginUser()`. Crea
 
 ## Environment
 
-- PHP 8.4+ on FrankenPHP (Caddy-based)
-- MySQL 8.4 in dev/test (SQLite with `dbname_suffix` for parallel PHPUnit workers)
-- PostgreSQL supported (default `.env` DSN)
+- PHP 8.5+ on FrankenPHP (Caddy-based) — serves directly behind Cloudflare (no Traefik)
+- PostgreSQL 18 (geo-spatial via PostGIS, JSONB, advisory locks)
 - Redis for sessions, cache, and rate limiting
-- RabbitMQ for tracking and webhook transports
+- RabbitMQ for all three Messenger transports (async, webhooks, tracking)
 - OpenSearch 2.x at `http://opensearch:9200` (single-node, security disabled) for driver full-text search
-- JWT keys in `config/jwt/` (generated via `make keys` or CI workflow)
+- JWT keys in `config/jwt/` (generated via CI workflow)
+- Distributed locks via `postgresql+advisory://` (works across containers)
 
-### Deployment (Blue/Green)
-- `compose.deploy.yaml` is the production blue/green overlay (replaces `compose.prod.yaml` for deployments)
-- `scripts/deploy.sh` runs on the droplet: build → start new slot → health check → migrate → switch Traefik → drain → stop old slot
+### Performance Optimizations
+- **OPcache JIT** (tracing mode 1255, 128MB buffer) in production
+- **Class preloading** via `opcache.preload` in production
+- **Static binary build** available (`frankenphp_static` Dockerfile target) — bundles entire app into single executable, eliminates all filesystem stat() calls
+- **Vulcain** enabled for HTTP/2 resource preloading
+- **Mercure heartbeat** at 45s prevents Cloudflare 100s idle timeout
+- **Cloudflare trusted proxies** configured in Caddyfile
+- **YAML anchors** in compose.prod.yaml to DRY up OTEL, logging, and env blocks
+
+### Deployment (Blue/Green via Caddy Admin API)
+- `compose.prod.yaml` contains blue/green slots with Docker profiles (infra, blue, green)
+- `scripts/deploy.sh` runs on the droplet: build → start new slot → health check → migrate → switch via Caddy admin API → drain → stop old slot
+- Traffic switching uses Caddy's admin API (`POST http://localhost:2019/load`) for zero-downtime graceful reload — existing connections (including Mercure SSE) drain naturally
 - `.active-slot` file on the droplet tracks which slot (blue/green) is currently live
 - `.env.prod` on the droplet contains all production secrets (never committed)
-- `traefik/dynamic/routing.yaml` is written by the deploy script to switch Traefik routing between slots
 - Deploy is triggered by pushing a `v*` tag or via GitHub Actions `workflow_dispatch`
-- Shared infrastructure (database, rabbitmq, redis, opensearch, traefik, fluent-bit) uses the `infra` profile and is never restarted during deploys
+- Shared infrastructure (database, rabbitmq, redis, opensearch, fluent-bit, alloy) uses the `infra` profile and is never restarted during deploys
+
+### Observability
+- **Traces & metrics:** OpenTelemetry → Grafana Alloy → Grafana Cloud
+- **Logs:** Fluent-bit (fluentd driver) → Grafana Cloud Loki
+- **Correlation:** Custom `CorrelationIdMiddleware` for distributed tracing across Messenger transports
 
 ### OpenSearch
 - **Env vars:** `OPENSEARCH_URL` (default `http://opensearch:9200`), `OPENSEARCH_INDEX_PREFIX` (default `zigzag_dev_`)

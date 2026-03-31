@@ -90,7 +90,7 @@ jobs:
 
       - name: Check HTTP reachability
         run: |
-          # Traefik may need a moment to discover backend services via Docker labels.
+          # FrankenPHP/Caddy may need a moment to start accepting connections.
           # Retry up to 10 times with 2s delay.
           for i in $(seq 1 10); do
             if curl -s --fail-with-body http://localhost > /dev/null 2>&1; then
@@ -110,10 +110,10 @@ jobs:
       - name: Create test database
         run: |
           docker compose exec -T database \
-            mysql -uroot -p"${MYSQL_ROOT_PASSWORD:-passwd}" \
-            -e "CREATE DATABASE IF NOT EXISTS db_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-                GRANT ALL PRIVILEGES ON db_test.* TO 'user'@'%';
-                FLUSH PRIVILEGES;"
+            psql -U "${POSTGRES_USER:-app}" -c "SELECT 1 FROM pg_database WHERE datname = 'app_test'" \
+            | grep -q 1 || \
+          docker compose exec -T database \
+            psql -U "${POSTGRES_USER:-app}" -c "CREATE DATABASE app_test"
 
       - name: Run migrations
         run: docker compose exec -T php bin/console -e test doctrine:migrations:migrate --no-interaction

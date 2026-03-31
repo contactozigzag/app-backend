@@ -176,7 +176,7 @@ final readonly class DriverSearchProvider implements ProviderInterface
         }
 
         $qb = $this->entityManager->createQueryBuilder()
-            ->select('DISTINCT d', 'u')
+            ->select('d', 'u')
             ->from(Driver::class, 'd')
             ->join('d.user', 'u')
             ->join(Route::class, 'r', 'WITH', 'r.driver = d AND r.school = :schoolId')
@@ -186,6 +186,8 @@ final readonly class DriverSearchProvider implements ProviderInterface
             ->setParameter('schoolId', $schoolId)
             ->setParameter('query', $queryLower)
             ->setParameter('queryRaw', $query . '%')
+            ->groupBy('d.id')
+            ->addGroupBy('u.id')
             ->setFirstResult($offset)
             ->setMaxResults($limit);
 

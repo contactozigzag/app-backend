@@ -1,38 +1,25 @@
 ---
-services:
-  traefik:
-    image: traefik:v3.6
-    container_name: zigzag_traefik
-    command:
-      - --providers.docker=true
-      - --providers.docker.exposedByDefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik_letsencrypt:/letsencrypt
+# Base configuration — shared across all environments.
+#
+# Dev:  `docker compose up` (auto-loads compose.override.yaml)
+# Prod: `docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod --profile infra --profile <slot> up -d`
 
+services:
   php:
     restart: unless-stopped
-    container_name: zigzag_php
     environment:
-      # FrankenPHP/Caddy listens on port 80 internally — Traefik handles external TLS in prod
-      SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
-      DEFAULT_URI: https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}
+      SERVER_NAME: ${SERVER_NAME:-, php:80}
+      DEFAULT_URI: ${DEFAULT_URI:-https://localhost}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
-      # Run "composer require symfony/orm-pack" to install and configure Doctrine ORM
-      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
-      # Run "composer require symfony/mercure-bundle" to install and configure the Mercure integration
-      # MERCURE_URL: internal (php→hub) — must resolve inside the Docker network, not via Traefik
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18}&charset=utf8
       MERCURE_URL: http://php:80/.well-known/mercure
-      # MERCURE_PUBLIC_URL: external (client→hub via Traefik) — overridden per environment
-      MERCURE_PUBLIC_URL: http://${TRAEFIK_DOMAIN:-localhost}/.well-known/mercure
+      MERCURE_PUBLIC_URL: ${MERCURE_PUBLIC_URL:-https://localhost/.well-known/mercure}
       MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
-      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-!ChangeThisGoogleMapsAPIKey!}
-      GOOGLE_MAPS_FRONTEND_API_KEY: ${GOOGLE_MAPS_FRONTEND_API_KEY:-!ChangeThisGoogleMapsFrontendAPIKey!}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      GOOGLE_MAPS_FRONTEND_API_KEY: ${GOOGLE_MAPS_FRONTEND_API_KEY:-}
       # Disable OTel auto-instrumentation in dev/test (no Alloy collector running).
-      # Production overrides this to "" in compose.deploy.yaml.
+      # Production overrides this to "" in compose.prod.yaml.
       OTEL_PHP_DISABLED_INSTRUMENTATIONS: all
     volumes:
       - caddy_data:/data
@@ -40,54 +27,24 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    labels:
-      - traefik.enable=true
-      # Main application router
-      - traefik.http.routers.zigzag-app.rule=Host(`${TRAEFIK_DOMAIN:-localhost}`)
-      - traefik.http.routers.zigzag-app.entrypoints=web
-      - traefik.http.services.zigzag-app.loadbalancer.server.port=80
-      # Mercure SSE router — needs dedicated routing with buffering disabled.
-      # Mercure uses long-lived Server-Sent Events (SSE) connections. Without disabling
-      # response buffering, Traefik will try to buffer the entire (infinite) SSE stream,
-      # causing connections to hang or drop immediately.
-      - traefik.http.routers.zigzag-mercure.rule=Host(`${TRAEFIK_DOMAIN:-localhost}`) && PathPrefix(`/.well-known/mercure`)
-      - traefik.http.routers.zigzag-mercure.entrypoints=web
-      - traefik.http.routers.zigzag-mercure.service=zigzag-app
-      # Disable response buffering for SSE and set X-Accel-Buffering: no
-      - traefik.http.middlewares.mercure-headers.headers.customResponseHeaders.X-Accel-Buffering=no
-      - traefik.http.middlewares.mercure-buffering.buffering.maxResponseBodyBytes=0
-      - traefik.http.routers.zigzag-mercure.middlewares=mercure-headers,mercure-buffering
-      # Mercure debugging tips:
-      # - If Mercure returns 401, check JWT secret mismatch between publisher/subscriber keys
-      # - If SSE connections drop immediately, verify response buffering is disabled on zigzag-mercure router
-      # - To test from Waydroid/device: curl -N http://<HOST_LAN_IP>/.well-known/mercure?topic=test — should hang (long poll)
-      # - MERCURE_URL must resolve inside the Docker network (use service name "php", not "localhost")
 
   database:
-    image: mysql:${MYSQL_VERSION:-8.4}
-    container_name: zigzag_database
+    image: postgres:${POSTGRES_VERSION:-18}-alpine
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-db}
-      MYSQL_USER: ${MYSQL_USER:-user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-passwd}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-passwd}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
     healthcheck:
-      # Use a real SQL query rather than mysqladmin ping. mysqladmin ping
-      # returns 0 as soon as the server process responds to admin requests,
-      # but before it accepts SQL connections. This race causes dbal:run-sql
-      # to get "Connection refused" (exit 255) and the entrypoint gives up
-      # immediately instead of retrying.
-      test: ["CMD-SHELL", "mysql -uroot -p$$MYSQL_ROOT_PASSWORD -e 'SELECT 1' 2>/dev/null"]
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
       interval: 5s
       timeout: 5s
       retries: 12
-      start_period: 30s
+      start_period: 15s
     volumes:
-      - database_data:/var/lib/mysql:rw
+      - database_data:/var/lib/postgresql/data:rw
 
   rabbitmq:
     image: rabbitmq:4.2-management-alpine
-    container_name: zigzag_rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -100,26 +57,16 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
       - rabbitmq_logs:/var/log/rabbitmq
-    labels:
-      - traefik.enable=true
-      # RabbitMQ management dashboard — accessible at http://rabbitmq.localhost in dev
-      - traefik.http.routers.zigzag-rabbitmq.rule=Host(`rabbitmq.${TRAEFIK_DOMAIN:-localhost}`)
-      - traefik.http.routers.zigzag-rabbitmq.entrypoints=web
-      - traefik.http.services.zigzag-rabbitmq.loadbalancer.server.port=15672
 
   redis:
     image: redis:8.4-alpine
-    container_name: zigzag_redis
     volumes:
       - redis_data:/data
 
   opensearch:
     image: opensearchproject/opensearch:2
-    container_name: zigzag_opensearch
     environment:
       discovery.type: single-node
-      # Security plugin disabled — Traefik handles external access control and all internal
-      # traffic is isolated within the Docker network. No need for internal TLS/auth.
       DISABLE_SECURITY_PLUGIN: "true"
       OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
       bootstrap.memory_lock: "true"
@@ -138,28 +85,15 @@ services:
       timeout: 5s
       retries: 12
       start_period: 30s
-    labels:
-      - traefik.enable=true
-      # OpenSearch REST API — accessible at http://opensearch.localhost in dev
-      - traefik.http.routers.zigzag-opensearch.rule=Host(`opensearch.${TRAEFIK_DOMAIN:-localhost}`)
-      - traefik.http.routers.zigzag-opensearch.entrypoints=web
-      - traefik.http.services.zigzag-opensearch.loadbalancer.server.port=9200
 
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:2
-    container_name: zigzag_opensearch_dashboards
     environment:
       OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
       DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
     depends_on:
       opensearch:
         condition: service_healthy
-    labels:
-      - traefik.enable=true
-      # OpenSearch Dashboards UI — accessible at http://dashboards.localhost in dev
-      - traefik.http.routers.zigzag-opensearch-dashboards.rule=Host(`dashboards.${TRAEFIK_DOMAIN:-localhost}`)
-      - traefik.http.routers.zigzag-opensearch-dashboards.entrypoints=web
-      - traefik.http.services.zigzag-opensearch-dashboards.loadbalancer.server.port=5601
 
   # Messenger worker services
   #
@@ -173,12 +107,11 @@ services:
     # will cause the Symfony Scheduler to dispatch duplicate subscription billing jobs.
     profiles: [workers]
     image: ${IMAGES_PREFIX:-}app-php
-    container_name: zigzag_messenger_worker
-    command: [ "php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv" ]
+    command: ["php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv"]
     healthcheck:
       disable: true
     environment:
-      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18}&charset=utf8
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
       OTEL_PHP_DISABLED_INSTRUMENTATIONS: all
     depends_on:
@@ -195,12 +128,11 @@ services:
     # from starving billing and notification processing.
     profiles: [workers]
     image: ${IMAGES_PREFIX:-}app-php
-    container_name: zigzag_messenger_worker_webhooks
-    command: [ "php", "bin/console", "messenger:consume", "async_webhooks", "--time-limit=3600", "--memory-limit=64M", "-vv" ]
+    command: ["php", "bin/console", "messenger:consume", "async_webhooks", "--time-limit=3600", "--memory-limit=64M", "-vv"]
     healthcheck:
       disable: true
     environment:
-      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18}&charset=utf8
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
       OTEL_PHP_DISABLED_INSTRUMENTATIONS: all
     depends_on:
@@ -215,12 +147,11 @@ services:
     # webhook or billing processing.
     profiles: [workers]
     image: ${IMAGES_PREFIX:-}app-php
-    container_name: zigzag_messenger_worker_tracking
-    command: [ "php", "bin/console", "messenger:consume", "async_tracking", "--time-limit=3600", "--memory-limit=64M", "-vv" ]
+    command: ["php", "bin/console", "messenger:consume", "async_tracking", "--time-limit=3600", "--memory-limit=64M", "-vv"]
     healthcheck:
       disable: true
     environment:
-      DATABASE_URL: mysql://${MYSQL_USER:-user}:${MYSQL_PASSWORD:-passwd}@database:3306/${MYSQL_DATABASE:-db}?serverVersion=${MYSQL_VERSION:-8}&charset=${MYSQL_CHARSET:-utf8mb4}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18}&charset=utf8
       RABBITMQ_DSN: ${RABBITMQ_DSN:-phpamqplib://guest:guest@rabbitmq:5672/%2f}
       OTEL_PHP_DISABLED_INSTRUMENTATIONS: all
     depends_on:
@@ -239,7 +170,6 @@ volumes:
   rabbitmq_data:
   rabbitmq_logs:
   redis_data:
-  traefik_letsencrypt:
   opensearch_data:
 
 ###> doctrine/doctrine-bundle ###

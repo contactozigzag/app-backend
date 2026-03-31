@@ -11,6 +11,12 @@
 			{$FRANKENPHP_WORKER_CONFIG}
 		}
 	}
+
+	# Trust Cloudflare and private-range proxies for X-Forwarded-* headers.
+	# This is a global server option — not a per-site directive.
+	servers {
+		trusted_proxies static private_ranges
+	}
 }
 
 {$CADDY_EXTRA_CONFIG}

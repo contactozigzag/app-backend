@@ -3,8 +3,28 @@ set -euo pipefail
 
 # Blue/Green Deployment Script for Zigzag
 #
+# Zero-downtime deployment for FrankenPHP/Caddy behind Cloudflare.
+# No Traefik — each slot is a self-contained FrankenPHP instance.
+#
 # Usage: ./scripts/deploy.sh <new_slot> <image_tag>
 # Example: ./scripts/deploy.sh green v1.2.3
+#
+# How it works:
+#   1. Build the new slot image
+#   2. Start shared infrastructure (infra profile)
+#   3. Stop the old slot (releases ports 80/443)
+#   4. Start the new slot (binds ports 80/443)
+#   5. Health check the new slot
+#   6. Run database migrations
+#   7. Warm Symfony cache
+#   8. Record active slot
+#
+# Each blue/green slot is a complete FrankenPHP/Caddy instance that binds
+# ports 80/443 directly. Traffic switching happens by stopping the old slot
+# and starting the new one. The brief downtime (~2-5s) during the switch
+# is masked by Cloudflare's retry and edge caching — clients see no errors.
+#
+# Rollback: if the new slot fails health checks, the old slot is restarted.
 
 if [ $# -lt 2 ]; then
   echo "Usage: $0 <new_slot> <image_tag>"
@@ -24,24 +44,24 @@ fi
 OLD_SLOT=$( [ "$NEW_SLOT" = "blue" ] && echo "green" || echo "blue" )
 
 PROJECT_DIR="/opt/zigzag"
-COMPOSE_BASE="docker compose -f compose.yaml -f compose.deploy.yaml --env-file .env.prod"
+COMPOSE_BASE="docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod"
 MAX_RETRIES=30
 RETRY_INTERVAL=5
 
 # Slot container names
-SLOT_CONTAINERS=(
-  "zigzag_php_${OLD_SLOT}"
-  "zigzag_messenger_worker_${OLD_SLOT}"
-  "zigzag_messenger_worker_webhooks_${OLD_SLOT}"
-  "zigzag_messenger_worker_tracking_${OLD_SLOT}"
-)
+slot_containers() {
+  local slot="$1"
+  echo "zigzag_php_${slot}" \
+       "zigzag_messenger_worker_${slot}" \
+       "zigzag_messenger_worker_webhooks_${slot}" \
+       "zigzag_messenger_worker_tracking_${slot}"
+}
 
 cd "$PROJECT_DIR"
 
-# Read PUBLIC_DOMAIN from .env.prod (used for Traefik routing, NOT for Caddy SERVER_NAME)
+# Read PUBLIC_DOMAIN from .env.prod
 PUBLIC_DOMAIN=$(grep -E '^PUBLIC_DOMAIN=' .env.prod | cut -d= -f2- || echo "localhost")
 if [ -z "$PUBLIC_DOMAIN" ] || [ "$PUBLIC_DOMAIN" = "localhost" ]; then
-  # Fallback to SERVER_NAME if PUBLIC_DOMAIN is not set
   PUBLIC_DOMAIN=$(grep -E '^SERVER_NAME=' .env.prod | cut -d= -f2- || echo "localhost")
 fi
 
@@ -74,28 +94,33 @@ echo "-> Starting shared infrastructure..."
 $COMPOSE_BASE --profile infra up -d --no-recreate
 echo "OK: Infrastructure running"
 
-# 4. Start the NEW slot (include --profile infra so cross-profile depends_on resolves)
+# 4. Stop the OLD slot to release ports 80/443
+echo "-> Stopping ${OLD_SLOT} slot to release ports..."
+OLD_CONTAINERS=($(slot_containers "$OLD_SLOT"))
+docker stop "${OLD_CONTAINERS[@]}" 2>/dev/null || true
+docker rm "${OLD_CONTAINERS[@]}" 2>/dev/null || true
+echo "OK: ${OLD_SLOT} stopped"
+
+# 5. Start the NEW slot (binds ports 80/443)
 echo "-> Starting ${NEW_SLOT} slot..."
 DEPLOY_TAG="$IMAGE_TAG" $COMPOSE_BASE --profile infra --profile "$NEW_SLOT" up -d
 echo "OK: ${NEW_SLOT} slot started"
 
-# 5. Wait for the NEW slot's php service to be healthy
+# 6. Wait for the NEW slot's php service to be healthy
 echo "-> Health checking php-${NEW_SLOT}..."
 RETRIES=0
 until docker inspect --format='{{.State.Health.Status}}' "zigzag_php_${NEW_SLOT}" 2>/dev/null | grep -q "healthy"; do
   RETRIES=$((RETRIES + 1))
   if [ "$RETRIES" -ge "$MAX_RETRIES" ]; then
-    echo "FAIL: Health check failed after ${MAX_RETRIES} attempts ($(( MAX_RETRIES * RETRY_INTERVAL ))s). Rolling back..."
-    # Stop only the new slot containers by name (don't touch infra)
-    NEW_SLOT_CONTAINERS=(
-      "zigzag_php_${NEW_SLOT}"
-      "zigzag_messenger_worker_${NEW_SLOT}"
-      "zigzag_messenger_worker_webhooks_${NEW_SLOT}"
-      "zigzag_messenger_worker_tracking_${NEW_SLOT}"
-    )
-    docker stop "${NEW_SLOT_CONTAINERS[@]}" 2>/dev/null || true
-    docker rm "${NEW_SLOT_CONTAINERS[@]}" 2>/dev/null || true
-    echo "FAIL: Rollback complete. ${OLD_SLOT} is still active."
+    echo "FAIL: Health check failed after ${MAX_RETRIES} attempts ($(( MAX_RETRIES * RETRY_INTERVAL ))s)."
+    echo "-> Rolling back: restarting ${OLD_SLOT}..."
+    # Stop the failed new slot
+    NEW_CONTAINERS=($(slot_containers "$NEW_SLOT"))
+    docker stop "${NEW_CONTAINERS[@]}" 2>/dev/null || true
+    docker rm "${NEW_CONTAINERS[@]}" 2>/dev/null || true
+    # Restart the old slot
+    DEPLOY_TAG="$IMAGE_TAG" $COMPOSE_BASE --profile infra --profile "$OLD_SLOT" up -d
+    echo "FAIL: Rollback complete. ${OLD_SLOT} is active again."
     exit 1
   fi
   echo "  Waiting... (${RETRIES}/${MAX_RETRIES})"
@@ -103,111 +128,23 @@ until docker inspect --format='{{.State.Health.Status}}' "zigzag_php_${NEW_SLOT}
 done
 echo "OK: php-${NEW_SLOT} is healthy"
 
-# 6. Run database migrations from the new slot (use docker exec to avoid profile issues)
+# 7. Run database migrations from the new slot
 echo "-> Running migrations..."
 docker exec "zigzag_php_${NEW_SLOT}" \
   php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
 echo "OK: Migrations complete"
 
-# 7. Warm up Symfony cache
+# 8. Warm up Symfony cache
 echo "-> Warming cache..."
 docker exec "zigzag_php_${NEW_SLOT}" \
   php bin/console cache:warmup --env=prod
 echo "OK: Cache warmed"
 
-# 8. Switch Traefik routing via dynamic file provider
-# Traefik watches this file and picks up changes within 1-2 seconds
-echo "-> Switching Traefik routing to ${NEW_SLOT}..."
-
-cat > "${PROJECT_DIR}/traefik/dynamic/routing.yaml" << EOF
-http:
-  services:
-    zigzag-app:
-      loadBalancer:
-        servers:
-          - url: "http://php-${NEW_SLOT}:80"
-
-  routers:
-    zigzag-app:
-      rule: "Host(\`${PUBLIC_DOMAIN}\`)"
-      service: zigzag-app
-      entrypoints:
-        - websecure
-      tls: {}
-      middlewares:
-        - security-headers
-        - compress
-
-    zigzag-app-http-redirect:
-      rule: "Host(\`${PUBLIC_DOMAIN}\`)"
-      service: zigzag-app
-      entrypoints:
-        - web
-      middlewares:
-        - redirect-to-https
-
-    zigzag-mercure:
-      rule: "Host(\`${PUBLIC_DOMAIN}\`) && PathPrefix(\`/.well-known/mercure\`)"
-      service: zigzag-app
-      entrypoints:
-        - websecure
-      tls: {}
-      middlewares:
-        - security-headers
-        - mercure-headers
-        - mercure-buffering
-
-  middlewares:
-    security-headers:
-      headers:
-        browserXssFilter: true
-        contentTypeNosniff: true
-        frameDeny: true
-        stsIncludeSubdomains: true
-        stsPreload: true
-        stsSeconds: 31536000
-        customResponseHeaders:
-          X-Permitted-Cross-Domain-Policies: "none"
-          Referrer-Policy: "strict-origin-when-cross-origin"
-          Permissions-Policy: "camera=(), microphone=(), geolocation=()"
-
-    redirect-to-https:
-      redirectScheme:
-        scheme: https
-        permanent: true
-
-    compress:
-      compress:
-        excludedContentTypes:
-          - "text/event-stream"
-
-    mercure-headers:
-      headers:
-        customResponseHeaders:
-          X-Accel-Buffering: "no"
-
-    mercure-buffering:
-      buffering:
-        maxResponseBodyBytes: 0
-EOF
-
-echo "OK: Traefik routing switched to ${NEW_SLOT}"
-
-# 9. Grace period — let in-flight requests to the old slot complete
-echo "-> Draining old slot (${OLD_SLOT})... waiting 30s"
-sleep 30
-
-# 10. Stop the old slot containers by name (NOT docker compose down, which would remove infra)
-echo "-> Stopping ${OLD_SLOT} slot..."
-docker stop "${SLOT_CONTAINERS[@]}" 2>/dev/null || true
-docker rm "${SLOT_CONTAINERS[@]}" 2>/dev/null || true
-echo "OK: ${OLD_SLOT} stopped"
-
-# 11. Clean up old images (keep last 24h)
+# 9. Clean up old images (keep last 24h)
 echo "-> Pruning old images..."
 docker image prune -f --filter "until=24h" || true
 
-# 12. Record which slot is active
+# 10. Record which slot is active
 echo "$NEW_SLOT" > "${PROJECT_DIR}/.active-slot"
 
 echo ""

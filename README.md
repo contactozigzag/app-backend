@@ -27,7 +27,7 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 - **Doctrine ORM** — Database abstraction and entity management
 
 ### Database & Caching
-- **MySQL 8.4** — Primary relational database
+- **PostgreSQL 18** — Primary relational database (geo-spatial via PostGIS, JSONB, advisory locks)
 - **Redis 8.4** — GPS location cache (15s TTL), rate limiter storage, OAuth idempotency keys
 
 ### Message Queue & Async
@@ -48,14 +48,16 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 
 ### Authentication & Security
 - **JWT (LexikJWTAuthenticationBundle)** — Stateless API authentication; RSA-256, 2-hour TTL
-- **Refresh Tokens (GesdinetJWTRefreshTokenBundle)** — Single-use rotating refresh tokens; 30-day TTL, stored in MySQL
+- **Refresh Tokens (GesdinetJWTRefreshTokenBundle)** — Single-use rotating refresh tokens; 30-day TTL, stored in PostgreSQL
 - **Custom Security Voter** — `RouteManagementVoter` for runtime driver privilege elevation
 - **RBAC** — Hierarchical role-based access control
 - **Multi-tenant Filtering** — Automatic school-based Doctrine filter
 - **libsodium secretbox** — Driver OAuth token encryption and chat message encryption
 
 ### Infrastructure
-- **Traefik v3** — Reverse proxy and TLS termination (Let's Encrypt in prod, plain HTTP in dev)
+- **Cloudflare** — Edge TLS termination, DDoS protection, CDN caching
+- **FrankenPHP/Caddy** — Serves directly behind Cloudflare (no reverse proxy), built-in Mercure SSE hub
+- **Vulcain** — HTTP/2 resource preloading
 - **OpenSearch 2.x** — Full-text search engine (single-node, security plugin disabled — Docker network isolation)
 - **OpenSearch Dashboards** — OpenSearch management UI (dev only)
 
@@ -78,13 +80,13 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 │  Mobile Apps    │
 │  (iOS/Android)  │
 └────────┬────────┘
-         │ HTTP (dev) / HTTPS (prod)
+         │ HTTPS
          │
 ┌────────▼────────┐
-│   Traefik v3    │  ← single entry-point reverse proxy
-│  (TLS in prod)  │    Let's Encrypt ACME in prod; plain HTTP in dev
+│   Cloudflare    │  ← edge TLS, DDoS, CDN
+│  (edge proxy)   │
 └────────┬────────┘
-         │ Docker internal networking (HTTP)
+         │ HTTP/HTTPS (origin)
          │
 ┌────────▼─────────────────────────────────────────┐
 │        FrankenPHP + Caddy (Symfony 8)            │
@@ -108,10 +110,10 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
                     │
     ┌───────────────┼────────────────┐
     │               │                │
-┌───▼────┐    ┌────▼────┐    ┌─────▼─────┐
-│ MySQL  │    │  Redis  │    │ RabbitMQ  │
-│   DB   │    │  Cache  │    │  Queues   │
-└────────┘    └─────────┘    └───────────┘
+┌───▼────────┐ ┌────▼────┐    ┌─────▼─────┐
+│ PostgreSQL │ │  Redis  │    │ RabbitMQ  │
+│     DB     │ │  Cache  │    │  Queues   │
+└────────────┘ └─────────┘    └───────────┘
                     │
     ┌───────────────┼────────────────┐
     │                                │
@@ -128,8 +130,8 @@ Driver POST /api/tracking/location
          │
          ▼ (rate check: 1 req / 3 s per driver)
    TrackingController
-         ├── persist LocationUpdate to MySQL
-         ├── update ActiveRoute.currentLat/Lng in MySQL
+         ├── persist LocationUpdate to PostgreSQL
+         ├── update ActiveRoute.currentLat/Lng in PostgreSQL
          ├── cacheLocation() → Redis (15 s TTL)
          └── dispatch DriverLocationUpdatedMessage → async_tracking (RabbitMQ)
                             │
@@ -1200,8 +1202,8 @@ cp .env .env.local
 
 Edit `.env.local`:
 ```bash
-# Database
-DATABASE_URL="mysql://zigzag:ZigZagTech!2026@127.0.0.1:3306/zigzag?serverVersion=8.4&charset=utf8mb4"
+# Database (PostgreSQL 18)
+DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app?serverVersion=18&charset=utf8"
 
 # JWT
 JWT_PASSPHRASE=your-secure-passphrase
@@ -1215,17 +1217,13 @@ FCM_SERVER_KEY=your-fcm-server-key
 SMS_API_KEY=your-sms-api-key
 SMS_API_URL=https://api.smsprovider.com/send
 
-# RabbitMQ (three transports)
-RABBITMQ_DSN=phpamqplib://guest:guest@rabbitmq:5672/%2f/webhooks
-RABBITMQ_DSN_TRACKING=phpamqplib://guest:guest@rabbitmq:5672/%2f/tracking
+# RabbitMQ (single DSN, three exchanges configured in messenger.yaml)
+RABBITMQ_DSN=phpamqplib://guest:guest@rabbitmq:5672/%2f
 
-# Mercure (internal URL uses Docker service name; public URL goes through Traefik)
+# Mercure (internal URL uses Docker service name; public URL goes through Cloudflare)
 MERCURE_URL=http://php:80/.well-known/mercure
-MERCURE_PUBLIC_URL=http://localhost/.well-known/mercure
+MERCURE_PUBLIC_URL=https://localhost/.well-known/mercure
 MERCURE_JWT_SECRET="change-this-to-a-strong-secret"
-
-# Traefik (prod only — ACME Let's Encrypt email)
-ACME_EMAIL=admin@yourschool.com
 
 # Mercado Pago
 MERCADOPAGO_ACCESS_TOKEN=TEST-your-platform-access-token
@@ -1239,6 +1237,9 @@ MERCADOPAGO_MARKETPLACE_FEE_PERCENT=0
 # Generate: php -r "echo base64_encode(random_bytes(32));"
 TOKEN_ENCRYPTION_KEY=
 
+# Distributed locks (PostgreSQL advisory locks)
+LOCK_DSN=postgresql+advisory://app:!ChangeMe!@database:5432/app
+
 # Driver Route Management Flag (default: off)
 DRIVER_ROUTE_MANAGEMENT_ENABLED=false
 
@@ -1247,8 +1248,10 @@ DISTRESS_PROXIMITY_KM=5.0
 ```
 
 ```bash
-# Start containers
-docker compose --env-file .env.local up -d --wait
+# Start containers (FrankenPHP serves directly on ports 80/443)
+make up dev
+# Or without Makefile:
+docker compose up -d --wait
 
 # Install dependencies
 docker compose exec php composer install
@@ -1260,8 +1263,8 @@ docker compose exec php php bin/console lexik:jwt:generate-keypair
 docker compose exec php php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
-**API:** http://localhost | **Docs:** http://localhost/api/docs | **Traefik Dashboard:** http://127.0.0.1:8080
-**RabbitMQ Management:** http://rabbitmq.localhost | **OpenSearch:** http://opensearch.localhost | **OpenSearch Dashboards:** http://dashboards.localhost
+**API:** https://localhost | **Docs:** https://localhost/api/docs
+**RabbitMQ Management:** http://localhost:15672 | **OpenSearch Dashboards:** http://localhost:5601
 
 ### Background Workers
 
@@ -1897,7 +1900,7 @@ The following polling endpoints can now be replaced with the SSE connection abov
 - Custom `RouteManagementVoter` for runtime driver privilege elevation
 - Role-based authorization with hierarchical permissions (ROLE_SCHOOL_ADMIN → ROLE_DRIVER, ROLE_PARENT)
 - Multi-tenant Doctrine filter — automatic per-request school context isolation
-- TLS termination via Traefik (Let's Encrypt) in prod; Caddy embedded for Mercure; libsodium secretbox for token and message encryption
+- TLS termination via Cloudflare (edge) in prod; FrankenPHP/Caddy serves directly with `trusted_proxies private_ranges`; libsodium secretbox for token and message encryption
 - Webhook HMAC-SHA256 signature validation with replay-attack prevention
 - CSRF-protected MP OAuth flow (Redis-backed single-use state tokens, 10-min TTL)
 - Private Mercure topics for payments, user notifications, and emergency chat; subscribers require a valid JWT
@@ -1905,10 +1908,17 @@ The following polling endpoints can now be replaced with the SSE connection abov
 
 ## 📊 Performance Considerations
 
-- **Redis first** — GPS `getDriverLocation` reads Redis (< 15 s TTL) before hitting MySQL
+- **No reverse proxy** — FrankenPHP/Caddy serves directly behind Cloudflare, eliminating a proxy hop (~1-3ms/req)
+- **OPcache JIT** — tracing mode 1255 with 128MB buffer in production (10-30% API improvement)
+- **Class preloading** — `opcache.preload` loads the Symfony container at startup
+- **Static binary build** — optional `frankenphp_static` Dockerfile target bundles entire app into one executable, eliminating all filesystem `stat()` calls
+- **Vulcain** — HTTP/2 resource preloading for API Platform relations
+- **Mercure heartbeat** — 45s keepalive prevents Cloudflare's 100s idle timeout from dropping SSE connections
+- **Redis first** — GPS `getDriverLocation` reads Redis (< 15 s TTL) before hitting PostgreSQL
 - **Async fanout** — GPS side-effects (geofencing, Mercure, proximity) are fully non-blocking
 - **Three RabbitMQ transports** — tracking, webhooks, and general async are independently scalable
 - **OpenSearch** — full-text search offloaded to OpenSearch (accessed internally at `http://opensearch:9200`)
+- **PostgreSQL advisory locks** — distributed locks across containers via `postgresql+advisory://`
 - **Database indexing** — all high-frequency query columns indexed; driver nickname search uses `start` strategy (`LIKE 'value%'`) for B-tree index utilization
 - **Role-scoped collections** — Route, RouteStop, and ActiveRoute GetCollection endpoints use custom providers to return only data the authenticated user is authorized to see (driver isolation)
 - **FrankenPHP worker mode** — application boots once, handles thousands of requests in-process
@@ -1920,7 +1930,7 @@ ZigZag uses a **blue/green deployment strategy** on a single DigitalOcean Drople
 
 ### How It Works
 
-Two "slots" (blue and green) each run a complete set of application containers (php + workers). Stateful services (database, RabbitMQ, Redis, OpenSearch) are shared. Traefik routes traffic to the active slot via a dynamic file provider.
+Two "slots" (blue and green) each run a complete set of application containers (php + workers). Stateful services (database, RabbitMQ, Redis, OpenSearch) are shared. Traffic switching uses Caddy's admin API for zero-downtime graceful reload — existing connections (including Mercure SSE) drain naturally.
 
 ```
 1. Determine inactive slot (if blue is active → deploy to green)
@@ -1928,7 +1938,7 @@ Two "slots" (blue and green) each run a complete set of application containers (
 3. Start the inactive slot with the new image
 4. Health-check the new slot's php service
 5. Run database migrations
-6. Switch Traefik routing (file provider, ~1s switchover)
+6. Switch traffic via Caddy admin API (POST localhost:2019/load)
 7. Drain old slot (30s grace period) and stop it
 8. If health check fails → automatic rollback (old slot stays active)
 ```
@@ -1976,11 +1986,10 @@ All production secrets live in `.env.prod` **on the droplet only** — never in 
 
 | File | Purpose |
 |---|---|
-| `compose.deploy.yaml` | Blue/green production compose overlay |
-| `scripts/deploy.sh` | Deployment script (runs on droplet) |
+| `compose.prod.yaml` | Production + blue/green compose overlay (profiles: infra, blue, green) |
+| `scripts/deploy.sh` | Deployment script (runs on droplet, uses Caddy admin API) |
 | `.github/workflows/deploy.yaml` | GitHub Actions deploy workflow |
 | `env.prod.template` | Production env template (committed, no secrets) |
-| `traefik/dynamic/routing.yaml` | Traefik routing config (written by deploy script) |
 | `.active-slot` | Tracks which slot is live (on droplet) |
 
 ## 🤝 Contributing

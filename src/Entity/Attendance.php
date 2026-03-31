@@ -17,8 +17,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AttendanceRepository::class)]
 #[ORM\Table(name: 'attendance')]
-#[ORM\Index(name: 'idx_student_date', columns: ['student_id', 'date'])]
-#[ORM\Index(name: 'idx_route_stop', columns: ['active_route_stop_id'])]
+#[ORM\Index(name: 'idx_attendance_student_date', columns: ['student_id', 'date'])]
+#[ORM\Index(name: 'idx_attendance_route_stop', columns: ['active_route_stop_id'])]
 #[ApiResource(
     operations: [
         new Get(security: "is_granted('ROLE_USER')"),

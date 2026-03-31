@@ -94,7 +94,7 @@ final class RouteStopNotificationPublisherTest extends TestCase
 
     public function testPublishFailureIsLoggedNotThrown(): void
     {
-        $hub = $this->createMock(HubInterface::class);
+        $hub = $this->createStub(HubInterface::class);
         $hub->method('publish')->willThrowException(new RuntimeException('Hub down'));
 
         $publisher = new RouteStopNotificationPublisher($hub, new NullLogger());

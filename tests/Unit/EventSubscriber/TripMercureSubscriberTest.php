@@ -127,7 +127,7 @@ final class TripMercureSubscriberTest extends TestCase
 
     public function testMercurePublishFailureIsLoggedNotThrown(): void
     {
-        $hub = $this->createMock(HubInterface::class);
+        $hub = $this->createStub(HubInterface::class);
         $hub->method('publish')->willThrowException(new RuntimeException('Hub down'));
 
         $subscriber = new TripMercureSubscriber($hub, new NullLogger());
