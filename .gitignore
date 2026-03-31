@@ -34,4 +34,5 @@ phpstan.neon
 /frankenphp/certs/*.pem
 /frankenphp/certs/*.crt
 /frankenphp/certs/*.key
+!/frankenphp/certs/.gitkeep
 ###< deployment ###

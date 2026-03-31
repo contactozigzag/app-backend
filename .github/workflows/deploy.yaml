@@ -262,6 +262,7 @@ jobs:
             --exclude='.env.prod' \
             --exclude='config/jwt/' \
             --exclude='.active-slot' \
+            --exclude='frankenphp/certs/' \
             ./ "${DEPLOY_USER}@${DROPLET_IP}:${PROJECT_DIR}/"
 
       - name: Run deploy script
