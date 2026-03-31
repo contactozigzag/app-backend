@@ -181,6 +181,7 @@ services:
         protocol: udp
     volumes:
       - ./config/jwt:/app/config/jwt:rw,cached
+      - ./frankenphp/certs:/certs:ro
       - caddy_data_blue:/data
       - caddy_config_blue:/config
     env_file: .env.prod
@@ -282,6 +283,7 @@ services:
         protocol: udp
     volumes:
       - ./config/jwt:/app/config/jwt:rw,cached
+      - ./frankenphp/certs:/certs:ro
       - caddy_data_green:/data
       - caddy_config_green:/config
     env_file: .env.prod
