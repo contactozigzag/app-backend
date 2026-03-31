@@ -22,8 +22,6 @@
 {$CADDY_EXTRA_CONFIG}
 
 {$SERVER_NAME:localhost} {
-	tls /certs/origin.pem /certs/origin-key.pem
-
 	log {
 		{$CADDY_SERVER_LOG_OPTIONS}
 		# Redact the authorization query parameter that can be set by Mercure

@@ -57,6 +57,7 @@ x-php-slot-env: &php-slot-env
   SERVER_NAME: zigzaguealo.com
   APP_SECRET: ${APP_SECRET}
   DEFAULT_URI: https://zigzaguealo.com
+  CADDY_SERVER_EXTRA_DIRECTIVES: "tls /certs/origin.pem /certs/origin-key.pem"
   MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
   MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
   MERCURE_PUBLIC_URL: https://${PUBLIC_DOMAIN:-localhost}/.well-known/mercure
