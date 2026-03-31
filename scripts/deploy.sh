@@ -137,7 +137,7 @@ echo "OK: Migrations complete"
 # 8. Warm up Symfony cache
 echo "-> Warming cache..."
 docker exec "zigzag_php_${NEW_SLOT}" \
-  php bin/console cache:warmup --env=prod
+  php -d memory_limit=512M bin/console cache:warmup --env=prod
 echo "OK: Cache warmed"
 
 # 9. Clean up old images (keep last 24h)
