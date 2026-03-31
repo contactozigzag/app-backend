@@ -28,7 +28,7 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 
 ### Database & Caching
 - **PostgreSQL 18** — Primary relational database (geo-spatial via PostGIS, JSONB, advisory locks)
-- **Redis 8.4** — GPS location cache (15s TTL), rate limiter storage, OAuth idempotency keys
+- **Redis 8.4** — GPS location cache (15s TTL), rate limiter storage, OAuth idempotency keys, named cache pools (MP fees, routes, drivers, students, geo, config)
 
 ### Message Queue & Async
 - **RabbitMQ 4.2** — Three transports: `async` (general), `async_webhooks` (payment), `async_tracking` (GPS pipeline)
@@ -1915,6 +1915,11 @@ The following polling endpoints can now be replaced with the SSE connection abov
 - **Vulcain** — HTTP/2 resource preloading for API Platform relations
 - **Mercure heartbeat** — 45s keepalive prevents Cloudflare's 100s idle timeout from dropping SSE connections
 - **Redis first** — GPS `getDriverLocation` reads Redis (< 15 s TTL) before hitting PostgreSQL
+- **Named Redis cache pools** — six dedicated pools with tuned TTLs and tag-based invalidation; see table below
+- **HTTP cache headers** — `Cache-Control: private, max-age=60` on authenticated GETs; `public, s-maxage=300` on public GETs; `no-store` on mutations/webhooks; ETag on 200 responses for conditional requests
+- **APCu system cache** — Symfony framework metadata (serializer, validator, container) cached in-process via APCu in prod (FrankenPHP worker mode); zero network hop vs Redis
+- **Doctrine result cache** — query results cached via `doctrine.result_cache_pool` (Redis) in prod; DQL → SQL parsing cached via `doctrine.system_cache_pool` (APCu) in prod
+- **Cache stampede prevention** — Symfony's built-in `beta` parameter in `CacheInterface::get()` prevents thundering herd on popular key expiry
 - **Async fanout** — GPS side-effects (geofencing, Mercure, proximity) are fully non-blocking
 - **Three RabbitMQ transports** — tracking, webhooks, and general async are independently scalable
 - **OpenSearch** — full-text search offloaded to OpenSearch (accessed internally at `http://opensearch:9200`)
@@ -1923,6 +1928,42 @@ The following polling endpoints can now be replaced with the SSE connection abov
 - **Role-scoped collections** — Route, RouteStop, and ActiveRoute GetCollection endpoints use custom providers to return only data the authenticated user is authorized to see (driver isolation)
 - **FrankenPHP worker mode** — application boots once, handles thousands of requests in-process
 - **Pagination** — all collection endpoints are paginated (default 20, max 50 per page)
+
+### Redis Cache Pools
+
+| Pool | Purpose | TTL | Tags |
+|---|---|---|---|
+| `cache.app` | Default app cache (sessions, MP payment status) | 1 hour | No |
+| `cache.mp_fees` | Mercado Pago fee rates & commission calculations | 6 hours | No |
+| `cache.routes` | Route definitions, stops, student assignments | 5 min | Yes |
+| `cache.drivers` | Driver profiles, vehicle info, ratings | 10 min | Yes |
+| `cache.students` | Student profiles, parent associations, school info | 10 min | Yes |
+| `cache.geo` | Geocoded addresses (365 days), distance calculations (1 hour) | 1 hour | No |
+| `cache.config` | App configuration, feature flags, pricing tiers | 30 min | No |
+| `cache.system` | Symfony framework metadata (APCu in prod) | Process lifetime | No |
+
+Tag-based invalidation (`route_{id}`, `driver_{id}`, `student_{id}`) is handled by `EntityCacheListener` (Doctrine `postUpdate`/`postRemove`). Cache entries for a route flush atomically when its entity changes — no stale manifests.
+
+To manually invalidate a specific pool:
+```bash
+php bin/console cache:pool:clear cache.mp_fees    # after MP changes fee rates
+php bin/console cache:pool:clear cache.routes     # after bulk route import
+php bin/console cache:pool:list                   # verify pools are registered
+```
+
+### Monitoring: Redis Memory
+
+`GET /health` includes a `redis` check that reports `used_memory`, `maxmemory`, and `used_percent`. Status `warning` fires at 80% of `maxmemory` (currently 128 MB). At that point, `allkeys-lru` eviction kicks in and effective TTLs shrink — tune pool TTLs or increase `maxmemory` accordingly.
+
+```json
+"redis": {
+  "status": "healthy",
+  "used_bytes": 8388608,
+  "max_bytes": 134217728,
+  "used_percent": 6.25,
+  "message": "Redis memory usage normal"
+}
+```
 
 ## 🚀 Deployment
 
@@ -1938,9 +1979,11 @@ Two "slots" (blue and green) each run a complete set of application containers (
 3. Start the inactive slot with the new image
 4. Health-check the new slot's php service
 5. Run database migrations
-6. Switch traffic via Caddy admin API (POST localhost:2019/load)
-7. Drain old slot (30s grace period) and stop it
-8. If health check fails → automatic rollback (old slot stays active)
+6. Warm Symfony cache (`cache:warmup`)
+7. Warm Redis cache pools (`app:cache:warm` — routes, drivers, MP fees, school geocodes)
+8. Switch traffic via Caddy admin API (POST localhost:2019/load)
+9. Drain old slot (30s grace period) and stop it
+10. If health check fails → automatic rollback (old slot stays active)
 ```
 
 ### Deploying

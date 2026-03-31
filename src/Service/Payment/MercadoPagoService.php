@@ -27,6 +27,10 @@ class MercadoPagoService
 {
     private const int STATUS_CACHE_TTL = 60; // 1 minute
 
+    private const int FEE_RATE_CACHE_TTL = 21600; // 6 hours
+
+    private const string FEE_RATE_CACHE_KEY = 'mp_fee_rate_immediate_ars';
+
     private readonly PreferenceClient $preferenceClient;
 
     private readonly PaymentClient $paymentClient;
@@ -43,6 +47,8 @@ class MercadoPagoService
         private readonly float $marketplaceFeePercent,
         #[Autowire(service: 'cache.app')]
         private readonly CacheInterface $cache,
+        #[Autowire(service: 'cache.mp_fees')]
+        private readonly CacheInterface $mpFeesCache,
         private readonly LoggerInterface $logger,
         #[Autowire(param: 'kernel.environment')]
         private readonly string $appEnv = 'dev',
@@ -164,7 +170,29 @@ class MercadoPagoService
             return 0.0;
         }
 
-        return round($amount * $this->marketplaceFeePercent / 100, 2);
+        return round($amount * $this->getEffectiveFeeRate(), 2);
+    }
+
+    /**
+     * Returns the effective fee rate (0–1 scale), cached for 6 hours.
+     *
+     * The rate is currently sourced from an env var, but caching it in
+     * cache.mp_fees establishes the pattern for when it moves to a DB-backed
+     * config that admins can update without a deploy. Invalidate via:
+     *   php bin/console cache:pool:clear cache.mp_fees
+     */
+    private function getEffectiveFeeRate(): float
+    {
+        $feePercent = $this->marketplaceFeePercent;
+
+        return $this->mpFeesCache->get(
+            self::FEE_RATE_CACHE_KEY,
+            static function (ItemInterface $item) use ($feePercent): float {
+                $item->expiresAfter(self::FEE_RATE_CACHE_TTL);
+
+                return $feePercent / 100.0;
+            },
+        );
     }
 
     /**
