@@ -3,17 +3,95 @@ framework:
         # Unique name of your app: used to compute stable namespaces for cache keys.
         #prefix_seed: your_vendor_name/app_name
 
-        # The "app" cache stores to the filesystem by default.
-        # The data in this cache should persist between deploys.
-        # Other options include:
-
-        # Redis
+        # Redis is the primary cache backend. All named pools below default to Redis
+        # unless overridden in when@test (array) or when@prod (APCu for system).
         app: cache.adapter.redis
         default_redis_provider: redis://redis
 
-        # APCu (not recommended with heavy random-write workloads as memory fragmentation can cause perf issues)
-        #app: cache.adapter.apcu
+        # APCu for in-process system/framework caches.
+        # In FrankenPHP worker mode, APCu lives in the persistent worker process —
+        # faster than Redis for framework metadata (zero network hop, zero serialization).
+        # Only activate in prod; dev/test fall back to the default PhpFiles adapter.
 
-        # Namespaced pools use the above "app" backend by default
-        #pools:
-            #my.dedicated.cache: null
+        pools:
+            # MP fee rates & commission calculations.
+            # Fee rates change rarely (MP announces changes weeks in advance).
+            # Caching the computed rate avoids recalculation on every payment creation
+            # and makes it easy to swap in a DB-backed rate without re-deploying.
+            cache.mp_fees:
+                adapter: cache.adapter.redis
+                default_lifetime: 21600  # 6 hours
+
+            # Route definitions, stops, student assignments.
+            # Read-heavy: parents & drivers query this constantly. Short TTL because
+            # an admin can modify routes at any time. Tag-based invalidation flushes
+            # affected entries immediately on change.
+            cache.routes:
+                adapter: cache.adapter.redis
+                tags: true
+                default_lifetime: 300  # 5 min
+
+            # Driver profiles, vehicle info, ratings.
+            # Rarely updated — queried on every trip screen open.
+            # Tag-based so we can flush a single driver on PATCH /api/drivers/{id}.
+            cache.drivers:
+                adapter: cache.adapter.redis
+                tags: true
+                default_lifetime: 600  # 10 min
+
+            # Student profiles, parent associations, school info.
+            # Rarely updated — queried when loading trip manifests.
+            # Tag-based so we can flush a single student or an entire route's manifest.
+            cache.students:
+                adapter: cache.adapter.redis
+                tags: true
+                default_lifetime: 600  # 10 min
+
+            # Geocoded addresses and distance calculations.
+            # Geocoding is expensive (Google Maps API latency + cost).
+            # Addresses are effectively permanent; distances change only with road
+            # changes, not daily traffic. 1 hour is conservative.
+            cache.geo:
+                adapter: cache.adapter.redis
+                default_lifetime: 3600  # 1 hour
+
+            # App configuration, feature flags, pricing tiers, subscription plans.
+            # Almost never changes at runtime. 30 min avoids stale config while
+            # keeping DB load near zero for config lookups.
+            cache.config:
+                adapter: cache.adapter.redis
+                default_lifetime: 1800  # 30 min
+
+# In test, replace Redis pools with in-memory array adapters so tests:
+#  1. Don't require a live Redis connection
+#  2. Don't leak state between test cases
+#  3. Execute faster
+when@test:
+    framework:
+        cache:
+            pools:
+                cache.mp_fees:
+                    adapter: cache.adapter.array
+                cache.routes:
+                    adapter: cache.adapter.array
+                    tags: true
+                cache.drivers:
+                    adapter: cache.adapter.array
+                    tags: true
+                cache.students:
+                    adapter: cache.adapter.array
+                    tags: true
+                cache.geo:
+                    adapter: cache.adapter.array
+                cache.config:
+                    adapter: cache.adapter.array
+
+# In production, upgrade the Symfony system cache (framework metadata, serializer
+# metadata, validator metadata) to APCu. In FrankenPHP worker mode the process is
+# long-lived, so APCu entries persist across requests with zero Redis round-trips.
+# APCu is per-process; use Redis (cache.app) for anything that must be shared across
+# multiple workers or containers.
+when@prod:
+    framework:
+        cache:
+            system: cache.adapter.apcu

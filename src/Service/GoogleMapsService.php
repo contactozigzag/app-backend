@@ -8,15 +8,27 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
-class GoogleMapsService
+readonly class GoogleMapsService
 {
-    private readonly Client $client;
+    // Geocoded coordinates are essentially permanent — addresses don't move.
+    // Cache for 1 year to avoid re-billing the same address on every deploy.
+    private const int GEOCODE_TTL = 31_536_000; // 365 days
+
+    // Distance calculations change with road works but not daily traffic.
+    // Route distances are stable; 1 hour matches cache.geo pool default.
+    private const int DISTANCE_TTL = 3_600; // 1 hour
+
+    private Client $client;
 
     public function __construct(
         #[Autowire(env: 'GOOGLE_MAPS_API_KEY')]
-        private readonly string $apiKey,
-        private readonly LoggerInterface $logger
+        private string $apiKey,
+        private LoggerInterface $logger,
+        #[Autowire(service: 'cache.geo')]
+        private CacheInterface $geoCache,
     ) {
         $this->client = new Client([
             'base_uri' => 'https://maps.googleapis.com/maps/api/',
@@ -25,12 +37,30 @@ class GoogleMapsService
     }
 
     /**
-     * Validate and geocode an address using Google Places API
+     * Validate and geocode an address using Google Places API.
+     * Results are cached for 365 days — addresses don't move.
+     * Failed lookups use the pool's 1-hour default TTL to avoid hammering the API.
      *
-     * @param string $address The address to validate
      * @return array{lat: float, lng: float, formatted_address: string, place_id: string}|null
      */
     public function geocodeAddress(string $address): ?array
+    {
+        $cacheKey = 'geocode_' . md5($address);
+
+        return $this->geoCache->get($cacheKey, function (ItemInterface $item) use ($address): ?array {
+            $result = $this->fetchGeocode($address);
+            if ($result !== null) {
+                $item->expiresAfter(self::GEOCODE_TTL);
+            }
+
+            return $result;
+        });
+    }
+
+    /**
+     * @return array{lat: float, lng: float, formatted_address: string, place_id: string}|null
+     */
+    private function fetchGeocode(string $address): ?array
     {
         try {
             $response = $this->client->get('geocode/json', [
@@ -208,13 +238,33 @@ class GoogleMapsService
     }
 
     /**
-     * Get distance and duration between two points using Distance Matrix API
+     * Get distance and duration between two points using Distance Matrix API.
+     * Cached for 1 hour — base distances are stable, traffic is not cached.
      *
      * @param array{lat: float, lng: float} $origin
      * @param array{lat: float, lng: float} $destination
      * @return array{distance: int, duration: int}|null Distance in meters, duration in seconds
      */
     public function getDistanceMatrix(array $origin, array $destination): ?array
+    {
+        $cacheKey = 'distance_' . md5(sprintf('%s,%s_%s,%s', $origin['lat'], $origin['lng'], $destination['lat'], $destination['lng']));
+
+        return $this->geoCache->get($cacheKey, function (ItemInterface $item) use ($origin, $destination): ?array {
+            $result = $this->fetchDistanceMatrix($origin, $destination);
+            if ($result !== null) {
+                $item->expiresAfter(self::DISTANCE_TTL);
+            }
+
+            return $result;
+        });
+    }
+
+    /**
+     * @param array{lat: float, lng: float} $origin
+     * @param array{lat: float, lng: float} $destination
+     * @return array{distance: int, duration: int}|null
+     */
+    private function fetchDistanceMatrix(array $origin, array $destination): ?array
     {
         try {
             $originStr = sprintf('%s,%s', $origin['lat'], $origin['lng']);
@@ -259,7 +309,8 @@ class GoogleMapsService
     }
 
     /**
-     * Get optimized route using Directions API
+     * Get optimized route using Directions API.
+     * Cached for 1 hour — road geometry is stable, real-time traffic is excluded.
      *
      * @param array{lat: float, lng: float} $origin
      * @param array{lat: float, lng: float} $destination
@@ -273,6 +324,27 @@ class GoogleMapsService
         array $waypoints = [],
         bool $optimize = true
     ): ?array {
+        $waypointHash = md5(json_encode($waypoints) . ($optimize ? '1' : '0'));
+        $cacheKey = 'route_' . md5(sprintf('%s,%s_%s,%s', $origin['lat'], $origin['lng'], $destination['lat'], $destination['lng'])) . '_' . $waypointHash;
+
+        return $this->geoCache->get($cacheKey, function (ItemInterface $item) use ($origin, $destination, $waypoints, $optimize): ?array {
+            $result = $this->fetchOptimizedRoute($origin, $destination, $waypoints, $optimize);
+            if ($result !== null) {
+                $item->expiresAfter(self::DISTANCE_TTL);
+            }
+
+            return $result;
+        });
+    }
+
+    /**
+     * @param array{lat: float, lng: float} $origin
+     * @param array{lat: float, lng: float} $destination
+     * @param array<array{lat: float, lng: float}> $waypoints
+     * @return array{optimized_order: int[], total_distance: int, total_duration: int, polyline: string}|null
+     */
+    private function fetchOptimizedRoute(array $origin, array $destination, array $waypoints, bool $optimize): ?array
+    {
         try {
             $originStr = sprintf('%s,%s', $origin['lat'], $origin['lng']);
             $destinationStr = sprintf('%s,%s', $destination['lat'], $destination['lng']);

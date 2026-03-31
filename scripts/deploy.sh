@@ -134,11 +134,18 @@ docker exec "zigzag_php_${NEW_SLOT}" \
   php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
 echo "OK: Migrations complete"
 
-# 8. Warm up Symfony cache
-echo "-> Warming cache..."
+# 8. Warm up Symfony cache (OPcache preload, container, routes, etc.)
+echo "-> Warming Symfony cache..."
 docker exec "zigzag_php_${NEW_SLOT}" \
   php -d memory_limit=512M bin/console cache:warmup --env=prod
-echo "OK: Cache warmed"
+echo "OK: Symfony cache warmed"
+
+# 9. Warm up Redis cache pools (routes, drivers, MP fees, school geocodes)
+# Runs after Symfony warmup so the container is fully built before we query the DB.
+echo "-> Warming Redis cache pools..."
+docker exec "zigzag_php_${NEW_SLOT}" \
+  php -d memory_limit=256M bin/console app:cache:warm
+echo "OK: Redis cache warmed"
 
 # 9. Clean up old images (keep last 24h)
 echo "-> Pruning old images..."

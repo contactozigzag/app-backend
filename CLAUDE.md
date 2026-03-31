@@ -165,6 +165,50 @@ Always: `createApiClient()` → create Foundry factories → `loginUser()`. Crea
 - **Cloudflare trusted proxies** configured in Caddyfile
 - **YAML anchors** in compose.prod.yaml to DRY up OTEL, logging, and env blocks
 
+### Redis Cache Pools
+
+Six named pools in `config/packages/cache.yaml`. All Redis in prod; array adapter in test (no Redis needed for tests).
+
+| Pool | TTL | Tags | Invalidation |
+|---|---|---|---|
+| `cache.mp_fees` | 6 h | No | `cache:pool:clear cache.mp_fees` |
+| `cache.routes` | 5 min | Yes | `EntityCacheListener` on Route postUpdate/postRemove |
+| `cache.drivers` | 10 min | Yes | `EntityCacheListener` on Driver postUpdate/postRemove |
+| `cache.students` | 10 min | Yes | `EntityCacheListener` on Student postUpdate/postRemove |
+| `cache.geo` | 1 h (3600s), geocodes 365 days | No | Keys never evicted within TTL |
+| `cache.config` | 30 min | No | `cache:pool:clear cache.config` |
+
+`cache.system` (APCu in prod) is configured via `system: cache.adapter.apcu` in the `when@prod` block. Used by Doctrine metadata/query cache and Symfony's framework internals.
+
+**Inject named pools** with `#[Autowire(service: 'cache.routes')]`. Tag-aware pools require `TagAwareCacheInterface`; others use `CacheInterface`.
+
+**Tag-based invalidation** is handled by `App\Service\Cache\CacheInvalidator` (injected into `App\EventListener\Cache\EntityCacheListener`). Invalidation errors are non-fatal — logged and swallowed so DB writes never fail due to a Redis blip.
+
+### Monitoring & Health
+
+`GET /health` includes a `redis` block:
+- **`status: healthy`** — used < 80% of maxmemory
+- **`status: warning`** — used ≥ 80% of maxmemory; `allkeys-lru` eviction is active — tune TTLs or increase `maxmemory`
+- **`status: unhealthy`** — Redis unreachable (triggers HTTP 503)
+
+`GET /health/ready` only checks the database (lightweight readiness probe for Docker health checks and Caddy upstreams).
+
+### HTTP Cache Headers
+
+`HttpCacheSubscriber` runs at priority `-10` on `kernel.response` for all `/api/*` routes:
+- **Mutations / webhooks** → `Cache-Control: no-store`
+- **Authenticated GET** → `Cache-Control: private, max-age=60` + `Vary: Authorization`
+- **Public GET** → `Cache-Control: public, s-maxage=300, max-age=60`
+- **4xx/5xx** → `Cache-Control: no-store`
+- **200 GET** → ETag added (`md5(response_body)`) for conditional requests
+
+### Cache Warmup (Deploy)
+
+`php bin/console app:cache:warm` runs in `scripts/deploy.sh` after `cache:warmup`. It pre-populates:
+1. `cache.mp_fees` → MP fee rate
+2. `cache.geo` → geocodes all school addresses (calls Google Maps API once per address per year)
+3. Doctrine result cache → active route + driver count queries
+
 ### Deployment (Blue/Green via Caddy Admin API)
 - `compose.prod.yaml` contains blue/green slots with Docker profiles (infra, blue, green)
 - `scripts/deploy.sh` runs on the droplet: build → start new slot → health check → migrate → switch via Caddy admin API → drain → stop old slot

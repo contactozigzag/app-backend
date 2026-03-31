@@ -9,16 +9,25 @@ use DateTimeInterface;
 use Doctrine\DBAL\Connection;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Attribute\Route;
+use Throwable;
 
 #[AsController]
 class HealthController extends AbstractController
 {
+    // Alert threshold: if Redis uses more than 80% of maxmemory, eviction rate
+    // climbs and effective TTLs shrink. Time to tune pool sizes or TTLs.
+    private const float REDIS_MEMORY_WARN_THRESHOLD = 0.8;
+
     public function __construct(
         private readonly Connection $connection,
+        #[Autowire(env: 'REDIS_URL')]
+        private readonly string $redisUrl,
     ) {
     }
 
@@ -72,6 +81,16 @@ class HealthController extends AbstractController
             'limit' => $memoryLimit === -1 ? 'unlimited' : $this->formatBytes($memoryLimit),
         ];
 
+        // Check Redis memory usage
+        $redisCheck = $this->checkRedisMemory();
+        $checks['redis'] = $redisCheck;
+        if ($redisCheck['status'] === 'unhealthy') {
+            $status = 'unhealthy';
+            $httpStatus = 503;
+        } elseif ($redisCheck['status'] === 'warning' && $status === 'healthy') {
+            $status = 'warning';
+        }
+
         // Application info
         $checks['application'] = [
             'status' => 'healthy',
@@ -115,6 +134,68 @@ class HealthController extends AbstractController
             'status' => 'alive',
             'timestamp' => new DateTimeImmutable()->format(DateTimeInterface::RFC3339),
         ]);
+    }
+
+    /**
+     * Checks Redis memory usage via INFO memory.
+     * Warns at 80% of maxmemory — beyond that, allkeys-lru eviction rate rises
+     * and effective TTLs shrink, which can cause unexpected cache misses.
+     *
+     * @return array{status: string, used_bytes: int|null, max_bytes: int|null, used_percent: float|null, message: string}
+     */
+    private function checkRedisMemory(): array
+    {
+        try {
+            $connection = RedisAdapter::createConnection($this->redisUrl);
+
+            // Works for both ext-redis (\Redis) and Predis (\Predis\ClientInterface)
+            /** @var array<string, mixed> $info */
+            $info = $connection->info('memory'); // @phpstan-ignore-line method.notFound
+
+            $usedBytes = isset($info['used_memory']) && is_scalar($info['used_memory']) ? (int) $info['used_memory'] : null;
+            $maxBytes = isset($info['maxmemory']) && is_scalar($info['maxmemory']) ? (int) $info['maxmemory'] : null;
+
+            if ($usedBytes === null) {
+                return [
+                    'status' => 'healthy',
+                    'used_bytes' => null,
+                    'max_bytes' => null,
+                    'used_percent' => null,
+                    'message' => 'Redis reachable (memory stats unavailable)',
+                ];
+            }
+
+            if ($maxBytes === null || $maxBytes === 0) {
+                return [
+                    'status' => 'healthy',
+                    'used_bytes' => $usedBytes,
+                    'max_bytes' => null,
+                    'used_percent' => null,
+                    'message' => 'Redis reachable (no maxmemory set)',
+                ];
+            }
+
+            $usedPercent = $usedBytes / $maxBytes;
+            $status = $usedPercent >= self::REDIS_MEMORY_WARN_THRESHOLD ? 'warning' : 'healthy';
+
+            return [
+                'status' => $status,
+                'used_bytes' => $usedBytes,
+                'max_bytes' => $maxBytes,
+                'used_percent' => round($usedPercent * 100, 2),
+                'message' => $status === 'warning'
+                    ? sprintf('Redis memory above %.0f%% threshold — check TTLs or pool sizes', self::REDIS_MEMORY_WARN_THRESHOLD * 100)
+                    : 'Redis memory usage normal',
+            ];
+        } catch (Throwable $throwable) {
+            return [
+                'status' => 'unhealthy',
+                'used_bytes' => null,
+                'max_bytes' => null,
+                'used_percent' => null,
+                'message' => 'Redis unreachable: ' . $throwable->getMessage(),
+            ];
+        }
     }
 
     private function getMemoryLimit(): int
