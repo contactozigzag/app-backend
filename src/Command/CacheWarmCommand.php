@@ -97,6 +97,7 @@ class CacheWarmCommand extends Command
             if ($address === null) {
                 continue;
             }
+
             if ($address->getStreetAddress() === null) {
                 continue;
             }

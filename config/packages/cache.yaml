@@ -3,15 +3,12 @@ framework:
         # Unique name of your app: used to compute stable namespaces for cache keys.
         #prefix_seed: your_vendor_name/app_name
 
-        # Redis is the primary cache backend. All named pools below default to Redis
-        # unless overridden in when@test (array) or when@prod (APCu for system).
+        # Redis is the primary cache backend for all named pools.
+        # Overridden per environment below:
+        #   dev  → filesystem (survives restarts, inspectable on disk)
+        #   test → array (no Redis needed, no state leaks between tests)
         app: cache.adapter.redis
         default_redis_provider: redis://redis
-
-        # APCu for in-process system/framework caches.
-        # In FrankenPHP worker mode, APCu lives in the persistent worker process —
-        # faster than Redis for framework metadata (zero network hop, zero serialization).
-        # Only activate in prod; dev/test fall back to the default PhpFiles adapter.
 
         pools:
             # MP fee rates & commission calculations.
@@ -19,7 +16,6 @@ framework:
             # Caching the computed rate avoids recalculation on every payment creation
             # and makes it easy to swap in a DB-backed rate without re-deploying.
             cache.mp_fees:
-                adapter: cache.adapter.redis
                 default_lifetime: 21600  # 6 hours
 
             # Route definitions, stops, student assignments.
@@ -27,7 +23,6 @@ framework:
             # an admin can modify routes at any time. Tag-based invalidation flushes
             # affected entries immediately on change.
             cache.routes:
-                adapter: cache.adapter.redis
                 tags: true
                 default_lifetime: 300  # 5 min
 
@@ -35,7 +30,6 @@ framework:
             # Rarely updated — queried on every trip screen open.
             # Tag-based so we can flush a single driver on PATCH /api/drivers/{id}.
             cache.drivers:
-                adapter: cache.adapter.redis
                 tags: true
                 default_lifetime: 600  # 10 min
 
@@ -43,7 +37,6 @@ framework:
             # Rarely updated — queried when loading trip manifests.
             # Tag-based so we can flush a single student or an entire route's manifest.
             cache.students:
-                adapter: cache.adapter.redis
                 tags: true
                 default_lifetime: 600  # 10 min
 
@@ -52,39 +45,37 @@ framework:
             # Addresses are effectively permanent; distances change only with road
             # changes, not daily traffic. 1 hour is conservative.
             cache.geo:
-                adapter: cache.adapter.redis
                 default_lifetime: 3600  # 1 hour
 
             # App configuration, feature flags, pricing tiers, subscription plans.
             # Almost never changes at runtime. 30 min avoids stale config while
             # keeping DB load near zero for config lookups.
             cache.config:
-                adapter: cache.adapter.redis
                 default_lifetime: 1800  # 30 min
 
-# In test, replace Redis pools with in-memory array adapters so tests:
+# In dev, use filesystem so cache entries survive container restarts and can be
+# inspected on disk. Short TTLs on high-churn pools prevent stale data from
+# masking bugs during development.
+when@dev:
+    framework:
+        cache:
+            app: cache.adapter.filesystem
+            pools:
+                cache.routes:
+                    default_lifetime: 30   # 30 s — refresh quickly while editing routes
+                cache.drivers:
+                    default_lifetime: 30   # 30 s
+                cache.students:
+                    default_lifetime: 30   # 30 s
+
+# In test, replace all pools with in-memory array adapters so tests:
 #  1. Don't require a live Redis connection
 #  2. Don't leak state between test cases
 #  3. Execute faster
 when@test:
     framework:
         cache:
-            pools:
-                cache.mp_fees:
-                    adapter: cache.adapter.array
-                cache.routes:
-                    adapter: cache.adapter.array
-                    tags: true
-                cache.drivers:
-                    adapter: cache.adapter.array
-                    tags: true
-                cache.students:
-                    adapter: cache.adapter.array
-                    tags: true
-                cache.geo:
-                    adapter: cache.adapter.array
-                cache.config:
-                    adapter: cache.adapter.array
+            app: cache.adapter.array
 
 # In production, upgrade the Symfony system cache (framework metadata, serializer
 # metadata, validator metadata) to APCu. In FrankenPHP worker mode the process is
