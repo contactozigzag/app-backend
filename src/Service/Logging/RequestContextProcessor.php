@@ -6,6 +6,7 @@ namespace App\Service\Logging;
 
 use Monolog\LogRecord;
 use Monolog\Processor\ProcessorInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -13,10 +14,10 @@ use Symfony\Component\HttpFoundation\RequestStack;
  * using Symfony's RequestStack instead of $_SERVER, which is unreliable
  * in FrankenPHP worker mode (stale between requests).
  */
-final class RequestContextProcessor implements ProcessorInterface
+final readonly class RequestContextProcessor implements ProcessorInterface
 {
     public function __construct(
-        private readonly RequestStack $requestStack,
+        private RequestStack $requestStack,
     ) {
     }
 
@@ -24,7 +25,7 @@ final class RequestContextProcessor implements ProcessorInterface
     {
         $request = $this->requestStack->getCurrentRequest();
 
-        if ($request === null) {
+        if (! $request instanceof Request) {
             return $record;
         }
 
