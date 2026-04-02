@@ -8,10 +8,11 @@ use App\Entity\PushDevice;
 use App\Repository\PushDeviceRepository;
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\UserFactory;
+use Symfony\Component\HttpFoundation\Request;
 
 final class PushDeviceControllerTest extends AbstractApiTestCase
 {
-    private const VALID_TOKEN = 'ExponentPushToken[aaaaaaaaaaaaaaaaaaaaaa]';
+    private const string VALID_TOKEN = 'ExponentPushToken[aaaaaaaaaaaaaaaaaaaaaa]';
 
     // ── Authentication guard ──────────────────────────────────────────────────
 
@@ -31,7 +32,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        $client->request('DELETE', '/api/devices/1');
+        $client->request(Request::METHOD_DELETE, '/api/devices/1');
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -44,7 +45,9 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
         $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
-        $body = $this->postJson($client, '/api/devices', ['platform' => 'android']);
+        $body = $this->postJson($client, '/api/devices', [
+            'platform' => 'android',
+        ]);
 
         self::assertResponseStatusCodeSame(400);
         $this->assertArrayHasKey('error', $body);
@@ -56,7 +59,9 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
         $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
-        $body = $this->postJson($client, '/api/devices', ['expoPushToken' => self::VALID_TOKEN]);
+        $body = $this->postJson($client, '/api/devices', [
+            'expoPushToken' => self::VALID_TOKEN,
+        ]);
 
         self::assertResponseStatusCodeSame(400);
         $this->assertArrayHasKey('error', $body);
@@ -81,7 +86,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
         $this->assertArrayHasKey('id', $body);
 
         /** @var PushDeviceRepository $repo */
-        $repo = static::getContainer()->get(PushDeviceRepository::class);
+        $repo = self::getContainer()->get(PushDeviceRepository::class);
         $device = $repo->findByToken(self::VALID_TOKEN);
         $this->assertInstanceOf(PushDevice::class, $device);
         $this->assertTrue($device->isActive());
@@ -113,7 +118,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
 
         // Only one device record should exist
         /** @var PushDeviceRepository $repo */
-        $repo = static::getContainer()->get(PushDeviceRepository::class);
+        $repo = self::getContainer()->get(PushDeviceRepository::class);
         $device = $repo->findByToken(self::VALID_TOKEN);
         $this->assertInstanceOf(PushDevice::class, $device);
         $this->assertSame($body['id'], $device->getId());
@@ -136,12 +141,12 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
         $deviceId = $body['id'];
 
         // Then unregister
-        $client->request('DELETE', '/api/devices/' . $deviceId);
+        $client->request(Request::METHOD_DELETE, '/api/devices/' . $deviceId);
 
         self::assertResponseStatusCodeSame(204);
 
         /** @var PushDeviceRepository $repo */
-        $repo = static::getContainer()->get(PushDeviceRepository::class);
+        $repo = self::getContainer()->get(PushDeviceRepository::class);
         $device = $repo->find($deviceId);
         $this->assertInstanceOf(PushDevice::class, $device);
         $this->assertFalse($device->isActive());
@@ -163,13 +168,13 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
 
         // User2 tries to delete User1's device — should be silently ignored
         $this->loginUser($client, $user2);
-        $client->request('DELETE', '/api/devices/' . $deviceId);
+        $client->request(Request::METHOD_DELETE, '/api/devices/' . $deviceId);
 
         self::assertResponseStatusCodeSame(204);
 
         // Device should still be active
         /** @var PushDeviceRepository $repo */
-        $repo = static::getContainer()->get(PushDeviceRepository::class);
+        $repo = self::getContainer()->get(PushDeviceRepository::class);
         $device = $repo->find($deviceId);
         $this->assertInstanceOf(PushDevice::class, $device);
         $this->assertTrue($device->isActive());
@@ -181,7 +186,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
         $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
-        $client->request('DELETE', '/api/devices/999999');
+        $client->request(Request::METHOD_DELETE, '/api/devices/999999');
 
         self::assertResponseStatusCodeSame(204);
     }

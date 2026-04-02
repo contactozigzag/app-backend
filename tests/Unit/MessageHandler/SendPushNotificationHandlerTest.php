@@ -28,8 +28,9 @@ use RuntimeException;
 
 final class SendPushNotificationHandlerTest extends TestCase
 {
-    private const TOKEN_A = 'ExponentPushToken[aaaaaaaaaaaaaaaaaaaaaa]';
-    private const TOKEN_B = 'ExponentPushToken[bbbbbbbbbbbbbbbbbbbbbb]';
+    private const string TOKEN_A = 'ExponentPushToken[aaaaaaaaaaaaaaaaaaaaaa]';
+
+    private const string TOKEN_B = 'ExponentPushToken[bbbbbbbbbbbbbbbbbbbbbb]';
 
     private function makeDevice(string $token): PushDevice
     {
@@ -88,7 +89,7 @@ final class SendPushNotificationHandlerTest extends TestCase
         $ticketRepo = $this->createMock(PushTicketRepository::class);
         $ticketRepo->expects($this->once())
             ->method('save')
-            ->with($this->callback(function (PushTicket $t) use (&$savedTicket) {
+            ->with($this->callback(function (PushTicket $t) use (&$savedTicket): bool {
                 $savedTicket = $t;
 
                 return true;

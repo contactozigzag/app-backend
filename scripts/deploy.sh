@@ -127,20 +127,16 @@ until docker inspect --format='{{.State.Health.Status}}' "zigzag_php_${NEW_SLOT}
   sleep "$RETRY_INTERVAL"
 done
 echo "OK: php-${NEW_SLOT} is healthy"
+# Note: migrations were already applied by the container entrypoint before the
+# health check passed — no need to run them again here.
 
-# 7. Run database migrations from the new slot
-echo "-> Running migrations..."
-docker exec "zigzag_php_${NEW_SLOT}" \
-  php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
-echo "OK: Migrations complete"
-
-# 8. Warm up Symfony cache (OPcache preload, container, routes, etc.)
+# 7. Warm up Symfony cache (OPcache preload, container, routes, etc.)
 echo "-> Warming Symfony cache..."
 docker exec "zigzag_php_${NEW_SLOT}" \
   php -d memory_limit=512M bin/console cache:warmup --env=prod
 echo "OK: Symfony cache warmed"
 
-# 9. Warm up Redis cache pools (routes, drivers, MP fees, school geocodes)
+# 8. Warm up Redis cache pools (routes, drivers, MP fees, school geocodes)
 # Runs after Symfony warmup so the container is fully built before we query the DB.
 echo "-> Warming Redis cache pools..."
 docker exec "zigzag_php_${NEW_SLOT}" \

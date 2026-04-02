@@ -89,7 +89,7 @@ final class CheckPushReceiptsHandlerTest extends TestCase
         $handler(new CheckPushReceipts(new DateTimeImmutable('-15 minutes')));
 
         $this->assertSame('ok', $ticket->getStatus());
-        $this->assertNotNull($ticket->getCheckedAt());
+        $this->assertInstanceOf(DateTimeImmutable::class, $ticket->getCheckedAt());
     }
 
     // ── Failed receipt — DeviceNotRegistered ──────────────────────────────────
