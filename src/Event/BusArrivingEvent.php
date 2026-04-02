@@ -9,6 +9,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class BusArrivingEvent extends Event
 {
+    use HasEventId;
+
     public const NAME = 'bus.arriving';
 
     public function __construct(

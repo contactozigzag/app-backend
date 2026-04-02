@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0a6778003a360495c74fc99f1eaca5a2",
+    "content-hash": "7b25e9516f502da1cff47a4865f346a8",
     "packages": [
         {
             "name": "api-platform/doctrine-common",
@@ -2500,6 +2500,67 @@
                 "source": "https://github.com/doctrine/sql-formatter/tree/1.5.4"
             },
             "time": "2026-02-08T16:21:46+00:00"
+        },
+        {
+            "name": "dru1x/expo-server-sdk-php",
+            "version": "0.8.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dru1x/expo-server-sdk-php.git",
+                "reference": "9ee50f8df60de7b579e6c3d61890f04c6d45d0f5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dru1x/expo-server-sdk-php/zipball/9ee50f8df60de7b579e6c3d61890f04c6d45d0f5",
+                "reference": "9ee50f8df60de7b579e6c3d61890f04c6d45d0f5",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-zlib": "*",
+                "php": ">=8.2",
+                "saloonphp/rate-limit-plugin": "^2.0",
+                "saloonphp/saloon": "3.11"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^11.5.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Dru1x\\ExpoPush\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "James Drew",
+                    "email": "hello@jamesdrew.pro",
+                    "homepage": "https://jamesdrew.pro",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Liam Duckett",
+                    "email": "liamduckett2@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Server-side library for working with the Expo push notification service using PHP 8.2+",
+            "homepage": "https://github.com/dru1x/expo-server-sdk-php",
+            "keywords": [
+                "expo",
+                "expo-server-sdk-php",
+                "php",
+                "push"
+            ],
+            "support": {
+                "issues": "https://github.com/dru1x/expo-server-sdk-php/issues",
+                "source": "https://github.com/dru1x/expo-server-sdk-php"
+            },
+            "time": "2026-03-04T23:01:38+00:00"
         },
         {
             "name": "easycorp/easyadmin-bundle",
@@ -6089,6 +6150,140 @@
                 }
             ],
             "time": "2025-08-19T18:57:03+00:00"
+        },
+        {
+            "name": "saloonphp/rate-limit-plugin",
+            "version": "v2.5.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/saloonphp/rate-limit-plugin.git",
+                "reference": "f3e7700b73cef0322fea3392a57449d96b748ee2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/saloonphp/rate-limit-plugin/zipball/f3e7700b73cef0322fea3392a57449d96b748ee2",
+                "reference": "f3e7700b73cef0322fea3392a57449d96b748ee2",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2",
+                "saloonphp/saloon": "^3.0 || ^4.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.5",
+                "mockery/mockery": "^1.5",
+                "orchestra/testbench": "^9.15 || ^10.7",
+                "pestphp/pest": "^v3.8.4 || ^v4.1.4",
+                "phpstan/phpstan": "^1.9",
+                "predis/predis": "^2.1",
+                "psr/simple-cache": "^3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Saloon\\RateLimitPlugin\\": "src/",
+                    "Saloon\\RateLimitPlugin\\Tests\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Sam Carré",
+                    "email": "29132017+Sammyjo20@users.noreply.github.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Handle rate limits beautifully in your Saloon API integrations or SDKs",
+            "homepage": "https://github.com/sammyjo20",
+            "support": {
+                "issues": "https://github.com/saloonphp/rate-limit-plugin/issues",
+                "source": "https://github.com/saloonphp/rate-limit-plugin/tree/v2.5.1"
+            },
+            "time": "2026-03-25T20:56:11+00:00"
+        },
+        {
+            "name": "saloonphp/saloon",
+            "version": "v3.11.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/saloonphp/saloon.git",
+                "reference": "de1e0beae1c9720b353688f5bf6eb532cdbf882b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/saloonphp/saloon/zipball/de1e0beae1c9720b353688f5bf6eb532cdbf882b",
+                "reference": "de1e0beae1c9720b353688f5bf6eb532cdbf882b",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.6",
+                "guzzlehttp/promises": "^1.5 || ^2.0",
+                "guzzlehttp/psr7": "^2.0",
+                "php": "^8.1",
+                "psr/http-factory": "^1.0",
+                "psr/http-message": "^1.1 || ^2.0"
+            },
+            "conflict": {
+                "sammyjo20/saloon": "*"
+            },
+            "require-dev": {
+                "ext-simplexml": "*",
+                "friendsofphp/php-cs-fixer": "^3.5",
+                "illuminate/collections": "^9.39 || ^10.0",
+                "league/flysystem": "^3.0",
+                "pestphp/pest": "^2.10",
+                "phpstan/phpstan": "^1.11.4",
+                "saloonphp/xml-wrangler": "^1.1",
+                "spatie/ray": "^1.33",
+                "symfony/dom-crawler": "^6.0 || ^7.0",
+                "symfony/var-dumper": "^6.3 || ^7.0"
+            },
+            "suggest": {
+                "illuminate/collections": "Required for the response collect() method.",
+                "saloonphp/xml-wrangler": "Required for the response xmlReader() method.",
+                "symfony/dom-crawler": "Required for the response dom() method.",
+                "symfony/var-dumper": "Required for default debugging drivers."
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Saloon\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Sam Carré",
+                    "email": "29132017+Sammyjo20@users.noreply.github.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Build beautiful API integrations and SDKs with Saloon",
+            "homepage": "https://github.com/saloonphp/saloon",
+            "keywords": [
+                "api",
+                "api-integrations",
+                "saloon",
+                "sammyjo20",
+                "sdk"
+            ],
+            "support": {
+                "issues": "https://github.com/saloonphp/saloon/issues",
+                "source": "https://github.com/saloonphp/saloon/tree/v3.11.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sammyjo20",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-02-02T14:48:09+00:00"
         },
         {
             "name": "symfony/asset",
@@ -16007,7 +16202,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "gesdinet/jwt-refresh-token-bundle": 10
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

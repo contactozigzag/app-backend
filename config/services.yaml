@@ -52,3 +52,15 @@ services:
     App\Service\OpenSearch\DriverSearchService:
         arguments:
             $indexPrefix: '%env(OPENSEARCH_INDEX_PREFIX)%'
+
+    App\Service\Push\ExpoPushService:
+        arguments:
+            $expoAccessToken: '%env(EXPO_ACCESS_TOKEN)%'
+
+    App\MessageHandler\SendPushNotificationHandler:
+        arguments:
+            $logger: '@monolog.logger.push'
+
+    App\MessageHandler\CheckPushReceiptsHandler:
+        arguments:
+            $logger: '@monolog.logger.push'

@@ -9,6 +9,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class RouteStartedEvent extends Event
 {
+    use HasEventId;
+
     public const NAME = 'route.started';
 
     public function __construct(

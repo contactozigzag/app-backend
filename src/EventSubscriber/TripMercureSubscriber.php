@@ -62,6 +62,7 @@ readonly class TripMercureSubscriber implements EventSubscriberInterface
 
         $data = [
             'event' => 'bus_arriving',
+            'eventId' => $event->getEventId(),
             'routeId' => $route->getId(),
             'stopId' => $stop->getId(),
             'studentId' => $student->getId(),
@@ -92,6 +93,7 @@ readonly class TripMercureSubscriber implements EventSubscriberInterface
 
         $data = [
             'event' => 'bus_arrived',
+            'eventId' => $event->getEventId(),
             'routeId' => $route->getId(),
             'stopId' => $stop->getId(),
             'studentId' => $student->getId(),
@@ -122,6 +124,7 @@ readonly class TripMercureSubscriber implements EventSubscriberInterface
 
         $data = [
             'event' => 'student_picked_up',
+            'eventId' => $event->getEventId(),
             'routeId' => $route->getId(),
             'stopId' => $stop->getId(),
             'studentId' => $student->getId(),
@@ -153,6 +156,7 @@ readonly class TripMercureSubscriber implements EventSubscriberInterface
 
         $data = [
             'event' => 'student_dropped_off',
+            'eventId' => $event->getEventId(),
             'routeId' => $route->getId(),
             'stopId' => $stop->getId(),
             'studentId' => $student->getId(),
@@ -180,6 +184,7 @@ readonly class TripMercureSubscriber implements EventSubscriberInterface
 
         $parentData = [
             'event' => 'route_started',
+            'eventId' => $event->getEventId(),
             'routeId' => $route->getId(),
             'driverName' => trim($driverName),
             'startedAt' => $route->getStartedAt()?->format('c') ?? $now,
@@ -201,6 +206,7 @@ readonly class TripMercureSubscriber implements EventSubscriberInterface
 
         $parentData = [
             'event' => 'route_completed',
+            'eventId' => $event->getEventId(),
             'routeId' => $route->getId(),
             'completedAt' => $route->getCompletedAt()?->format('c') ?? $now,
             'timestamp' => $now,

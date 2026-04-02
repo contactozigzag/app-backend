@@ -108,6 +108,10 @@ framework:
             App\Message\IndexDriverMessage: async
             App\Message\RemoveDriverFromIndexMessage: async
 
+            # Push notifications
+            App\Message\SendPushNotification: async
+            App\Message\CheckPushReceipts: async
+
 when@test:
     framework:
         messenger:
