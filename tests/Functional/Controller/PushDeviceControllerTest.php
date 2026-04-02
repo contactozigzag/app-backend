@@ -20,7 +20,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        $this->postJson($client, '/api/devices', [
+        $this->postJson($client, '/api/push-devices', [
             'expoPushToken' => self::VALID_TOKEN,
             'platform' => 'android',
         ]);
@@ -32,42 +32,57 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        $client->request(Request::METHOD_DELETE, '/api/devices/1');
+        $client->request(Request::METHOD_DELETE, '/api/push-devices/1');
 
         self::assertResponseStatusCodeSame(401);
     }
 
-    // ── POST /api/devices — validation ───────────────────────────────────────
+    // ── POST /api/push-devices — validation ──────────────────────────────────
 
-    public function testRegisterMissingTokenReturns400(): void
+    public function testRegisterMissingTokenReturns422(): void
     {
         $client = $this->createApiClient();
         $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
-        $body = $this->postJson($client, '/api/devices', [
+        $body = $this->postJson($client, '/api/push-devices', [
             'platform' => 'android',
         ]);
 
-        self::assertResponseStatusCodeSame(400);
-        $this->assertArrayHasKey('error', $body);
+        self::assertResponseStatusCodeSame(422);
+        $this->assertArrayHasKey('violations', $body);
     }
 
-    public function testRegisterMissingPlatformReturns400(): void
+    public function testRegisterMissingPlatformReturns422(): void
     {
         $client = $this->createApiClient();
         $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
-        $body = $this->postJson($client, '/api/devices', [
+        $body = $this->postJson($client, '/api/push-devices', [
             'expoPushToken' => self::VALID_TOKEN,
         ]);
 
-        self::assertResponseStatusCodeSame(400);
-        $this->assertArrayHasKey('error', $body);
+        self::assertResponseStatusCodeSame(422);
+        $this->assertArrayHasKey('violations', $body);
     }
 
-    // ── POST /api/devices — success ───────────────────────────────────────────
+    public function testRegisterInvalidPlatformReturns422(): void
+    {
+        $client = $this->createApiClient();
+        $user = UserFactory::createOne();
+        $this->loginUser($client, $user);
+
+        $body = $this->postJson($client, '/api/push-devices', [
+            'expoPushToken' => self::VALID_TOKEN,
+            'platform' => 'windows',
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        $this->assertArrayHasKey('violations', $body);
+    }
+
+    // ── POST /api/push-devices — success ─────────────────────────────────────
 
     public function testRegisterCreatesNewDevice(): void
     {
@@ -75,7 +90,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
         $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
-        $body = $this->postJson($client, '/api/devices', [
+        $body = $this->postJson($client, '/api/push-devices', [
             'expoPushToken' => self::VALID_TOKEN,
             'platform' => 'android',
             'deviceName' => 'Pixel 7',
@@ -84,14 +99,15 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
 
         self::assertResponseStatusCodeSame(201);
         $this->assertArrayHasKey('id', $body);
+        $this->assertSame(self::VALID_TOKEN, $body['expoPushToken']);
+        $this->assertSame('android', $body['platform']);
+        $this->assertSame('Pixel 7', $body['deviceName']);
 
         /** @var PushDeviceRepository $repo */
         $repo = self::getContainer()->get(PushDeviceRepository::class);
         $device = $repo->findByToken(self::VALID_TOKEN);
         $this->assertInstanceOf(PushDevice::class, $device);
         $this->assertTrue($device->isActive());
-        $this->assertSame('android', $device->getPlatform());
-        $this->assertSame('Pixel 7', $device->getDeviceName());
     }
 
     public function testRegisterIsIdempotentForSameToken(): void
@@ -102,7 +118,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
         $this->loginUser($client, $user1);
 
         // First registration
-        $this->postJson($client, '/api/devices', [
+        $this->postJson($client, '/api/push-devices', [
             'expoPushToken' => self::VALID_TOKEN,
             'platform' => 'ios',
         ]);
@@ -110,7 +126,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
 
         // Second registration with different user (token transfer / upsert)
         $this->loginUser($client, $user2);
-        $body = $this->postJson($client, '/api/devices', [
+        $body = $this->postJson($client, '/api/push-devices', [
             'expoPushToken' => self::VALID_TOKEN,
             'platform' => 'ios',
         ]);
@@ -124,7 +140,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
         $this->assertSame($body['id'], $device->getId());
     }
 
-    // ── DELETE /api/devices/{id} ──────────────────────────────────────────────
+    // ── DELETE /api/push-devices/{id} ────────────────────────────────────────
 
     public function testUnregisterDeactivatesOwnDevice(): void
     {
@@ -133,7 +149,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
         $this->loginUser($client, $user);
 
         // Register first
-        $body = $this->postJson($client, '/api/devices', [
+        $body = $this->postJson($client, '/api/push-devices', [
             'expoPushToken' => self::VALID_TOKEN,
             'platform' => 'android',
         ]);
@@ -141,7 +157,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
         $deviceId = $body['id'];
 
         // Then unregister
-        $client->request(Request::METHOD_DELETE, '/api/devices/' . $deviceId);
+        $client->request(Request::METHOD_DELETE, '/api/push-devices/' . $deviceId);
 
         self::assertResponseStatusCodeSame(204);
 
@@ -160,7 +176,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
 
         // User1 registers a device
         $this->loginUser($client, $user1);
-        $body = $this->postJson($client, '/api/devices', [
+        $body = $this->postJson($client, '/api/push-devices', [
             'expoPushToken' => self::VALID_TOKEN,
             'platform' => 'android',
         ]);
@@ -168,7 +184,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
 
         // User2 tries to delete User1's device — should be silently ignored
         $this->loginUser($client, $user2);
-        $client->request(Request::METHOD_DELETE, '/api/devices/' . $deviceId);
+        $client->request(Request::METHOD_DELETE, '/api/push-devices/' . $deviceId);
 
         self::assertResponseStatusCodeSame(204);
 
@@ -186,7 +202,7 @@ final class PushDeviceControllerTest extends AbstractApiTestCase
         $user = UserFactory::createOne();
         $this->loginUser($client, $user);
 
-        $client->request(Request::METHOD_DELETE, '/api/devices/999999');
+        $client->request(Request::METHOD_DELETE, '/api/push-devices/999999');
 
         self::assertResponseStatusCodeSame(204);
     }

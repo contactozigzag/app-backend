@@ -4,7 +4,16 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\OpenApi\Model\Operation;
+use ApiPlatform\OpenApi\Model\Response;
+use App\Dto\PushDevice\PushDeviceOutput;
+use App\Dto\PushDevice\RegisterPushDeviceInput;
 use App\Repository\PushDeviceRepository;
+use App\State\PushDevice\DeactivatePushDeviceProcessor;
+use App\State\PushDevice\RegisterPushDeviceProcessor;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,6 +23,42 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\UniqueConstraint(name: 'uniq_expo_token', columns: ['expo_push_token'])]
 #[ORM\Index(name: 'idx_push_devices_user_id', columns: ['user_id'])]
 #[ORM\Index(name: 'idx_push_devices_active', columns: ['is_active'])]
+#[ApiResource(
+    description: 'Registers and manages Expo push notification device tokens for authenticated users.',
+    operations: [
+        new Post(
+            uriTemplate: '/push-devices',
+            openapi: new Operation(
+                responses: [
+                    '201' => new Response('Device registered or updated'),
+                    '400' => new Response('Validation error'),
+                    '401' => new Response('Unauthenticated'),
+                ],
+                summary: 'Register a push device',
+                description: 'Registers an Expo push token for the authenticated user. If the token already exists, updates the owning user and refreshes the last-seen timestamp.',
+            ),
+            security: "is_granted('ROLE_USER')",
+            input: RegisterPushDeviceInput::class,
+            output: PushDeviceOutput::class,
+            processor: RegisterPushDeviceProcessor::class,
+        ),
+        new Delete(
+            uriTemplate: '/push-devices/{id}',
+            openapi: new Operation(
+                responses: [
+                    '204' => new Response('Device deactivated (or not found — always succeeds)'),
+                    '401' => new Response('Unauthenticated'),
+                ],
+                summary: 'Deactivate a push device',
+                description: 'Marks the device as inactive so it no longer receives push notifications. Silently succeeds when the device does not exist or belongs to another user.',
+            ),
+            security: "is_granted('ROLE_USER')",
+            output: false,
+            read: false,
+            processor: DeactivatePushDeviceProcessor::class,
+        ),
+    ],
+)]
 class PushDevice
 {
     #[ORM\Id]
