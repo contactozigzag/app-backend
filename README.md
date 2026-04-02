@@ -41,7 +41,7 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 
 ### External Services
 - **Google Maps APIs** — Places, Routes, Distance Matrix
-- **Firebase Cloud Messaging (FCM)** — Push notifications
+- **Expo Push Notifications** — Mobile push via `dru1x/expo-push`; two-phase send+receipt check with token-based client-side deduplication
 - **SMS Provider** — Configurable SMS channel
 - **Symfony Mailer** — Email notifications
 - **Mercado Pago** — Payment processing (Marketplace + OAuth model)
@@ -324,7 +324,7 @@ The `RouteManagementVoter` (`src/Security/Voter/RouteManagementVoter.php`) imple
 
 ### Phase 5: Notifications ✅
 
-**Multi-provider:** Email, SMS, Push (FCM)
+**Multi-provider:** Email, SMS, Expo Push
 
 **Events:** BusArrivingEvent, StudentPickedUpEvent, StudentDroppedOffEvent, RouteStartedEvent, RouteCompletedEvent
 
@@ -553,6 +553,47 @@ Driver PATCH /api/route-stops/{id}/reject → RouteStopRejectProcessor
 - `src/EventListener/RouteStopCreatedListener.php` — Doctrine listener for new unconfirmed stops
 - `src/State/RouteStop/RouteStopConfirmProcessor.php` — confirm endpoint with notification
 - `src/State/RouteStop/RouteStopRejectProcessor.php` — reject endpoint with notification
+
+### Phase 13: Expo Push Notifications ✅
+
+Mobile push notification delivery via the Expo Push API, with two-phase ticket/receipt checking and client-side deduplication against Mercure SSE.
+
+**Device registration:**
+- `POST /api/push-devices` — register an Expo token for the authenticated user (creates or reactivates; updates `lastSeenAt` if token already exists)
+- `DELETE /api/push-devices/{id}` — deactivate a device (graceful logout / unsubscribe)
+
+**Delivery pipeline:**
+1. Caller dispatches `SendPushNotification` → `async` RabbitMQ transport
+2. `SendPushNotificationHandler` fetches active `PushDevice` rows for recipient user IDs, batches `PushMessage` objects, calls `ExpoPushService::send()`, saves returned ticket IDs to `PushTicket`
+3. Tickets with `DeviceNotRegistered` error immediately deactivate the device
+4. `PushNotificationScheduleProvider` (`#[AsSchedule('push_notifications')]`) dispatches `CheckPushReceipts` every **15 minutes**
+5. `CheckPushReceiptsHandler` fetches receipts from Expo, marks tickets checked/error, and deactivates tokens on `DeviceNotRegistered`
+
+**Client-side deduplication:** Trip domain events (`BusArrivingEvent`, `StopArrivedEvent`, `StudentPickedUpEvent`, `StudentDroppedOffEvent`, `RouteStartedEvent`, `RouteCompletedEvent`) use the `HasEventId` trait. The same `eventId` (UUIDv7) is embedded in both the Mercure SSE payload and the push notification `data` object — the mobile client can suppress duplicate in-app banners by checking whether a push for that `eventId` already arrived.
+
+**Android notification channels** (auto-selected by `notificationType` prefix):
+- `trips` — `trip_*` event types
+- `payments` — `payment_*` event types
+- `messages` — `message_*` event types
+- `reminders` — everything else
+
+**Maintenance CLI:**
+```bash
+php bin/console app:push:check-receipts   # manual receipt check (>15 min old)
+php bin/console app:push:cleanup          # delete tickets >7 days old, deactivate tokens >90 days inactive
+```
+
+**Env var:** `EXPO_ACCESS_TOKEN=` (leave blank to use the unauthenticated Expo tier)
+
+**Key files:**
+- `src/Entity/PushDevice.php` — device token entity + AP4 resource
+- `src/Entity/PushTicket.php` — delivery receipt tracking
+- `src/Message/SendPushNotification.php` — message DTO (includes `eventId` for dedup)
+- `src/MessageHandler/SendPushNotificationHandler.php` — send + ticket persistence
+- `src/MessageHandler/CheckPushReceiptsHandler.php` — receipt polling + token cleanup
+- `src/Service/Push/ExpoPushService.php` — thin wrapper around `dru1x/expo-push`
+- `src/Scheduler/PushNotificationScheduleProvider.php` — 15-minute receipt scheduler
+- `src/Event/HasEventId.php` — dedup trait for domain events
 
 ## 📚 API Documentation
 
@@ -1213,9 +1254,11 @@ GOOGLE_MAPS_API_KEY=your-google-maps-api-key
 
 # Notifications
 MAIL_FROM_EMAIL=noreply@yourschool.com
-FCM_SERVER_KEY=your-fcm-server-key
 SMS_API_KEY=your-sms-api-key
 SMS_API_URL=https://api.smsprovider.com/send
+
+# Expo Push Notifications (leave blank to disable)
+EXPO_ACCESS_TOKEN=
 
 # RabbitMQ (single DSN, three exchanges configured in messenger.yaml)
 RABBITMQ_DSN=phpamqplib://guest:guest@rabbitmq:5672/%2f

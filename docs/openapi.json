@@ -112,7 +112,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -127,7 +127,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             }
@@ -322,7 +322,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -337,7 +337,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             },
@@ -872,7 +872,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -887,7 +887,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             },
@@ -1499,7 +1499,7 @@
                     {
                         "name": "userId",
                         "in": "path",
-                        "description": "Address identifier",
+                        "description": "User identifier",
                         "required": true,
                         "deprecated": false,
                         "schema": {
@@ -1795,7 +1795,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -1810,7 +1810,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             }
@@ -2005,7 +2005,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -2020,7 +2020,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             },
@@ -2447,7 +2447,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -2462,7 +2462,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "nickname",
@@ -3741,7 +3741,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -3756,7 +3756,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             },
@@ -4237,7 +4237,7 @@
                     }
                 },
                 "summary": "Search for drivers by name, nickname, or identification number",
-                "description": "Retrieves the collection of DriverSearch resources.",
+                "description": "Search for drivers by name, nickname, or identification number",
                 "parameters": [
                     {
                         "name": "q",
@@ -4249,7 +4249,7 @@
                             "type": "string"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "school",
@@ -4261,7 +4261,7 @@
                             "type": "integer"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "page",
@@ -4274,7 +4274,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -4287,7 +4287,7 @@
                             "default": 10
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             }
@@ -4389,7 +4389,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -4404,7 +4404,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             },
@@ -4653,7 +4653,7 @@
                             "type": "string"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "state",
@@ -4665,7 +4665,7 @@
                             "type": "string"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "error",
@@ -4677,7 +4677,7 @@
                             "type": "string"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "error_description",
@@ -4689,7 +4689,7 @@
                             "type": "string"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ],
                 "security": []
@@ -4977,7 +4977,7 @@
                             "type": "integer"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ],
                 "security": [
@@ -5452,7 +5452,7 @@
                             "type": "string"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             }
@@ -5717,6 +5717,211 @@
                 ]
             }
         },
+        "/api/push-devices": {
+            "post": {
+                "operationId": "api_push-devices_post",
+                "tags": [
+                    "PushDevice"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Device registered or updated",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PushDevice.PushDeviceOutput.jsonld"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PushDevice.PushDeviceOutput"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PushDevice.PushDeviceOutput.html"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PushDevice.PushDeviceOutput.csv"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "An error occurred",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConstraintViolation"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Register a push device",
+                "description": "Registers an Expo push token for the authenticated user. If the token already exists, updates the owning user and refreshes the last-seen timestamp.",
+                "parameters": [],
+                "requestBody": {
+                    "description": "The new PushDevice resource",
+                    "content": {
+                        "application/ld+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PushDevice.RegisterPushDeviceInput"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PushDevice.RegisterPushDeviceInput"
+                            }
+                        },
+                        "text/html": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PushDevice.RegisterPushDeviceInput"
+                            }
+                        },
+                        "text/csv": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PushDevice.RegisterPushDeviceInput"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/api/push-devices/{id}": {
+            "delete": {
+                "operationId": "api_push-devices_id_delete",
+                "tags": [
+                    "PushDevice"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Device deactivated (or not found \u2014 always succeeds)"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Deactivate a push device",
+                "description": "Marks the device as inactive so it no longer receives push notifications. Silently succeeds when the device does not exist or belongs to another user.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "PushDevice identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
         "/api/routes": {
             "get": {
                 "operationId": "api_routes_get_collection",
@@ -5814,7 +6019,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -5829,7 +6034,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             },
@@ -6865,7 +7070,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -6880,7 +7085,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             },
@@ -7781,7 +7986,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -7796,7 +8001,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "search[name][]",
@@ -8346,7 +8551,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -8361,7 +8566,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "date",
@@ -8373,7 +8578,7 @@
                             "type": "string"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "search[school]",
@@ -8385,7 +8590,7 @@
                             "type": "string"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "search[status]",
@@ -8397,7 +8602,7 @@
                             "type": "string"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "search[eventType]",
@@ -8409,7 +8614,7 @@
                             "type": "string"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "search[routeMode]",
@@ -8421,7 +8626,7 @@
                             "type": "string"
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             },
@@ -8945,7 +9150,7 @@
                     }
                 },
                 "summary": "Mark arrival at event (ONE_WAY auto-completes)",
-                "description": "Creates a SpecialEventRoute resource.",
+                "description": "Mark arrival at event (ONE_WAY auto-completes)",
                 "parameters": [
                     {
                         "name": "id",
@@ -9048,7 +9253,7 @@
                     }
                 },
                 "summary": "Complete the route (IN_PROGRESS \u2192 COMPLETED)",
-                "description": "Creates a SpecialEventRoute resource.",
+                "description": "Complete the route (IN_PROGRESS \u2192 COMPLETED)",
                 "parameters": [
                     {
                         "name": "id",
@@ -9151,7 +9356,7 @@
                     }
                 },
                 "summary": "Publish a special event route (DRAFT \u2192 PUBLISHED)",
-                "description": "Creates a SpecialEventRoute resource.",
+                "description": "Publish a special event route (DRAFT \u2192 PUBLISHED)",
                 "parameters": [
                     {
                         "name": "id",
@@ -9254,7 +9459,7 @@
                     }
                 },
                 "summary": "Start the outbound leg (PUBLISHED \u2192 IN_PROGRESS)",
-                "description": "Creates a SpecialEventRoute resource.",
+                "description": "Start the outbound leg (PUBLISHED \u2192 IN_PROGRESS)",
                 "parameters": [
                     {
                         "name": "id",
@@ -9357,7 +9562,7 @@
                     }
                 },
                 "summary": "Start the return leg (not valid for ONE_WAY)",
-                "description": "Creates a SpecialEventRoute resource.",
+                "description": "Start the return leg (not valid for ONE_WAY)",
                 "parameters": [
                     {
                         "name": "id",
@@ -9460,7 +9665,7 @@
                     }
                 },
                 "summary": "Mark a student as ready for pickup (INDIVIDUAL departure mode)",
-                "description": "Creates a SpecialEventRoute resource.",
+                "description": "Mark a student as ready for pickup (INDIVIDUAL departure mode)",
                 "parameters": [
                     {
                         "name": "id",
@@ -9586,7 +9791,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -9601,7 +9806,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             },
@@ -10136,7 +10341,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -10151,7 +10356,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             },
@@ -10682,7 +10887,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -10697,7 +10902,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     }
                 ]
             },
@@ -11232,7 +11437,7 @@
                             "default": 1
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "itemsPerPage",
@@ -11247,7 +11452,7 @@
                             "maximum": 100
                         },
                         "style": "form",
-                        "explode": false
+                        "explode": true
                     },
                     {
                         "name": "driver[]",
@@ -15455,6 +15660,18 @@
                     },
                     "nickname": {
                         "type": "string"
+                    },
+                    "mpTokenExpiresAt": {
+                        "description": "When the current access token expires (MP tokens last ~180 days).",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "mpConnected": {
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 }
             },
@@ -15685,6 +15902,18 @@
                     },
                     "nickname": {
                         "type": "string"
+                    },
+                    "mpTokenExpiresAt": {
+                        "description": "When the current access token expires (MP tokens last ~180 days).",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "mpConnected": {
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 }
             },
@@ -15873,6 +16102,18 @@
                     },
                     "nickname": {
                         "type": "string"
+                    },
+                    "mpTokenExpiresAt": {
+                        "description": "When the current access token expires (MP tokens last ~180 days).",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "mpConnected": {
+                        "readOnly": true,
+                        "type": "boolean"
                     }
                 }
             },
@@ -16179,6 +16420,18 @@
                             },
                             "nickname": {
                                 "type": "string"
+                            },
+                            "mpTokenExpiresAt": {
+                                "description": "When the current access token expires (MP tokens last ~180 days).",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "mpConnected": {
+                                "readOnly": true,
+                                "type": "boolean"
                             }
                         }
                     }
@@ -18599,7 +18852,7 @@
                         "externalDocs": {
                             "url": "https://schema.org/priceCurrency"
                         },
-                        "default": "USD",
+                        "default": "ARS",
                         "type": "string"
                     },
                     "paymentMethod": {
@@ -18678,7 +18931,7 @@
                         "externalDocs": {
                             "url": "https://schema.org/priceCurrency"
                         },
-                        "default": "USD",
+                        "default": "ARS",
                         "type": "string"
                     },
                     "paymentMethod": {
@@ -19292,7 +19545,7 @@
                         "externalDocs": {
                             "url": "https://schema.org/priceCurrency"
                         },
-                        "default": "USD",
+                        "default": "ARS",
                         "type": "string"
                     },
                     "paymentMethod": {
@@ -19371,7 +19624,7 @@
                         "externalDocs": {
                             "url": "https://schema.org/priceCurrency"
                         },
-                        "default": "USD",
+                        "default": "ARS",
                         "type": "string"
                     },
                     "paymentMethod": {
@@ -19483,7 +19736,7 @@
                         "externalDocs": {
                             "url": "https://schema.org/priceCurrency"
                         },
-                        "default": "USD",
+                        "default": "ARS",
                         "type": "string"
                     },
                     "paymentMethod": {
@@ -19562,7 +19815,7 @@
                         "externalDocs": {
                             "url": "https://schema.org/priceCurrency"
                         },
-                        "default": "USD",
+                        "default": "ARS",
                         "type": "string"
                     },
                     "paymentMethod": {
@@ -19678,7 +19931,7 @@
                                 "externalDocs": {
                                     "url": "https://schema.org/priceCurrency"
                                 },
-                                "default": "USD",
+                                "default": "ARS",
                                 "type": "string"
                             },
                             "paymentMethod": {
@@ -19764,7 +20017,7 @@
                                 "externalDocs": {
                                     "url": "https://schema.org/priceCurrency"
                                 },
-                                "default": "USD",
+                                "default": "ARS",
                                 "type": "string"
                             },
                             "paymentMethod": {
@@ -19875,6 +20128,161 @@
             },
             "PaymentTransaction.jsonld-payment.read_payment.detail": {
                 "type": "object"
+            },
+            "PushDevice.PushDeviceOutput": {
+                "type": "object",
+                "description": "Registers and manages Expo push notification device tokens for authenticated users.",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "expoPushToken": {
+                        "type": "string"
+                    },
+                    "platform": {
+                        "type": "string"
+                    },
+                    "deviceName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "osVersion": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "PushDevice.PushDeviceOutput.csv": {
+                "type": "object",
+                "description": "Registers and manages Expo push notification device tokens for authenticated users.",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "expoPushToken": {
+                        "type": "string"
+                    },
+                    "platform": {
+                        "type": "string"
+                    },
+                    "deviceName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "osVersion": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "PushDevice.PushDeviceOutput.html": {
+                "type": "object",
+                "description": "Registers and manages Expo push notification device tokens for authenticated users.",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "expoPushToken": {
+                        "type": "string"
+                    },
+                    "platform": {
+                        "type": "string"
+                    },
+                    "deviceName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "osVersion": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "PushDevice.PushDeviceOutput.jsonld": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "expoPushToken": {
+                                "type": "string"
+                            },
+                            "platform": {
+                                "type": "string"
+                            },
+                            "deviceName": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "osVersion": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "description": "Registers and manages Expo push notification device tokens for authenticated users."
+            },
+            "PushDevice.RegisterPushDeviceInput": {
+                "type": "object",
+                "description": "Registers and manages Expo push notification device tokens for authenticated users.",
+                "required": [
+                    "expoPushToken",
+                    "platform"
+                ],
+                "properties": {
+                    "expoPushToken": {
+                        "maxLength": 255,
+                        "description": "Expo push token for the device (e.g. ExponentPushToken[xxxxxxxx]).",
+                        "type": "string"
+                    },
+                    "platform": {
+                        "enum": [
+                            "ios",
+                            "android"
+                        ],
+                        "maxLength": 10,
+                        "description": "Mobile platform: \"ios\" or \"android\".",
+                        "type": "string"
+                    },
+                    "deviceName": {
+                        "maxLength": 255,
+                        "description": "Optional human-readable device name (e.g. \"iPhone 15 Pro\").",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "osVersion": {
+                        "maxLength": 20,
+                        "description": "Optional OS version string (e.g. \"17.4\").",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
             },
             "RateInput": {
                 "type": "object",
@@ -25893,6 +26301,10 @@
         {
             "name": "Payment",
             "description": "Manages Mercado Pago marketplace payments between parents and drivers."
+        },
+        {
+            "name": "PushDevice",
+            "description": "Registers and manages Expo push notification device tokens for authenticated users."
         },
         {
             "name": "Route",

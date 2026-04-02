@@ -67,7 +67,7 @@ Prod: `docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod 
 
 ### Async Messaging Pipeline
 Three Symfony Messenger transports (all RabbitMQ via phpamqplib):
-- `async`: general messages — email, SMS, chat, subscription processing
+- `async`: general messages — email, SMS, chat, subscription processing, push notifications (`SendPushNotification`, `CheckPushReceipts`)
 - `async_webhooks`: payment webhook processing, isolated for fast turnaround
 - `async_tracking`: GPS events (`DriverLocationUpdatedMessage`), isolated from webhooks
 
@@ -102,7 +102,28 @@ Mercure hub (Caddy module) publishes live updates with 45s heartbeat (prevents C
 
 **Trip event pipeline:** `GeofencingService` dispatches `StopApproachingEvent`/`StopArrivedEvent` → `GeofencingBridgeSubscriber` bridges to `BusArrivingEvent` → `TripMercureSubscriber` publishes to `/api/users/{parentId}/notifications` (private) and `/tracking/route/{id}` (public). `AttendanceController` dispatches `StudentPickedUpEvent`/`StudentDroppedOffEvent` after flush. `ActiveRouteStatusListener` (Doctrine postUpdate/postFlush) dispatches `RouteStartedEvent`/`RouteCompletedEvent`. All Mercure publishes are non-fatal (try/catch + log).
 
+All six trip domain events carry the `HasEventId` trait — each generates a lazy UUIDv7 `eventId` that is embedded in both the Mercure SSE payload and the `SendPushNotification` message, allowing the mobile client to suppress duplicate in-app banners when a push for the same event already landed.
+
 **Stop link request pipeline:** `RouteStopCreatedListener` (Doctrine postPersist/postFlush) detects new unconfirmed stops → `RouteStopNotificationPublisher.notifyDriverOfNewRequest()`. `RouteStopConfirmProcessor`/`RouteStopRejectProcessor` call `notifyParentsOfConfirmation()`/`notifyParentsOfRejection()` after flush. All publish to `/api/users/{id}/notifications` (private, non-fatal).
+
+### Push Notifications (Expo)
+
+Push delivery uses the Expo Push API (`dru1x/expo-push`) via two async messages on the `async` transport:
+
+- **`SendPushNotification`** — dispatched with a list of recipient user IDs; `SendPushNotificationHandler` fetches their active `PushDevice` tokens, batches calls to `ExpoPushService::send()`, saves resulting ticket IDs to `PushTicket`, and auto-deactivates `DeviceNotRegistered` tokens immediately.
+- **`CheckPushReceipts`** — polls Expo's receipt API for pending `PushTicket` rows; dispatched every **15 min** by `PushNotificationScheduleProvider` (`#[AsSchedule('push_notifications')]`). CLI fallback: `php bin/console app:push:check-receipts`.
+
+**Device lifecycle API:**
+- `POST /api/push-devices` — register/reactivate an Expo token (`RegisterPushDeviceProcessor`)
+- `DELETE /api/push-devices/{id}` — deactivate a token on logout (`DeactivatePushDeviceProcessor`)
+
+**Android channels** — resolved automatically from `notificationType` prefix: `trips`, `payments`, `messages`, `reminders`.
+
+**Maintenance:** `php bin/console app:push:cleanup` deletes tickets older than 7 days and deactivates tokens unseen for 90 days.
+
+**Env var:** `EXPO_ACCESS_TOKEN=` (leave blank for unauthenticated Expo tier).
+
+**Logging:** both handlers use the dedicated `push` monolog channel (`@monolog.logger.push`).
 
 ## Testing Conventions
 
