@@ -18,6 +18,12 @@ framework:
             interval: '10 seconds'
             cache_pool: 'cache.app'
 
+        school_search:
+            policy: 'sliding_window'
+            limit: 30
+            interval: '10 seconds'
+            cache_pool: 'cache.app'
+
 # In dev/test the cache pools are wrapped in TraceableAdapter (debug mode)
 # which does not implement StorageInterface. Override to InMemoryStorage so
 # lint:container and functional tests can instantiate controllers cleanly.
@@ -37,6 +43,9 @@ when@dev:
             driver_search:
                 storage_service: 'dev.rate_limiter.storage'
 
+            school_search:
+                storage_service: 'dev.rate_limiter.storage'
+
 when@test:
     services:
         test.rate_limiter.storage:
@@ -51,5 +60,9 @@ when@test:
                 storage_service: 'test.rate_limiter.storage'
 
             driver_search:
+                limit: 5
+                storage_service: 'test.rate_limiter.storage'
+
+            school_search:
                 limit: 5
                 storage_service: 'test.rate_limiter.storage'

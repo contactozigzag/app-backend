@@ -8002,21 +8002,6 @@
                         },
                         "style": "form",
                         "explode": true
-                    },
-                    {
-                        "name": "search[name][]",
-                        "in": "query",
-                        "description": "School search[name]",
-                        "required": false,
-                        "deprecated": false,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "style": "deepObject",
-                        "explode": true
                     }
                 ]
             },
@@ -8452,6 +8437,92 @@
                     },
                     "required": true
                 }
+            }
+        },
+        "/api/schools/search": {
+            "get": {
+                "operationId": "api_schoolssearch_get_collection",
+                "tags": [
+                    "SchoolSearch"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SchoolSearch collection",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/SchoolSearch"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Search schools by name",
+                "description": "Full-text search powered by OpenSearch with Spanish stop words, asciifolding, and edge-ngram prefix matching. Falls back to a Doctrine LIKE query if OpenSearch is unavailable.",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query (minimum 2 characters)",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "itemsPerPage",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        },
+                        "style": "form",
+                        "explode": true
+                    }
+                ]
             }
         },
         "/api/special-event-routes": {
@@ -22056,6 +22127,9 @@
                     }
                 ]
             },
+            "SchoolSearch": {
+                "type": "object"
+            },
             "SpecialEventRoute-special_event_route.read": {
                 "type": "object",
                 "properties": {
@@ -26253,6 +26327,10 @@
         {
             "name": "MercadoPagoWebhook",
             "description": "Receives and enqueues Mercado Pago webhook notifications."
+        },
+        {
+            "name": "SchoolSearch",
+            "description": "Resource 'SchoolSearch' operations."
         },
         {
             "name": "UnconfirmedRouteStop",

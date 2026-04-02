@@ -104,9 +104,11 @@ framework:
             # Special event routes
             App\Message\StudentReadyForPickupMessage: async
 
-            # OpenSearch driver indexing
+            # OpenSearch indexing
             App\Message\IndexDriverMessage: async
             App\Message\RemoveDriverFromIndexMessage: async
+            App\Message\IndexSchoolMessage: async
+            App\Message\RemoveSchoolFromIndexMessage: async
 
             # Push notifications
             App\Message\SendPushNotification: async

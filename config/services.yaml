@@ -50,6 +50,10 @@ services:
         arguments:
             $indexPrefix: '%env(OPENSEARCH_INDEX_PREFIX)%'
 
+    App\Service\OpenSearch\SchoolSearchService:
+        arguments:
+            $indexPrefix: '%env(OPENSEARCH_INDEX_PREFIX)%'
+
     App\Service\Push\ExpoPushService:
         arguments:
             $expoAccessToken: '%env(EXPO_ACCESS_TOKEN)%'
