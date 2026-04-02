@@ -32,8 +32,6 @@ final readonly class CheckPushReceiptsHandler
      */
     public function __invoke(CheckPushReceipts $message): void
     {
-        $startTime = microtime(true);
-
         $pendingTickets = $this->ticketRepo->findPendingOlderThan($message->olderThan);
 
         if ($pendingTickets === []) {
@@ -80,13 +78,10 @@ final readonly class CheckPushReceiptsHandler
             $this->ticketRepo->save($ticket);
         }
 
-        $elapsed = (int) ((microtime(true) - $startTime) * 1000);
-
         $this->logger->info('Push receipts checked', [
             'pending' => count($pendingTickets),
             'receipts' => count($result->receipts),
             'errors' => $result->errors->count(),
-            'duration_ms' => $elapsed,
         ]);
     }
 }

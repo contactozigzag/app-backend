@@ -37,8 +37,6 @@ final readonly class SendPushNotificationHandler
      */
     public function __invoke(SendPushNotification $message): void
     {
-        $startTime = microtime(true);
-
         $devices = array_values(
             $this->deviceRepo->findActiveByUserIds($message->recipientUserIds)
         );
@@ -76,12 +74,10 @@ final readonly class SendPushNotificationHandler
         try {
             $result = $this->expoPush->send(new PushMessageCollection(...$pushMessages));
         } catch (Throwable $throwable) {
-            $elapsed = (int) ((microtime(true) - $startTime) * 1000);
             $this->logger->error('Expo Push API request failed', [
                 'type' => $message->notificationType,
                 'error' => $throwable->getMessage(),
                 'tokenCount' => count($pushMessages),
-                'duration_ms' => $elapsed,
             ]);
             throw $throwable;
         }
@@ -117,13 +113,10 @@ final readonly class SendPushNotificationHandler
             }
         }
 
-        $elapsed = (int) ((microtime(true) - $startTime) * 1000);
-
         $this->logger->info('Push notifications sent', [
             'type' => $message->notificationType,
             'sent' => count($result->tickets),
             'errors' => $result->errors->count(),
-            'duration_ms' => $elapsed,
         ]);
     }
 
