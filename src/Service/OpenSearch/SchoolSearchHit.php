@@ -13,6 +13,7 @@ final readonly class SchoolSearchHit
         public int $schoolId,
         public string $name,
         public string $city,
+        public string $address,
         public float $score,
     ) {
     }

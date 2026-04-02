@@ -73,7 +73,7 @@ readonly class SchoolSearchService
         // Layer 3 — edge-ngram prefix via standard match (boost 2)
         // Layer 4 — fuzzy/typo tolerance for resilience (boost 1)
         $body = [
-            '_source' => ['school_id', 'name', 'city'],
+            '_source' => ['school_id', 'name', 'city', 'street_address'],
             'track_total_hits' => true,
             'from' => $from,
             'size' => $limit,
@@ -141,12 +141,13 @@ readonly class SchoolSearchService
         $hits = [];
 
         foreach ($response['hits']['hits'] as $hit) {
-            /** @var array{school_id: int, name: string, city: string} $source */
+            /** @var array{school_id: int, name: string, city: string, street_address: string} $source */
             $source = $hit['_source'];
             $hits[] = new SchoolSearchHit(
                 schoolId: $source['school_id'],
                 name: $source['name'],
                 city: $source['city'],
+                address: $source['street_address'],
                 score: (float) $hit['_score'],
             );
         }
@@ -268,6 +269,9 @@ readonly class SchoolSearchService
                         'city' => [
                             'type' => 'keyword',
                         ],
+                        'street_address' => [
+                            'type' => 'keyword',
+                        ],
                         'is_active' => [
                             'type' => 'boolean',
                         ],
@@ -289,6 +293,7 @@ readonly class SchoolSearchService
             'school_id' => $school->getId(),
             'name' => $school->getName() ?? '',
             'city' => $school->getAddress()?->getCity() ?? '',
+            'street_address' => $school->getAddress()?->getStreetAddress() ?? '',
             'is_active' => true,
             'updated_at' => new DateTimeImmutable()->format('c'),
         ];

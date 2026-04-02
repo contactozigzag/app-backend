@@ -73,7 +73,7 @@ final class SchoolSearchServiceTest extends TestCase
 
                 $this->assertArrayHasKey('term', $layer1);
                 $this->assertSame('Colegio', $layer1['term']['name.keyword']['value']);
-                $this->assertSame(10.0, $layer1['term']['name.keyword']['boost']);
+                $this->assertEqualsWithDelta(10.0, $layer1['term']['name.keyword']['boost'], PHP_FLOAT_EPSILON);
 
                 return true;
             }))
@@ -93,7 +93,7 @@ final class SchoolSearchServiceTest extends TestCase
 
                 $this->assertArrayHasKey('match_phrase', $layer2);
                 $this->assertSame('Colegio', $layer2['match_phrase']['name']['query']);
-                $this->assertSame(5.0, $layer2['match_phrase']['name']['boost']);
+                $this->assertEqualsWithDelta(5.0, $layer2['match_phrase']['name']['boost'], PHP_FLOAT_EPSILON);
 
                 return true;
             }))
@@ -113,7 +113,7 @@ final class SchoolSearchServiceTest extends TestCase
 
                 $this->assertArrayHasKey('match', $layer3);
                 $this->assertSame('Colegio', $layer3['match']['name']['query']);
-                $this->assertSame(2.0, $layer3['match']['name']['boost']);
+                $this->assertEqualsWithDelta(2.0, $layer3['match']['name']['boost'], PHP_FLOAT_EPSILON);
                 $this->assertArrayNotHasKey('fuzziness', $layer3['match']['name']);
 
                 return true;
@@ -135,7 +135,7 @@ final class SchoolSearchServiceTest extends TestCase
                 $this->assertArrayHasKey('match', $layer4);
                 $this->assertSame('Colegio', $layer4['match']['name']['query']);
                 $this->assertSame('AUTO', $layer4['match']['name']['fuzziness']);
-                $this->assertSame(1.0, $layer4['match']['name']['boost']);
+                $this->assertEqualsWithDelta(1.0, $layer4['match']['name']['boost'], PHP_FLOAT_EPSILON);
 
                 return true;
             }))
@@ -151,7 +151,11 @@ final class SchoolSearchServiceTest extends TestCase
             ->method('search')
             ->with(self::callback(function (array $params): bool {
                 $filter = $params['body']['query']['bool']['filter'];
-                $this->assertSame(['term' => ['is_active' => true]], $filter[0]);
+                $this->assertSame([
+                    'term' => [
+                        'is_active' => true,
+                    ],
+                ], $filter[0]);
 
                 return true;
             }))
@@ -170,6 +174,7 @@ final class SchoolSearchServiceTest extends TestCase
                 $this->assertContains('school_id', $params['body']['_source']);
                 $this->assertContains('name', $params['body']['_source']);
                 $this->assertContains('city', $params['body']['_source']);
+                $this->assertContains('street_address', $params['body']['_source']);
 
                 return true;
             }))
@@ -200,13 +205,16 @@ final class SchoolSearchServiceTest extends TestCase
         $client = $this->createStub(Client::class);
         $client->method('search')->willReturn([
             'hits' => [
-                'total' => ['value' => 1],
+                'total' => [
+                    'value' => 1,
+                ],
                 'hits' => [
                     [
                         '_source' => [
                             'school_id' => 5,
                             'name' => 'Escuela San Martín',
                             'city' => 'Buenos Aires',
+                            'street_address' => 'Av. Corrientes 1234',
                         ],
                         '_score' => 9.2,
                     ],
@@ -221,6 +229,7 @@ final class SchoolSearchServiceTest extends TestCase
         $this->assertSame(5, $hit->schoolId);
         $this->assertSame('Escuela San Martín', $hit->name);
         $this->assertSame('Buenos Aires', $hit->city);
+        $this->assertSame('Av. Corrientes 1234', $hit->address);
         $this->assertEqualsWithDelta(9.2, $hit->score, PHP_FLOAT_EPSILON);
         $this->assertSame(1, $result->total);
     }
@@ -247,6 +256,7 @@ final class SchoolSearchServiceTest extends TestCase
     {
         $address = $this->createStub(Address::class);
         $address->method('getCity')->willReturn('Rosario');
+        $address->method('getStreetAddress')->willReturn('Av. Pellegrini 500');
 
         $school = $this->createStub(School::class);
         $school->method('getId')->willReturn(3);
@@ -262,6 +272,7 @@ final class SchoolSearchServiceTest extends TestCase
                 $this->assertSame(3, $params['body']['school_id']);
                 $this->assertSame('Colegio Nacional', $params['body']['name']);
                 $this->assertSame('Rosario', $params['body']['city']);
+                $this->assertSame('Av. Pellegrini 500', $params['body']['street_address']);
                 $this->assertTrue($params['body']['is_active']);
                 $this->assertArrayHasKey('updated_at', $params['body']);
 
@@ -299,7 +310,9 @@ final class SchoolSearchServiceTest extends TestCase
             ->with([
                 'index' => 'test_schools',
                 'id' => '42',
-                'client' => ['ignore' => [404]],
+                'client' => [
+                    'ignore' => [404],
+                ],
             ]);
 
         $this->buildService($client)->delete(42);
@@ -414,7 +427,9 @@ final class SchoolSearchServiceTest extends TestCase
     {
         $indices = $this->createMock(IndicesNamespace::class);
         $indices->method('exists')->willReturn(true);
-        $indices->expects($this->once())->method('delete')->with(['index' => 'test_schools']);
+        $indices->expects($this->once())->method('delete')->with([
+            'index' => 'test_schools',
+        ]);
         $indices->expects($this->once())->method('create');
 
         $client = $this->createStub(Client::class);
@@ -442,7 +457,9 @@ final class SchoolSearchServiceTest extends TestCase
     {
         return [
             'hits' => [
-                'total' => ['value' => 0],
+                'total' => [
+                    'value' => 0,
+                ],
                 'hits' => [],
             ],
         ];

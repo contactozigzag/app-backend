@@ -4202,13 +4202,57 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "DriverSearch collection",
+                        "description": "Driver search results",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/DriverSearch"
+                                    "type": "object",
+                                    "properties": {
+                                        "results": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "driverId": {
+                                                        "type": "integer",
+                                                        "example": 7
+                                                    },
+                                                    "nickname": {
+                                                        "type": "string",
+                                                        "example": "Pepe"
+                                                    },
+                                                    "firstName": {
+                                                        "type": "string",
+                                                        "example": "Jos\u00e9"
+                                                    },
+                                                    "lastName": {
+                                                        "type": "string",
+                                                        "example": "Garc\u00eda"
+                                                    },
+                                                    "identificationNumber": {
+                                                        "type": "string",
+                                                        "example": "20-12345678-3"
+                                                    },
+                                                    "score": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 8.5
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "page": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "itemsPerPage": {
+                                            "type": "integer",
+                                            "example": 10
+                                        }
                                     }
                                 }
                             }
@@ -8447,13 +8491,53 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "SchoolSearch collection",
+                        "description": "School search results",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/SchoolSearch"
+                                    "type": "object",
+                                    "properties": {
+                                        "results": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "schoolId": {
+                                                        "type": "integer",
+                                                        "example": 42
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Escuela San Mart\u00edn"
+                                                    },
+                                                    "city": {
+                                                        "type": "string",
+                                                        "example": "Buenos Aires"
+                                                    },
+                                                    "address": {
+                                                        "type": "string",
+                                                        "example": "Av. Corrientes 1234"
+                                                    },
+                                                    "score": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 9.2
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "page": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "itemsPerPage": {
+                                            "type": "integer",
+                                            "example": 10
+                                        }
                                     }
                                 }
                             }

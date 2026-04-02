@@ -22,10 +22,16 @@ final class SchoolSearchTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        SchoolFactory::new()->with(['name' => 'Escuela San Martín'])->create();
-        SchoolFactory::new()->with(['name' => 'Colegio Nacional'])->create();
+        SchoolFactory::new()->with([
+            'name' => 'Escuela San Martín',
+        ])->create();
+        SchoolFactory::new()->with([
+            'name' => 'Colegio Nacional',
+        ])->create();
 
-        $user = UserFactory::new()->with(['roles' => ['ROLE_PARENT']])->create();
+        $user = UserFactory::new()->with([
+            'roles' => ['ROLE_PARENT'],
+        ])->create();
         $this->loginUser($client, $user);
 
         $data = $this->getJson($client, '/api/schools/search?q=Esc');
@@ -39,9 +45,13 @@ final class SchoolSearchTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        SchoolFactory::new()->with(['name' => 'Escuela San Martín'])->create();
+        SchoolFactory::new()->with([
+            'name' => 'Escuela San Martín',
+        ])->create();
 
-        $user = UserFactory::new()->with(['roles' => ['ROLE_PARENT']])->create();
+        $user = UserFactory::new()->with([
+            'roles' => ['ROLE_PARENT'],
+        ])->create();
         $this->loginUser($client, $user);
 
         $data = $this->getJson($client, '/api/schools/search?q=escuela');
@@ -55,9 +65,13 @@ final class SchoolSearchTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        SchoolFactory::new()->with(['name' => 'Colegio Nacional'])->create();
+        SchoolFactory::new()->with([
+            'name' => 'Colegio Nacional',
+        ])->create();
 
-        $user = UserFactory::new()->with(['roles' => ['ROLE_SCHOOL_ADMIN']])->create();
+        $user = UserFactory::new()->with([
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
+        ])->create();
         $this->loginUser($client, $user);
 
         $data = $this->getJson($client, '/api/schools/search?q=Colegio');
@@ -68,6 +82,7 @@ final class SchoolSearchTest extends AbstractApiTestCase
         $this->assertArrayHasKey('schoolId', $result);
         $this->assertArrayHasKey('name', $result);
         $this->assertArrayHasKey('city', $result);
+        $this->assertArrayHasKey('address', $result);
         $this->assertArrayHasKey('score', $result);
     }
 
@@ -75,9 +90,13 @@ final class SchoolSearchTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        SchoolFactory::new()->with(['name' => 'Escuela San Martín'])->create();
+        SchoolFactory::new()->with([
+            'name' => 'Escuela San Martín',
+        ])->create();
 
-        $user = UserFactory::new()->with(['roles' => ['ROLE_PARENT']])->create();
+        $user = UserFactory::new()->with([
+            'roles' => ['ROLE_PARENT'],
+        ])->create();
         $this->loginUser($client, $user);
 
         $data = $this->getJson($client, '/api/schools/search?q=ZZZZZ');
@@ -91,7 +110,9 @@ final class SchoolSearchTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        $user = UserFactory::new()->with(['roles' => ['ROLE_PARENT']])->create();
+        $user = UserFactory::new()->with([
+            'roles' => ['ROLE_PARENT'],
+        ])->create();
         $this->loginUser($client, $user);
 
         $data = $this->getJson($client, '/api/schools/search?q=E');
@@ -105,7 +126,9 @@ final class SchoolSearchTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        $user = UserFactory::new()->with(['roles' => ['ROLE_PARENT']])->create();
+        $user = UserFactory::new()->with([
+            'roles' => ['ROLE_PARENT'],
+        ])->create();
         $this->loginUser($client, $user);
 
         $data = $this->getJson($client, '/api/schools/search?q=');
@@ -127,10 +150,14 @@ final class SchoolSearchTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        SchoolFactory::new()->with(['name' => 'Colegio Nacional'])->create();
+        SchoolFactory::new()->with([
+            'name' => 'Colegio Nacional',
+        ])->create();
 
         // ROLE_DRIVER (lower than PARENT/ADMIN) must also be allowed
-        $driver = UserFactory::new()->with(['roles' => ['ROLE_DRIVER']])->create();
+        $driver = UserFactory::new()->with([
+            'roles' => ['ROLE_DRIVER'],
+        ])->create();
         $this->loginUser($client, $driver);
 
         $data = $this->getJson($client, '/api/schools/search?q=Colegio');
@@ -144,10 +171,14 @@ final class SchoolSearchTest extends AbstractApiTestCase
         $client = $this->createApiClient();
 
         for ($i = 1; $i <= 5; ++$i) {
-            SchoolFactory::new()->with(['name' => 'Escuela Test ' . $i])->create();
+            SchoolFactory::new()->with([
+                'name' => 'Escuela Test ' . $i,
+            ])->create();
         }
 
-        $user = UserFactory::new()->with(['roles' => ['ROLE_SCHOOL_ADMIN']])->create();
+        $user = UserFactory::new()->with([
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
+        ])->create();
         $this->loginUser($client, $user);
 
         $data = $this->getJson($client, '/api/schools/search?q=Escuela&itemsPerPage=2&page=1');
@@ -162,7 +193,9 @@ final class SchoolSearchTest extends AbstractApiTestCase
     {
         $client = $this->createApiClient();
 
-        $user = UserFactory::new()->with(['roles' => ['ROLE_PARENT']])->create();
+        $user = UserFactory::new()->with([
+            'roles' => ['ROLE_PARENT'],
+        ])->create();
         $this->loginUser($client, $user);
 
         $data = $this->getJson($client, '/api/schools/search?q=test');
