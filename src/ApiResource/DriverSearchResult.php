@@ -34,18 +34,46 @@ use ArrayObject;
                                             'items' => [
                                                 'type' => 'object',
                                                 'properties' => [
-                                                    'driverId' => ['type' => 'integer', 'example' => 7],
-                                                    'nickname' => ['type' => 'string', 'example' => 'Pepe'],
-                                                    'firstName' => ['type' => 'string', 'example' => 'José'],
-                                                    'lastName' => ['type' => 'string', 'example' => 'García'],
-                                                    'identificationNumber' => ['type' => 'string', 'example' => '20-12345678-3'],
-                                                    'score' => ['type' => 'number', 'format' => 'float', 'example' => 8.5],
+                                                    'driverId' => [
+                                                        'type' => 'integer',
+                                                        'example' => 7,
+                                                    ],
+                                                    'nickname' => [
+                                                        'type' => 'string',
+                                                        'example' => 'Pepe',
+                                                    ],
+                                                    'firstName' => [
+                                                        'type' => 'string',
+                                                        'example' => 'José',
+                                                    ],
+                                                    'lastName' => [
+                                                        'type' => 'string',
+                                                        'example' => 'García',
+                                                    ],
+                                                    'identificationNumber' => [
+                                                        'type' => 'string',
+                                                        'example' => '20-12345678-3',
+                                                    ],
+                                                    'score' => [
+                                                        'type' => 'number',
+                                                        'format' => 'float',
+                                                        'example' => 8.5,
+                                                    ],
                                                 ],
                                             ],
                                         ],
-                                        'total' => ['type' => 'integer', 'example' => 1],
-                                        'page' => ['type' => 'integer', 'example' => 1],
-                                        'itemsPerPage' => ['type' => 'integer', 'example' => 10],
+                                        'total' => [
+                                            'type' => 'integer',
+                                            'example' => 1,
+                                        ],
+                                        'page' => [
+                                            'type' => 'integer',
+                                            'example' => 1,
+                                        ],
+                                        'itemsPerPage' => [
+                                            'type' => 'integer',
+                                            'example' => 10,
+                                        ],
                                     ],
                                 ],
                             ],

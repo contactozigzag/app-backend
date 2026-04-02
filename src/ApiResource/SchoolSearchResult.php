@@ -34,17 +34,42 @@ use ArrayObject;
                                             'items' => [
                                                 'type' => 'object',
                                                 'properties' => [
-                                                    'schoolId' => ['type' => 'integer', 'example' => 42],
-                                                    'name' => ['type' => 'string', 'example' => 'Escuela San Martín'],
-                                                    'city' => ['type' => 'string', 'example' => 'Buenos Aires'],
-                                                    'address' => ['type' => 'string', 'example' => 'Av. Corrientes 1234'],
-                                                    'score' => ['type' => 'number', 'format' => 'float', 'example' => 9.2],
+                                                    'schoolId' => [
+                                                        'type' => 'integer',
+                                                        'example' => 42,
+                                                    ],
+                                                    'name' => [
+                                                        'type' => 'string',
+                                                        'example' => 'Escuela San Martín',
+                                                    ],
+                                                    'city' => [
+                                                        'type' => 'string',
+                                                        'example' => 'Buenos Aires',
+                                                    ],
+                                                    'address' => [
+                                                        'type' => 'string',
+                                                        'example' => 'Av. Corrientes 1234',
+                                                    ],
+                                                    'score' => [
+                                                        'type' => 'number',
+                                                        'format' => 'float',
+                                                        'example' => 9.2,
+                                                    ],
                                                 ],
                                             ],
                                         ],
-                                        'total' => ['type' => 'integer', 'example' => 1],
-                                        'page' => ['type' => 'integer', 'example' => 1],
-                                        'itemsPerPage' => ['type' => 'integer', 'example' => 10],
+                                        'total' => [
+                                            'type' => 'integer',
+                                            'example' => 1,
+                                        ],
+                                        'page' => [
+                                            'type' => 'integer',
+                                            'example' => 1,
+                                        ],
+                                        'itemsPerPage' => [
+                                            'type' => 'integer',
+                                            'example' => 10,
+                                        ],
                                     ],
                                 ],
                             ],
