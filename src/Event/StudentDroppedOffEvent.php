@@ -10,6 +10,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class StudentDroppedOffEvent extends Event
 {
+    use HasEventId;
+
     public const NAME = 'student.dropped_off';
 
     public function __construct(

@@ -9,6 +9,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class RouteCompletedEvent extends Event
 {
+    use HasEventId;
+
     public const NAME = 'route.completed';
 
     public function __construct(

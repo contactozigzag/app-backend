@@ -10,6 +10,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class StudentPickedUpEvent extends Event
 {
+    use HasEventId;
+
     public const NAME = 'student.picked_up';
 
     public function __construct(

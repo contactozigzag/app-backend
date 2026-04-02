@@ -3,6 +3,7 @@ monolog:
         - deprecation # Deprecations are logged in the dedicated "deprecation" channel when it exists
         - security_audit
         - async_pipeline
+        - push
 
 when@dev:
     monolog:

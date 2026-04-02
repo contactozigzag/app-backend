@@ -9,6 +9,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class StopArrivedEvent extends Event
 {
+    use HasEventId;
+
     public const NAME = 'stop.arrived';
 
     public function __construct(
