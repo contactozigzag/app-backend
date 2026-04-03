@@ -103,7 +103,7 @@ class DashboardController extends AbstractDashboardController
             MenuItem::linkTo(RouteCrudController::class, 'Route Templates', 'fas fa-route'),
             MenuItem::linkTo(RouteStopCrudController::class, 'Route Stops', 'fas fa-location-dot'),
             MenuItem::linkTo(ActiveRouteCrudController::class, 'Active Sessions', 'fas fa-play-circle'),
-            MenuItem::linkTo(SpecialEventRouteCrudController::class, 'Special Events', 'fas fa-calendar-star'),
+            MenuItem::linkTo(SpecialEventRouteCrudController::class, 'Special Events', 'fas fa-map-location-dot'),
             MenuItem::linkTo(ArchivedRouteCrudController::class, 'Archived', 'fas fa-archive'),
         ]);
 
@@ -138,10 +138,6 @@ class DashboardController extends AbstractDashboardController
         /** @var User $user */
         return parent::configureUserMenu($user)
             ->setName($user->getFullName())
-            ->setGravatarEmail((string) $user->getEmail())
-            ->addMenuItems([
-                MenuItem::section(),
-                MenuItem::linkToLogout('Logout', 'fa fa-sign-out'),
-            ]);
+            ->setGravatarEmail((string) $user->getEmail());
     }
 }
