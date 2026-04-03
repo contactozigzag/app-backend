@@ -17,6 +17,7 @@ use App\State\PushDevice\RegisterPushDeviceProcessor;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 
 #[ORM\Entity(repositoryClass: PushDeviceRepository::class)]
 #[ORM\Table(name: 'push_devices')]
@@ -59,7 +60,7 @@ use Doctrine\ORM\Mapping as ORM;
         ),
     ],
 )]
-class PushDevice
+class PushDevice implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -155,5 +156,10 @@ class PushDevice
     public function getLastSeenAt(): DateTimeImmutable
     {
         return $this->lastSeenAt;
+    }
+
+    public function __toString(): string
+    {
+        return $this->expoPushToken;
     }
 }

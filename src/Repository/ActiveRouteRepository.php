@@ -131,6 +131,52 @@ class ActiveRouteRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return ActiveRoute[]
+     */
+    public function findInProgressBySchool(School $school): array
+    {
+        return $this->createQueryBuilder('ar')
+            ->join('ar.routeTemplate', 'rt')
+            ->where('rt.school = :school')
+            ->andWhere('ar.status = :status')
+            ->setParameter('school', $school)
+            ->setParameter('status', 'in_progress')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Find recent active routes for a driver (last 90 days by default)
+     *
+     * @return ActiveRoute[]
+     */
+    public function findByDriver(Driver $driver, DateTimeImmutable $from, int $limit = 15, int $offset = 0): array
+    {
+        return $this->createQueryBuilder('ar')
+            ->andWhere('ar.driver = :driver')
+            ->andWhere('ar.date >= :from')
+            ->setParameter('driver', $driver)
+            ->setParameter('from', $from)
+            ->orderBy('ar.date', 'DESC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countByDriver(Driver $driver, DateTimeImmutable $from): int
+    {
+        return (int) $this->createQueryBuilder('ar')
+            ->select('COUNT(ar.id)')
+            ->andWhere('ar.driver = :driver')
+            ->andWhere('ar.date >= :from')
+            ->setParameter('driver', $driver)
+            ->setParameter('from', $from)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
      * Find active routes by school for today
      *
      * @return ActiveRoute[]

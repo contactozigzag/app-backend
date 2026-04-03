@@ -21,6 +21,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -53,7 +54,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
         'groups' => ['student:write'],
     ],
 )]
-class Student
+class Student implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -130,6 +131,11 @@ class Student
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function __toString(): string
+    {
+        return trim(($this->firstName ?? '') . ' ' . ($this->lastName ?? ''));
     }
 
     public function getFirstName(): ?string

@@ -221,7 +221,7 @@ class DriverRate
 
     public function setAmount(?string $amount): static
     {
-        $this->amount = $amount;
+        $this->amount = ($amount === '' || $amount === null) ? null : $amount;
 
         return $this;
     }
@@ -233,7 +233,7 @@ class DriverRate
 
     public function setPerStudentAmount(?string $perStudentAmount): static
     {
-        $this->perStudentAmount = $perStudentAmount;
+        $this->perStudentAmount = ($perStudentAmount === '' || $perStudentAmount === null) ? null : $perStudentAmount;
 
         return $this;
     }

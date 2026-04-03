@@ -1,0 +1,10 @@
+{% set status_map = field.customOptions.get('statusMap') %}
+{% set value = field.value %}
+{% set raw_value = value.value ?? value %}
+{% set color = status_map[raw_value] ?? 'secondary' %}
+
+{% if value is not null and value is not empty %}
+    <span class="badge bg-{{ color }}">{{ raw_value }}</span>
+{% else %}
+    <span class="badge bg-secondary">—</span>
+{% endif %}

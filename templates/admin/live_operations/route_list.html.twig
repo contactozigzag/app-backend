@@ -1,0 +1,36 @@
+<turbo-frame id="active-routes-list" style="display: block; height: 100%;">
+{% if routes is empty %}
+    <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+        <i class="fas fa-route fa-2x mb-2 opacity-50"></i>
+        <p class="mb-0">No active routes right now</p>
+    </div>
+{% else %}
+    {% for route in routes %}
+    <div class="card mb-2 border route-card"
+         data-route-id="{{ route.id }}"
+         data-action="click->live-map#selectRoute">
+        <div class="card-body py-2 px-3">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <strong class="small text-truncate me-2">{{ route.name }}</strong>
+                <span class="badge bg-{{ route.status == 'in_progress' ? 'success' : 'secondary' }} flex-shrink-0">
+                    {{ route.status == 'in_progress' ? 'Live' : route.status }}
+                </span>
+            </div>
+            <div class="small text-muted mb-2">
+                <i class="fas fa-id-card me-1"></i>{{ route.driverName }}
+                {% if route.startedAt %}
+                    <span class="ms-2"><i class="fas fa-clock me-1"></i>{{ route.startedAt }}</span>
+                {% endif %}
+            </div>
+            <div class="progress mb-1" style="height: 5px;">
+                <div class="progress-bar bg-success" style="width: {{ route.progressPct }}%"></div>
+            </div>
+            <div class="d-flex justify-content-between">
+                <small class="text-muted">{{ route.completedStops }}/{{ route.totalStops }} stops</small>
+                <small class="text-muted">{{ route.progressPct }}%</small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+</turbo-frame>

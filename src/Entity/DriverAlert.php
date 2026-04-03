@@ -9,12 +9,13 @@ use App\Repository\DriverAlertRepository;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: DriverAlertRepository::class)]
 #[ORM\Table(name: 'driver_alerts')]
 #[ORM\HasLifecycleCallbacks]
-class DriverAlert
+class DriverAlert implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -203,5 +204,10 @@ class DriverAlert
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function __toString(): string
+    {
+        return 'Alert #' . ($this->id ?? '?');
     }
 }

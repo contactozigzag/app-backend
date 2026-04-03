@@ -21,6 +21,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -51,7 +52,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(SearchFilter::class, properties: [
     'nickname' => 'istart',
 ])]
-class Driver
+class Driver implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -156,6 +157,11 @@ class Driver
         $this->licenseNumber = $licenseNumber;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return $this->nickname ?? '';
     }
 
     public function getNickname(): ?string

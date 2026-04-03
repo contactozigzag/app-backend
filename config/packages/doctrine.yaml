@@ -28,6 +28,9 @@ doctrine:
                 alias: GesdinetJWTRefreshToken
         controller_resolver:
             auto_mapping: false
+        dql:
+            string_functions:
+                CAST_TEXT: App\Doctrine\Query\AST\Functions\CastAsText
         filters:
             school_filter:
                 class: App\Doctrine\Filter\SchoolFilter

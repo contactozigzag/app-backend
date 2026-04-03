@@ -9,17 +9,19 @@ use App\Repository\ActiveRouteStopRepository;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ActiveRouteStopRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'active_route_stops')]
 #[ApiResource(normalizationContext: [
     'groups' => ['active_route_stop:read'],
 ], denormalizationContext: [
     'groups' => ['active_route_stop:write'],
 ], security: "is_granted('ROLE_USER')")]
-class ActiveRouteStop
+class ActiveRouteStop implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -92,6 +94,11 @@ class ActiveRouteStop
     {
         $this->createdAt = new DateTimeImmutable();
         $this->updatedAt = new DateTimeImmutable();
+    }
+
+    public function __toString(): string
+    {
+        return 'Stop #' . ($this->stopOrder ?? '?');
     }
 
     #[ORM\PreUpdate]

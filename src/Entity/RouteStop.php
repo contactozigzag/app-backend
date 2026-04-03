@@ -21,6 +21,7 @@ use App\State\RouteStop\RouteStopRejectProcessor;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -83,7 +84,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 ], denormalizationContext: [
     'groups' => ['route_stop:write'],
 ], security: "is_granted('ROLE_USER')")]
-class RouteStop
+class RouteStop implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -147,6 +148,11 @@ class RouteStop
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function __toString(): string
+    {
+        return 'Stop #' . ($this->stopOrder ?? '?');
     }
 
     public function getRoute(): ?Route

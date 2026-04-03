@@ -1,0 +1,55 @@
+<turbo-frame id="driver-history">
+    <div class="p-3">
+        {% if activeRoutes is empty %}
+            <p class="text-muted mb-0">No trip history in the last 90 days.</p>
+        {% else %}
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Route</th>
+                        <th>Status</th>
+                        <th>Students</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ar in activeRoutes %}
+                        <tr>
+                            <td>{{ ar.date|date('d/m/Y') }}</td>
+                            <td>{{ ar.routeTemplate ? ar.routeTemplate.name : 'Route #' ~ ar.id }}</td>
+                            <td>
+                                {% set statusMap = {
+                                    'in_progress': 'primary',
+                                    'completed': 'success',
+                                    'scheduled': 'secondary',
+                                    'cancelled': 'danger'
+                                } %}
+                                <span class="badge bg-{{ statusMap[ar.status] ?? 'secondary' }}">
+                                    {{ ar.status|replace({'_': ' '})|title }}
+                                </span>
+                            </td>
+                            <td>{{ ar.stops.count() }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if totalPages > 1 %}
+                <div class="d-flex justify-content-between align-items-center px-1 pt-2 border-top">
+                    <small class="text-muted">{{ total }} trips in last 90 days</small>
+                    <div>
+                        {% if page > 1 %}
+                            <a href="{{ path('admin_driver_fragment_history', {id: driver.id, page: page - 1}) }}"
+                               data-turbo-frame="driver-history" class="btn btn-sm btn-outline-secondary">← Prev</a>
+                        {% endif %}
+                        <span class="mx-2 small">{{ page }} / {{ totalPages }}</span>
+                        {% if page < totalPages %}
+                            <a href="{{ path('admin_driver_fragment_history', {id: driver.id, page: page + 1}) }}"
+                               data-turbo-frame="driver-history" class="btn btn-sm btn-outline-secondary">Next →</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</turbo-frame>

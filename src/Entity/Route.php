@@ -27,6 +27,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -116,7 +117,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         'groups' => ['route:write'],
     ]
 )]
-class Route
+class Route implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -219,6 +220,11 @@ class Route
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function __toString(): string
+    {
+        return $this->name ?? '';
     }
 
     public function getName(): ?string

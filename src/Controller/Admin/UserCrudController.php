@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
-use App\Entity\Address;
+use App\Controller\Admin\Trait\AddressFormTrait;
 use App\Entity\User;
 use App\Service\AddressGeocoder;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -23,15 +23,30 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 /** @extends AbstractCrudController<User> */
 class UserCrudController extends AbstractCrudController
 {
+    use AddressFormTrait;
+
     public function __construct(
-        private readonly AddressGeocoder $addressGeocoder,
+        AddressGeocoder $addressGeocoder,
         private readonly UserPasswordHasherInterface $passwordHasher,
     ) {
+        $this->addressGeocoder = $addressGeocoder;
     }
 
     public static function getEntityFqcn(): string
     {
         return User::class;
+    }
+
+    #[Override]
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setEntityLabelInSingular('User')
+            ->setEntityLabelInPlural('All Users')
+            ->setSearchFields(['email', 'firstName', 'lastName', 'identificationNumber'])
+            ->setDefaultSort([
+                'lastName' => 'ASC',
+            ]);
     }
 
     #[Override]
@@ -121,7 +136,7 @@ class UserCrudController extends AbstractCrudController
             return;
         }
 
-        if (! $this->applyAddress($entityInstance)) {
+        if (! $this->applyAddressFromRequest($entityInstance, 'User')) {
             return;
         }
 
@@ -147,7 +162,7 @@ class UserCrudController extends AbstractCrudController
             return;
         }
 
-        if (! $this->applyAddress($entityInstance)) {
+        if (! $this->applyAddressFromRequest($entityInstance, 'User')) {
             return;
         }
 
@@ -188,74 +203,6 @@ class UserCrudController extends AbstractCrudController
         }
 
         $user->setPassword($this->passwordHasher->hashPassword($user, $plain));
-
-        return true;
-    }
-
-    /**
-     * Resolves the address from the request and sets it on the entity.
-     * Returns false if geocoding failed (caller should abort persistence).
-     */
-    private function applyAddress(User $user): bool
-    {
-        $request = $this->getContext()?->getRequest();
-        $userData = $request?->request->all('User');
-
-        if (! is_array($userData)) {
-            return true;
-        }
-
-        $addressInput = isset($userData['addressInput']) && is_string($userData['addressInput'])
-            ? $userData['addressInput']
-            : '';
-
-        if ($addressInput === '') {
-            return true;
-        }
-
-        // When the user picked a place from the autocomplete widget, all geocoded data
-        // is sent pre-parsed from the frontend — no server-side API call needed.
-        $geocodedJson = isset($userData['addressGeocodedData']) && is_string($userData['addressGeocodedData'])
-            ? $userData['addressGeocodedData']
-            : '';
-
-        if ($geocodedJson !== '') {
-            $data = json_decode($geocodedJson, true);
-
-            if (is_array($data) && isset($data['placeId']) && is_string($data['placeId']) && $data['placeId'] !== '') {
-                $address = new Address();
-                $address->setStreetAddress(is_string($data['streetAddress'] ?? null) ? $data['streetAddress'] : '');
-                $address->setCity(is_string($data['city'] ?? null) ? $data['city'] : '');
-                $address->setState(is_string($data['state'] ?? null) ? $data['state'] : '');
-                $address->setCountry(is_string($data['country'] ?? null) ? $data['country'] : '');
-                $address->setPostalCode(is_string($data['postalCode'] ?? null) ? $data['postalCode'] : '');
-                $address->setLatitude(is_numeric($data['lat'] ?? null) ? (string) $data['lat'] : '');
-                $address->setLongitude(is_numeric($data['lng'] ?? null) ? (string) $data['lng'] : '');
-                $address->setPlaceId($data['placeId']);
-                $user->setAddress($address);
-
-                return true;
-            }
-        }
-
-        // Fallback: user typed an address manually without selecting a suggestion — geocode it.
-        $addressLanguage = isset($userData['addressLanguage']) && is_string($userData['addressLanguage'])
-            ? $userData['addressLanguage']
-            : null;
-        $language = in_array($addressLanguage, ['en', 'es'], true) ? $addressLanguage : null;
-
-        $address = $this->addressGeocoder->createFromPlainText($addressInput, $language);
-
-        if (! $address instanceof Address) {
-            $this->addFlash(
-                'danger',
-                sprintf('Could not geocode the address: "%s". Please verify the address and try again.', $addressInput),
-            );
-
-            return false;
-        }
-
-        $user->setAddress($address);
 
         return true;
     }

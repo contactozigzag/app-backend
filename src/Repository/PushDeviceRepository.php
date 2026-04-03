@@ -53,6 +53,15 @@ class PushDeviceRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function countActive(): int
+    {
+        return (int) $this->createQueryBuilder('d')
+            ->select('COUNT(d.id)')
+            ->where('d.isActive = true')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function deactivateInactiveSince(DateTimeImmutable $since): int
     {
         return (int) $this->createQueryBuilder('d')

@@ -17,10 +17,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ActiveRouteRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'active_routes')]
 #[ApiResource(
     operations: [
@@ -40,7 +42,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         'groups' => ['active_route:write'],
     ]
 )]
-class ActiveRoute
+class ActiveRoute implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -128,6 +130,11 @@ class ActiveRoute
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function __toString(): string
+    {
+        return 'Session #' . ($this->id ?? '?');
     }
 
     public function getRouteTemplate(): ?Route

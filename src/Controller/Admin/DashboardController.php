@@ -69,6 +69,7 @@ class DashboardController extends AbstractDashboardController
             'openAlerts' => $this->statsService->getOpenAlerts(),
             'weeklyChart' => $weeklyChart,
             'alertChart' => $alertChart,
+            'pushHealth' => $this->statsService->getPushNotificationHealth(),
             'mercurePublicUrl' => $this->mercurePublicUrl,
         ]);
     }
@@ -84,12 +85,51 @@ class DashboardController extends AbstractDashboardController
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
-        yield MenuItem::linkTo(SchoolCrudController::class, 'School', 'fas fa-school');
-        yield MenuItem::linkTo(UserCrudController::class, 'User', 'fas fa-user');
-        yield MenuItem::linkTo(StudentCrudController::class, 'Student', 'fas fa-user-graduate');
-        yield MenuItem::linkTo(DriverCrudController::class, 'Driver', 'fas fa-bus');
-        yield MenuItem::linkTo(RouteCrudController::class, 'Route', 'fas fa-route');
-        yield MenuItem::linkTo(RouteStopCrudController::class, 'Route Stop', 'fas fa-location-dot');
+        yield MenuItem::linkToRoute('Live Map', 'fas fa-map-location-dot', 'admin_live_operations')
+            ->setBadge($this->statsService->countActiveRoutes(), 'info');
+
+        yield MenuItem::section('People');
+        yield MenuItem::subMenu('Users', 'fas fa-users')->setSubItems([
+            MenuItem::linkTo(UserCrudController::class, 'All Users', 'fas fa-user'),
+            MenuItem::linkTo(DriverCrudController::class, 'Drivers', 'fas fa-id-card'),
+            MenuItem::linkTo(VehicleCrudController::class, 'Vehicles', 'fas fa-truck'),
+        ]);
+        yield MenuItem::linkTo(StudentCrudController::class, 'Students', 'fas fa-user-graduate');
+        yield MenuItem::linkTo(ParentCrudController::class, 'Parents', 'fas fa-person-shelter');
+        yield MenuItem::linkTo(SchoolCrudController::class, 'Schools', 'fas fa-school');
+
+        yield MenuItem::section('Transport');
+        yield MenuItem::subMenu('Routes', 'fas fa-route')->setSubItems([
+            MenuItem::linkTo(RouteCrudController::class, 'Route Templates', 'fas fa-route'),
+            MenuItem::linkTo(RouteStopCrudController::class, 'Route Stops', 'fas fa-location-dot'),
+            MenuItem::linkTo(ActiveRouteCrudController::class, 'Active Sessions', 'fas fa-play-circle'),
+            MenuItem::linkTo(SpecialEventRouteCrudController::class, 'Special Events', 'fas fa-calendar-star'),
+            MenuItem::linkTo(ArchivedRouteCrudController::class, 'Archived', 'fas fa-archive'),
+        ]);
+
+        yield MenuItem::section('Finance');
+        yield MenuItem::subMenu('Payments', 'fas fa-credit-card')->setSubItems([
+            MenuItem::linkTo(PaymentCrudController::class, 'Payments', 'fas fa-money-bill'),
+            MenuItem::linkTo(PaymentTransactionCrudController::class, 'Transactions', 'fas fa-receipt'),
+            MenuItem::linkTo(DriverRateCrudController::class, 'Driver Rates', 'fas fa-tags'),
+            MenuItem::linkTo(SubscriptionCrudController::class, 'Subscriptions', 'fas fa-sync'),
+        ]);
+        yield MenuItem::linkToRoute('Reconciliation', 'fas fa-balance-scale', 'admin_reconciliation');
+
+        yield MenuItem::section('Safety & Ops');
+        yield MenuItem::linkTo(DriverAlertCrudController::class, 'Alerts', 'fas fa-triangle-exclamation')
+            ->setBadge($this->statsService->countOpenAlerts(), 'danger');
+        yield MenuItem::linkTo(AttendanceCrudController::class, 'Attendance', 'fas fa-clipboard-check');
+        yield MenuItem::linkTo(AbsenceCrudController::class, 'Absences', 'fas fa-user-slash');
+
+        yield MenuItem::section('System');
+        yield MenuItem::subMenu('Notifications', 'fas fa-bell')->setSubItems([
+            MenuItem::linkTo(PushDeviceCrudController::class, 'Push Devices', 'fas fa-mobile'),
+            MenuItem::linkTo(PushTicketCrudController::class, 'Push Tickets', 'fas fa-ticket'),
+            MenuItem::linkTo(NotificationPreferenceCrudController::class, 'Preferences', 'fas fa-sliders'),
+        ]);
+        yield MenuItem::linkTo(LocationUpdateCrudController::class, 'Location Updates', 'fas fa-map-pin');
+        yield MenuItem::linkTo(AuditLogCrudController::class, 'Audit Log', 'fas fa-shield-halved');
     }
 
     #[Override]
@@ -99,11 +139,9 @@ class DashboardController extends AbstractDashboardController
         return parent::configureUserMenu($user)
             ->setName($user->getFullName())
             ->setGravatarEmail((string) $user->getEmail())
-           /* ->addMenuItems([
-                MenuItem::linkToRoute('My Profile', 'fa fa-id-card', '...', ['...' => '...']),
-                MenuItem::linkToRoute('Settings', 'fa fa-user-cog', '...', ['...' => '...']),
+            ->addMenuItems([
                 MenuItem::section(),
                 MenuItem::linkToLogout('Logout', 'fa fa-sign-out'),
-            ])*/;
+            ]);
     }
 }

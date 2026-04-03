@@ -1,0 +1,60 @@
+{% extends '@EasyAdmin/crud/detail.html.twig' %}
+
+{% block content_footer %}
+    <div class="card mt-4" data-controller="tabs">
+        <div class="card-header p-0">
+            <ul class="nav nav-tabs card-header-tabs px-3">
+                <li class="nav-item">
+                    <button class="nav-link" type="button"
+                            data-tabs-target="tab" data-tab="children"
+                            data-action="click->tabs#activate">
+                        Children
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" type="button"
+                            data-tabs-target="tab" data-tab="payments"
+                            data-action="click->tabs#activate">
+                        Payments
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" type="button"
+                            data-tabs-target="tab" data-tab="route-links"
+                            data-action="click->tabs#activate">
+                        Route Links
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body p-0">
+            <div data-tabs-target="panel" data-tab="children" class="d-none">
+                <turbo-frame id="parent-children"
+                             src="{{ path('admin_parent_fragment_children', {id: entity.primaryKeyValue}) }}"
+                             loading="lazy">
+                    <div class="text-center p-4">
+                        <div class="spinner-border spinner-border-sm text-secondary"></div>
+                    </div>
+                </turbo-frame>
+            </div>
+            <div data-tabs-target="panel" data-tab="payments" class="d-none">
+                <turbo-frame id="parent-payments"
+                             src="{{ path('admin_parent_fragment_payments', {id: entity.primaryKeyValue}) }}"
+                             loading="lazy">
+                    <div class="text-center p-4">
+                        <div class="spinner-border spinner-border-sm text-secondary"></div>
+                    </div>
+                </turbo-frame>
+            </div>
+            <div data-tabs-target="panel" data-tab="route-links" class="d-none">
+                <turbo-frame id="parent-route-links"
+                             src="{{ path('admin_parent_fragment_route_links', {id: entity.primaryKeyValue}) }}"
+                             loading="lazy">
+                    <div class="text-center p-4">
+                        <div class="spinner-border spinner-border-sm text-secondary"></div>
+                    </div>
+                </turbo-frame>
+            </div>
+        </div>
+    </div>
+{% endblock %}

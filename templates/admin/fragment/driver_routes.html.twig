@@ -1,0 +1,51 @@
+<turbo-frame id="driver-routes">
+    <div class="p-3">
+        {% if routes is empty %}
+            <p class="text-muted mb-0">No routes assigned to this driver.</p>
+        {% else %}
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Stops</th>
+                        <th>Active</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for route in routes %}
+                        <tr>
+                            <td>{{ route.name }}</td>
+                            <td>{{ route.type|capitalize }}</td>
+                            <td>{{ route.stops.count() }}</td>
+                            <td>
+                                {% if route.isActive %}
+                                    <span class="badge bg-success">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if totalPages > 1 %}
+                <div class="d-flex justify-content-between align-items-center px-1 pt-2 border-top">
+                    <small class="text-muted">{{ total }} routes total</small>
+                    <div>
+                        {% if page > 1 %}
+                            <a href="{{ path('admin_driver_fragment_routes', {id: driver.id, page: page - 1}) }}"
+                               data-turbo-frame="driver-routes" class="btn btn-sm btn-outline-secondary">← Prev</a>
+                        {% endif %}
+                        <span class="mx-2 small">{{ page }} / {{ totalPages }}</span>
+                        {% if page < totalPages %}
+                            <a href="{{ path('admin_driver_fragment_routes', {id: driver.id, page: page + 1}) }}"
+                               data-turbo-frame="driver-routes" class="btn btn-sm btn-outline-secondary">Next →</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</turbo-frame>

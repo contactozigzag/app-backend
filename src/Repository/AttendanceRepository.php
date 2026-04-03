@@ -43,6 +43,22 @@ class AttendanceRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find recent attendance records for a student
+     *
+     * @return Attendance[]
+     */
+    public function findRecentByStudent(Student $student, int $limit = 30): array
+    {
+        return $this->createQueryBuilder('a')
+            ->andWhere('a.student = :student')
+            ->setParameter('student', $student)
+            ->orderBy('a.date', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Find attendance records for a student on a specific date (can be multiple)
      *
      * @return Attendance[]

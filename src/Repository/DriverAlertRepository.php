@@ -89,6 +89,31 @@ class DriverAlertRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return DriverAlert[]
+     */
+    public function findByDriver(Driver $driver, int $limit = 15, int $offset = 0): array
+    {
+        return $this->createQueryBuilder('da')
+            ->andWhere('da.distressedDriver = :driver OR da.respondingDriver = :driver')
+            ->setParameter('driver', $driver)
+            ->orderBy('da.triggeredAt', 'DESC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countByDriver(Driver $driver): int
+    {
+        return (int) $this->createQueryBuilder('da')
+            ->select('COUNT(da.id)')
+            ->andWhere('da.distressedDriver = :driver OR da.respondingDriver = :driver')
+            ->setParameter('driver', $driver)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
      * Find open alerts where $driver is listed in nearbyDriverIds.
      *
      * @return DriverAlert[]

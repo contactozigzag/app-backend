@@ -10,6 +10,8 @@ use App\Entity\User;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\DriverAlertRepository;
 use App\Repository\DriverRepository;
+use App\Repository\PushDeviceRepository;
+use App\Repository\PushTicketRepository;
 use App\Repository\SchoolRepository;
 use App\Repository\StudentRepository;
 use App\Repository\UserRepository;
@@ -48,6 +50,8 @@ final class DashboardStatsServiceTest extends TestCase
             $schoolRepo,
             $activeRouteRepo,
             $driverAlertRepo,
+            $this->createStub(PushDeviceRepository::class),
+            $this->createStub(PushTicketRepository::class),
         );
 
         $kpis = $service->getPlatformKpis();
@@ -93,6 +97,8 @@ final class DashboardStatsServiceTest extends TestCase
             $this->createStub(SchoolRepository::class),
             $activeRouteRepo,
             $this->createStub(DriverAlertRepository::class),
+            $this->createStub(PushDeviceRepository::class),
+            $this->createStub(PushTicketRepository::class),
         );
 
         $result = $service->getActiveRoutesNow();
@@ -118,6 +124,8 @@ final class DashboardStatsServiceTest extends TestCase
             $this->createStub(SchoolRepository::class),
             $activeRouteRepo,
             $this->createStub(DriverAlertRepository::class),
+            $this->createStub(PushDeviceRepository::class),
+            $this->createStub(PushTicketRepository::class),
         );
 
         $data = $service->getWeeklyRouteChartData();
@@ -147,6 +155,8 @@ final class DashboardStatsServiceTest extends TestCase
             $this->createStub(SchoolRepository::class),
             $this->createStub(ActiveRouteRepository::class),
             $driverAlertRepo,
+            $this->createStub(PushDeviceRepository::class),
+            $this->createStub(PushTicketRepository::class),
         );
 
         $data = $service->getAlertChartData();
@@ -168,6 +178,8 @@ final class DashboardStatsServiceTest extends TestCase
             $this->createStub(SchoolRepository::class),
             $this->createStub(ActiveRouteRepository::class),
             $this->createStub(DriverAlertRepository::class),
+            $this->createStub(PushDeviceRepository::class),
+            $this->createStub(PushTicketRepository::class),
         );
 
         $json = $service->getStatsAsJson();

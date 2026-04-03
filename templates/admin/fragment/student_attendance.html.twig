@@ -1,0 +1,43 @@
+<turbo-frame id="student-attendance">
+    <div class="p-3">
+        {% if records is empty %}
+            <p class="text-muted mb-0">No attendance records found.</p>
+        {% else %}
+            {% set pickups = records|filter(r => r.status == 'picked_up')|length %}
+            {% set dropoffs = records|filter(r => r.status == 'dropped_off')|length %}
+            <p class="text-muted small mb-2">
+                Last {{ records|length }} records — {{ pickups }} pick-ups, {{ dropoffs }} drop-offs
+            </p>
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Picked Up</th>
+                        <th>Dropped Off</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                        <tr>
+                            <td>{{ record.date|date('d/m/Y') }}</td>
+                            <td>
+                                {% set attStatusMap = {
+                                    'picked_up': 'success',
+                                    'dropped_off': 'info',
+                                    'no_show': 'danger',
+                                    'cancelled': 'secondary'
+                                } %}
+                                <span class="badge bg-{{ attStatusMap[record.status] ?? 'secondary' }}">
+                                    {{ record.status|replace({'_': ' '})|title }}
+                                </span>
+                            </td>
+                            <td>{{ record.pickedUpAt ? record.pickedUpAt|date('H:i') : '—' }}</td>
+                            <td>{{ record.droppedOffAt ? record.droppedOffAt|date('H:i') : '—' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</turbo-frame>
