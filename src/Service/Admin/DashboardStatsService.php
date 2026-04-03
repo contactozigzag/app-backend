@@ -7,6 +7,8 @@ namespace App\Service\Admin;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\DriverAlertRepository;
 use App\Repository\DriverRepository;
+use App\Repository\PushDeviceRepository;
+use App\Repository\PushTicketRepository;
 use App\Repository\SchoolRepository;
 use App\Repository\StudentRepository;
 use App\Repository\UserRepository;
@@ -21,6 +23,8 @@ class DashboardStatsService
         private readonly SchoolRepository $schoolRepository,
         private readonly ActiveRouteRepository $activeRouteRepository,
         private readonly DriverAlertRepository $driverAlertRepository,
+        private readonly PushDeviceRepository $pushDeviceRepository,
+        private readonly PushTicketRepository $pushTicketRepository,
     ) {
     }
 
@@ -200,6 +204,30 @@ class DashboardStatsService
                     ],
                 ],
             ],
+        ];
+    }
+
+    public function countOpenAlerts(): int
+    {
+        return $this->driverAlertRepository->countOpenAlerts();
+    }
+
+    public function countActiveRoutes(): int
+    {
+        return $this->activeRouteRepository->countInProgressToday();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getPushNotificationHealth(): array
+    {
+        $since = new DateTimeImmutable('-24 hours');
+
+        return [
+            'activeDevices' => $this->pushDeviceRepository->countActive(),
+            'sent24h' => $this->pushTicketRepository->countSince($since),
+            'errorRate' => $this->pushTicketRepository->getErrorRateSince($since),
         ];
     }
 

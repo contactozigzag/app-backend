@@ -17,6 +17,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -38,7 +39,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         'groups' => ['subscription:update'],
     ]),
 ], paginationItemsPerPage: 30, security: 'is_granted("ROLE_USER")')]
-class Subscription
+class Subscription implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -371,5 +372,10 @@ class Subscription
             && $this->failedPaymentCount < 3
             && $this->lastPaymentAttemptAt instanceof DateTimeImmutable
             && $this->lastPaymentAttemptAt < new DateTimeImmutable('-24 hours');
+    }
+
+    public function __toString(): string
+    {
+        return 'Subscription #' . ($this->id ?? '?');
     }
 }

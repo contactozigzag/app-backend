@@ -11,6 +11,7 @@ use App\Repository\ArchivedRouteRepository;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ArchivedRouteRepository::class)]
@@ -26,7 +27,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'groups' => ['archived_route:read'],
     ],
 )]
-class ArchivedRoute
+class ArchivedRoute implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -394,5 +395,10 @@ class ArchivedRoute
     public function getArchivedAt(): DateTimeImmutable
     {
         return $this->archivedAt;
+    }
+
+    public function __toString(): string
+    {
+        return $this->routeName ?? 'Archived Route #' . ($this->id ?? '?');
     }
 }

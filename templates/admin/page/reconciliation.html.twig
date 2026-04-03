@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reconciliation – ZigZag Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-4 px-3">
+    <span class="navbar-brand fw-bold"><i class="fas fa-balance-scale me-2"></i>Reconciliation</span>
+    <a href="{{ path('admin') }}" class="btn btn-sm btn-outline-light">
+        <i class="fas fa-arrow-left me-1"></i> Back to Admin
+    </a>
+</nav>
+
+<div class="container-fluid px-4">
+
+    <form method="get" action="{{ path('admin_reconciliation') }}" class="row g-2 align-items-end mb-4">
+        <div class="col-auto">
+            <label for="from" class="form-label mb-1">From</label>
+            <input type="date" id="from" name="from" class="form-control form-control-sm"
+                   value="{{ from|date('Y-m-d') }}">
+        </div>
+        <div class="col-auto">
+            <label for="to" class="form-label mb-1">To</label>
+            <input type="date" id="to" name="to" class="form-control form-control-sm"
+                   value="{{ to|date('Y-m-d') }}">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+        </div>
+    </form>
+
+    {# Summary Cards #}
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card text-bg-success">
+                <div class="card-body">
+                    <div class="small text-white-50">Collected (Approved)</div>
+                    <div class="fs-4 fw-bold">${{ summary.totalCollected }}</div>
+                    <div class="small text-white-50">{{ summary.approvedCount }} payments</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card text-bg-dark">
+                <div class="card-body">
+                    <div class="small text-white-50">Refunded</div>
+                    <div class="fs-4 fw-bold">${{ summary.totalRefunded }}</div>
+                    <div class="small text-white-50">{{ summary.refundedCount }} payments</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card text-bg-warning">
+                <div class="card-body">
+                    <div class="small">Pending</div>
+                    <div class="fs-4 fw-bold">${{ summary.totalPending }}</div>
+                    <div class="small">{{ summary.pendingCount }} payments</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card text-bg-secondary">
+                <div class="card-body">
+                    <div class="small text-white-50">Cancelled</div>
+                    <div class="fs-4 fw-bold">{{ summary.cancelledCount }}</div>
+                    <div class="small text-white-50">payments</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Driver Breakdown #}
+    <div class="card">
+        <div class="card-header fw-semibold">
+            <i class="fas fa-id-card me-1"></i> Driver Breakdown (Approved Payments)
+        </div>
+        <div class="card-body p-0">
+            {% if driverBreakdown is empty %}
+                <p class="text-center text-muted py-4">No approved payments in this period.</p>
+            {% else %}
+                <table class="table table-sm table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Driver</th>
+                            <th class="text-end">Payments</th>
+                            <th class="text-end">Total Collected</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in driverBreakdown %}
+                        <tr>
+                            <td class="text-muted">{{ loop.index }}</td>
+                            <td>{{ row.nickname }}</td>
+                            <td class="text-end">{{ row.paymentCount }}</td>
+                            <td class="text-end fw-semibold">${{ row.totalAmount }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

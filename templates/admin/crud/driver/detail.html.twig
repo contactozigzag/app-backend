@@ -1,0 +1,76 @@
+{% extends '@EasyAdmin/crud/detail.html.twig' %}
+
+{% block content_footer %}
+    <div class="card mt-4" data-controller="tabs">
+        <div class="card-header p-0">
+            <ul class="nav nav-tabs card-header-tabs px-3">
+                <li class="nav-item">
+                    <button class="nav-link" type="button"
+                            data-tabs-target="tab" data-tab="routes"
+                            data-action="click->tabs#activate">
+                        Routes
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" type="button"
+                            data-tabs-target="tab" data-tab="pricing"
+                            data-action="click->tabs#activate">
+                        Pricing
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" type="button"
+                            data-tabs-target="tab" data-tab="history"
+                            data-action="click->tabs#activate">
+                        Trip History
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" type="button"
+                            data-tabs-target="tab" data-tab="alerts"
+                            data-action="click->tabs#activate">
+                        Alerts
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body p-0">
+            <div data-tabs-target="panel" data-tab="routes" class="d-none">
+                <turbo-frame id="driver-routes"
+                             src="{{ path('admin_driver_fragment_routes', {id: entity.primaryKeyValue}) }}"
+                             loading="lazy">
+                    <div class="text-center p-4">
+                        <div class="spinner-border spinner-border-sm text-secondary"></div>
+                    </div>
+                </turbo-frame>
+            </div>
+            <div data-tabs-target="panel" data-tab="pricing" class="d-none">
+                <turbo-frame id="driver-rates"
+                             src="{{ path('admin_driver_fragment_rates', {id: entity.primaryKeyValue}) }}"
+                             loading="lazy">
+                    <div class="text-center p-4">
+                        <div class="spinner-border spinner-border-sm text-secondary"></div>
+                    </div>
+                </turbo-frame>
+            </div>
+            <div data-tabs-target="panel" data-tab="history" class="d-none">
+                <turbo-frame id="driver-history"
+                             src="{{ path('admin_driver_fragment_history', {id: entity.primaryKeyValue}) }}"
+                             loading="lazy">
+                    <div class="text-center p-4">
+                        <div class="spinner-border spinner-border-sm text-secondary"></div>
+                    </div>
+                </turbo-frame>
+            </div>
+            <div data-tabs-target="panel" data-tab="alerts" class="d-none">
+                <turbo-frame id="driver-alerts"
+                             src="{{ path('admin_driver_fragment_alerts', {id: entity.primaryKeyValue}) }}"
+                             loading="lazy">
+                    <div class="text-center p-4">
+                        <div class="spinner-border spinner-border-sm text-secondary"></div>
+                    </div>
+                </turbo-frame>
+            </div>
+        </div>
+    </div>
+{% endblock %}

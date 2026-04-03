@@ -1,0 +1,13 @@
+{% set pct = field.value|default(0)|number_format %}
+{% set color = pct >= 80 ? 'success' : (pct >= 40 ? 'info' : 'warning') %}
+
+<div class="progress" style="min-width: 80px; height: 18px;" title="{{ pct }}%">
+    <div class="progress-bar bg-{{ color }}"
+         role="progressbar"
+         style="width: {{ pct }}%"
+         aria-valuenow="{{ pct }}"
+         aria-valuemin="0"
+         aria-valuemax="100">
+        {{ pct }}%
+    </div>
+</div>

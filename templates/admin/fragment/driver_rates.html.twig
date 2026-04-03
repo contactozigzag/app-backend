@@ -1,0 +1,30 @@
+<turbo-frame id="driver-rates">
+    <div class="p-3">
+        {% if rates is empty %}
+            <p class="text-muted mb-0">No pricing rates configured for this driver.</p>
+        {% else %}
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Pricing Model</th>
+                        <th>Amount</th>
+                        <th>Per Student</th>
+                        <th>Currency</th>
+                        <th>Route</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rate in rates %}
+                        <tr>
+                            <td>{{ rate.pricingModel.value|replace({'_': ' '})|title }}</td>
+                            <td>{{ rate.amount ?? '—' }}</td>
+                            <td>{{ rate.perStudentAmount ?? '—' }}</td>
+                            <td>{{ rate.currency }}</td>
+                            <td>{{ rate.route ? rate.route.name : '—' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</turbo-frame>

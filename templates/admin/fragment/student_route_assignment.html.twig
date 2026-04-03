@@ -1,0 +1,36 @@
+<turbo-frame id="student-route-assignment">
+    <div class="p-3">
+        {% if routeStops is empty %}
+            <p class="text-muted mb-0">No route assignments found for this student.</p>
+        {% else %}
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Route</th>
+                        <th>Driver</th>
+                        <th>Type</th>
+                        <th>Stop #</th>
+                        <th>Confirmed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stop in routeStops %}
+                        <tr>
+                            <td>{{ stop.route ? stop.route.name : '—' }}</td>
+                            <td>{{ stop.route and stop.route.driver ? stop.route.driver.nickname : '—' }}</td>
+                            <td>{{ stop.route ? stop.route.type|capitalize : '—' }}</td>
+                            <td>{{ stop.stopOrder }}</td>
+                            <td>
+                                {% if stop.isConfirmed %}
+                                    <span class="badge bg-success">Confirmed</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</turbo-frame>

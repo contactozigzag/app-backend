@@ -8,11 +8,12 @@ use App\Repository\PushTicketRepository;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 
 #[ORM\Entity(repositoryClass: PushTicketRepository::class)]
 #[ORM\Table(name: 'push_tickets')]
 #[ORM\Index(name: 'idx_push_tickets_status_created', columns: ['status', 'created_at'])]
-class PushTicket
+class PushTicket implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -101,5 +102,10 @@ class PushTicket
     {
         $this->status = 'ok';
         $this->checkedAt = new DateTimeImmutable();
+    }
+
+    public function __toString(): string
+    {
+        return 'Ticket #' . ($this->id ?? '?');
     }
 }

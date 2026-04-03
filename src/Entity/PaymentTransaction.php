@@ -10,12 +10,13 @@ use App\Repository\PaymentTransactionRepository;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 
 #[ORM\Entity(repositoryClass: PaymentTransactionRepository::class)]
 #[ORM\Table(name: 'payment_transaction')]
 #[ORM\Index(name: 'idx_transactions_payment_id', columns: ['payment_id'])]
 #[ORM\Index(name: 'idx_transactions_created_at', columns: ['created_at'])]
-class PaymentTransaction
+class PaymentTransaction implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -165,5 +166,10 @@ class PaymentTransaction
         $this->userAgent = $userAgent;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return 'Transaction #' . ($this->id ?? '?');
     }
 }

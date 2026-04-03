@@ -50,6 +50,41 @@ class PushTicketRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function countSince(DateTimeImmutable $since): int
+    {
+        return (int) $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->where('t.createdAt >= :since')
+            ->setParameter('since', $since)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function getErrorRateSince(DateTimeImmutable $since): float
+    {
+        $total = (int) $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->where('t.createdAt >= :since')
+            ->setParameter('since', $since)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        if ($total === 0) {
+            return 0.0;
+        }
+
+        $errors = (int) $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->where('t.createdAt >= :since')
+            ->andWhere('t.status = :status')
+            ->setParameter('since', $since)
+            ->setParameter('status', 'error')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return round($errors / $total * 100, 1);
+    }
+
     public function deleteCheckedOlderThan(DateTimeImmutable $olderThan): int
     {
         return (int) $this->createQueryBuilder('t')

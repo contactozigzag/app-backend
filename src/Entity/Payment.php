@@ -25,6 +25,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -121,7 +122,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
     ],
 )]
-class Payment
+class Payment implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -509,5 +510,10 @@ class Payment
     {
         return $this->status === PaymentStatus::PARTIALLY_REFUNDED
             || ($this->refundedAmount !== '0.00' && bccomp($this->refundedAmount, (string) $this->amount, 2) < 0);
+    }
+
+    public function __toString(): string
+    {
+        return 'Payment #' . ($this->id ?? '?');
     }
 }

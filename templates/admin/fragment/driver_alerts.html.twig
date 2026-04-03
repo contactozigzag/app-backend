@@ -1,0 +1,60 @@
+<turbo-frame id="driver-alerts">
+    <div class="p-3">
+        {% if alerts is empty %}
+            <p class="text-muted mb-0">No alerts found for this driver.</p>
+        {% else %}
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Triggered</th>
+                        <th>Status</th>
+                        <th>Role</th>
+                        <th>Resolved</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alert in alerts %}
+                        <tr>
+                            <td>{{ alert.triggeredAt|date('d/m/Y H:i') }}</td>
+                            <td>
+                                {% set alertStatusMap = {
+                                    'pending': 'danger',
+                                    'responded': 'warning',
+                                    'resolved': 'success'
+                                } %}
+                                <span class="badge bg-{{ alertStatusMap[alert.status.value] ?? 'secondary' }}">
+                                    {{ alert.status.value|title }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if alert.distressedDriver and alert.distressedDriver.id == driver.id %}
+                                    <span class="badge bg-danger">Distressed</span>
+                                {% else %}
+                                    <span class="badge bg-info">Responding</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ alert.resolvedAt ? alert.resolvedAt|date('d/m/Y H:i') : '—' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if totalPages > 1 %}
+                <div class="d-flex justify-content-between align-items-center px-1 pt-2 border-top">
+                    <small class="text-muted">{{ total }} alerts total</small>
+                    <div>
+                        {% if page > 1 %}
+                            <a href="{{ path('admin_driver_fragment_alerts', {id: driver.id, page: page - 1}) }}"
+                               data-turbo-frame="driver-alerts" class="btn btn-sm btn-outline-secondary">← Prev</a>
+                        {% endif %}
+                        <span class="mx-2 small">{{ page }} / {{ totalPages }}</span>
+                        {% if page < totalPages %}
+                            <a href="{{ path('admin_driver_fragment_alerts', {id: driver.id, page: page + 1}) }}"
+                               data-turbo-frame="driver-alerts" class="btn btn-sm btn-outline-secondary">Next →</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</turbo-frame>

@@ -1,0 +1,28 @@
+<turbo-frame id="parent-children">
+    <div class="p-3">
+        {% if students is empty %}
+            <p class="text-muted mb-0">No children linked to this parent.</p>
+        {% else %}
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Grade</th>
+                        <th>School</th>
+                        <th>DNI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                        <tr>
+                            <td>{{ student.firstName }} {{ student.lastName }}</td>
+                            <td>{{ student.grade ? student.grade.value : '—' }}</td>
+                            <td>{{ student.school ? student.school.name : '—' }}</td>
+                            <td>{{ student.identificationNumber }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</turbo-frame>

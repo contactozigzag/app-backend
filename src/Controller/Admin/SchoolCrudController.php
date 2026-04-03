@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
-use App\Entity\Address;
+use App\Controller\Admin\Trait\AddressFormTrait;
 use App\Entity\School;
 use App\Service\AddressGeocoder;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -20,9 +20,12 @@ use Override;
 /** @extends AbstractCrudController<School> */
 class SchoolCrudController extends AbstractCrudController
 {
+    use AddressFormTrait;
+
     public function __construct(
-        private readonly AddressGeocoder $addressGeocoder
+        AddressGeocoder $addressGeocoder
     ) {
+        $this->addressGeocoder = $addressGeocoder;
     }
 
     public static function getEntityFqcn(): string
@@ -87,6 +90,7 @@ class SchoolCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('Schools')
             ->setPageTitle(Crud::PAGE_NEW, 'Create New School')
             ->setPageTitle(Crud::PAGE_EDIT, 'Edit School')
+            ->setSearchFields(['name', 'city', 'streetAddress'])
             ->setDefaultSort([
                 'name' => 'ASC',
             ]);
@@ -113,7 +117,8 @@ class SchoolCrudController extends AbstractCrudController
             return;
         }
 
-        if (! $this->applyAddress($entityInstance)) {
+        // School implements HasAddressInterface, so this call is type-safe.
+        if (! $this->applyAddressFromRequest($entityInstance, 'School')) {
             return;
         }
 
@@ -135,79 +140,11 @@ class SchoolCrudController extends AbstractCrudController
             return;
         }
 
-        if (! $this->applyAddress($entityInstance)) {
+        if (! $this->applyAddressFromRequest($entityInstance, 'School')) {
             return;
         }
 
         /** @phpstan-ignore argument.type, argument.type */
         parent::updateEntity($entityManager, $entityInstance);
-    }
-
-    /**
-     * Resolves the address from the request and sets it on the entity.
-     * Returns false if geocoding failed (caller should abort persistence).
-     */
-    private function applyAddress(School $school): bool
-    {
-        $request = $this->getContext()?->getRequest();
-        $schoolData = $request?->request->all('School');
-
-        if (! is_array($schoolData)) {
-            return true;
-        }
-
-        $addressInput = isset($schoolData['addressInput']) && is_string($schoolData['addressInput'])
-            ? $schoolData['addressInput']
-            : '';
-
-        if ($addressInput === '') {
-            return true;
-        }
-
-        // When the user picked a place from the autocomplete widget, all geocoded data
-        // is sent pre-parsed from the frontend — no server-side API call needed.
-        $geocodedJson = isset($schoolData['addressGeocodedData']) && is_string($schoolData['addressGeocodedData'])
-            ? $schoolData['addressGeocodedData']
-            : '';
-
-        if ($geocodedJson !== '') {
-            $data = json_decode($geocodedJson, true);
-
-            if (is_array($data) && isset($data['placeId']) && is_string($data['placeId']) && $data['placeId'] !== '') {
-                $address = new Address();
-                $address->setStreetAddress(is_string($data['streetAddress'] ?? null) ? $data['streetAddress'] : '');
-                $address->setCity(is_string($data['city'] ?? null) ? $data['city'] : '');
-                $address->setState(is_string($data['state'] ?? null) ? $data['state'] : '');
-                $address->setCountry(is_string($data['country'] ?? null) ? $data['country'] : '');
-                $address->setPostalCode(is_string($data['postalCode'] ?? null) ? $data['postalCode'] : '');
-                $address->setLatitude(is_numeric($data['lat'] ?? null) ? (string) $data['lat'] : '');
-                $address->setLongitude(is_numeric($data['lng'] ?? null) ? (string) $data['lng'] : '');
-                $address->setPlaceId($data['placeId']);
-                $school->setAddress($address);
-
-                return true;
-            }
-        }
-
-        // Fallback: user typed an address manually without selecting a suggestion — geocode it.
-        $addressLanguage = isset($schoolData['addressLanguage']) && is_string($schoolData['addressLanguage'])
-            ? $schoolData['addressLanguage']
-            : null;
-        $language = in_array($addressLanguage, ['en', 'es'], true) ? $addressLanguage : null;
-
-        $address = $this->addressGeocoder->createFromPlainText($addressInput, $language);
-
-        if (! $address instanceof Address) {
-            $this->addFlash(
-                'danger',
-                sprintf('Could not geocode the address: "%s". Please verify the address and try again.', $addressInput),
-            );
-
-            return false;
-        }
-
-        $school->setAddress($address);
-
-        return true;
     }
 }

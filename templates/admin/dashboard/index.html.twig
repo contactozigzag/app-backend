@@ -58,6 +58,48 @@
         </div>
     </div>
 
+    {# Row 2b — Push Notification Health #}
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header fw-semibold">
+                    <i class="fas fa-bell me-1"></i> Push Notification Health (24h)
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fas fa-mobile fa-2x text-primary opacity-75"></i>
+                                <div>
+                                    <div class="fs-4 fw-bold">{{ pushHealth.activeDevices }}</div>
+                                    <div class="small text-muted">Active Devices</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fas fa-paper-plane fa-2x text-success opacity-75"></i>
+                                <div>
+                                    <div class="fs-4 fw-bold">{{ pushHealth.sent24h }}</div>
+                                    <div class="small text-muted">Sent (24h)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fas fa-circle-exclamation fa-2x {{ pushHealth.errorRate > 5 ? 'text-danger' : 'text-success' }} opacity-75"></i>
+                                <div>
+                                    <div class="fs-4 fw-bold">{{ pushHealth.errorRate }}%</div>
+                                    <div class="small text-muted">Error Rate (24h)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {# Row 3 — Live Tables #}
     <div class="row g-3">
         <div class="col-12 col-lg-6">

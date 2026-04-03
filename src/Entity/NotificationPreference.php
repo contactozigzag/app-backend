@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Repository\NotificationPreferenceRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -28,7 +29,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         'groups' => ['notification_pref:write'],
     ]
 )]
-class NotificationPreference
+class NotificationPreference implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -206,5 +207,10 @@ class NotificationPreference
     {
         $this->arrivalNotificationMinutes = $arrivalNotificationMinutes;
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return 'Preference #' . ($this->id ?? '?');
     }
 }

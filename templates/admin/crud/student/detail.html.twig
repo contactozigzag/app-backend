@@ -1,0 +1,44 @@
+{% extends '@EasyAdmin/crud/detail.html.twig' %}
+
+{% block content_footer %}
+    <div class="card mt-4" data-controller="tabs">
+        <div class="card-header p-0">
+            <ul class="nav nav-tabs card-header-tabs px-3">
+                <li class="nav-item">
+                    <button class="nav-link" type="button"
+                            data-tabs-target="tab" data-tab="attendance"
+                            data-action="click->tabs#activate">
+                        Attendance
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" type="button"
+                            data-tabs-target="tab" data-tab="route-assignment"
+                            data-action="click->tabs#activate">
+                        Route Assignment
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body p-0">
+            <div data-tabs-target="panel" data-tab="attendance" class="d-none">
+                <turbo-frame id="student-attendance"
+                             src="{{ path('admin_student_fragment_attendance', {id: entity.primaryKeyValue}) }}"
+                             loading="lazy">
+                    <div class="text-center p-4">
+                        <div class="spinner-border spinner-border-sm text-secondary"></div>
+                    </div>
+                </turbo-frame>
+            </div>
+            <div data-tabs-target="panel" data-tab="route-assignment" class="d-none">
+                <turbo-frame id="student-route-assignment"
+                             src="{{ path('admin_student_fragment_route_assignment', {id: entity.primaryKeyValue}) }}"
+                             loading="lazy">
+                    <div class="text-center p-4">
+                        <div class="spinner-border spinner-border-sm text-secondary"></div>
+                    </div>
+                </turbo-frame>
+            </div>
+        </div>
+    </div>
+{% endblock %}

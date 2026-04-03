@@ -10,10 +10,12 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Contract\HasAddressInterface;
 use App\Repository\SchoolRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Stringable;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: SchoolRepository::class)]
@@ -39,7 +41,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'groups' => ['school:write'],
     ]
 )]
-class School
+class School implements HasAddressInterface, Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -89,6 +91,11 @@ class School
         $this->name = $name;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return $this->name ?? '';
     }
 
     public function getAddress(): ?Address

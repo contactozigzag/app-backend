@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Driver;
 use App\Entity\Route;
 use App\Entity\School;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -51,6 +52,31 @@ class RouteRepository extends ServiceEntityRepository
             ->orderBy('r.name', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return Route[]
+     */
+    public function findByDriver(Driver $driver, int $limit = 15, int $offset = 0): array
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.driver = :driver')
+            ->setParameter('driver', $driver)
+            ->orderBy('r.name', 'ASC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countByDriver(Driver $driver): int
+    {
+        return (int) $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->andWhere('r.driver = :driver')
+            ->setParameter('driver', $driver)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**

@@ -1,0 +1,50 @@
+<turbo-frame id="parent-payments">
+    <div class="p-3">
+        {% if payments is empty %}
+            <p class="text-muted mb-0">No payments found for this parent.</p>
+        {% else %}
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Driver</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.createdAt|date('d/m/Y') }}</td>
+                            <td>{{ payment.amount }} {{ payment.currency }}</td>
+                            <td>
+                                {% set payStatusMap = {
+                                    'pending': 'warning',
+                                    'approved': 'success',
+                                    'rejected': 'danger',
+                                    'cancelled': 'secondary',
+                                    'refunded': 'info'
+                                } %}
+                                <span class="badge bg-{{ payStatusMap[payment.status.value] ?? 'secondary' }}">
+                                    {{ payment.status.value|title }}
+                                </span>
+                            </td>
+                            <td>{{ payment.driver ? payment.driver.nickname : '—' }}</td>
+                            <td>{{ payment.description ?? '—' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if page > 1 %}
+                <div class="d-flex justify-content-end px-1 pt-2 border-top">
+                    <a href="{{ path('admin_parent_fragment_payments', {id: parent.id, page: page - 1}) }}"
+                       data-turbo-frame="parent-payments" class="btn btn-sm btn-outline-secondary me-2">← Prev</a>
+                    <a href="{{ path('admin_parent_fragment_payments', {id: parent.id, page: page + 1}) }}"
+                       data-turbo-frame="parent-payments" class="btn btn-sm btn-outline-secondary">Next →</a>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</turbo-frame>
