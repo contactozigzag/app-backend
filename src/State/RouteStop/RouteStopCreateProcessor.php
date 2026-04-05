@@ -35,7 +35,7 @@ final readonly class RouteStopCreateProcessor implements ProcessorInterface
         if ($route !== null && $student !== null) {
             $existing = $this->routeStopRepository->findActiveForRouteAndStudent($route, $student);
 
-            if ($existing !== null) {
+            if ($existing instanceof RouteStop) {
                 throw new ConflictHttpException(
                     sprintf('An active route stop already exists for this student on route "%s".', $route),
                 );
