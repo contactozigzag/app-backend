@@ -75,6 +75,20 @@ class RouteStopRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findActiveForRouteAndStudent(Route $route, Student $student): ?RouteStop
+    {
+        return $this->createQueryBuilder('rs')
+            ->andWhere('rs.route = :route')
+            ->andWhere('rs.student = :student')
+            ->andWhere('rs.isActive = :active')
+            ->setParameter('route', $route)
+            ->setParameter('student', $student)
+            ->setParameter('active', true)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function existsForStudentAndDriver(Student $student, Driver $driver): bool
     {
         return (bool) $this->createQueryBuilder('rs')

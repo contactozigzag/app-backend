@@ -79,6 +79,8 @@ services:
   database:
     profiles: [infra]
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
     command:
       # PostgreSQL production tuning (adjust for your VPS RAM)
       - -c
@@ -100,16 +102,23 @@ services:
   rabbitmq:
     profiles: [infra]
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
     logging: *prod-logging
 
   redis:
     profiles: [infra]
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
     logging: *prod-logging
 
   opensearch:
     profiles: [infra]
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:9200:9200"
     environment:
       OPENSEARCH_JAVA_OPTS: "-Xms256m -Xmx256m"
       DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI: "true"
@@ -118,6 +127,8 @@ services:
   opensearch-dashboards:
     profiles: [infra]
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:5601:5601"
     logging: *prod-logging
 
   fluent-bit:

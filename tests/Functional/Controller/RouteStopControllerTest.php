@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller;
 
 use App\Tests\AbstractApiTestCase;
+use App\Tests\Factory\AddressFactory;
 use App\Tests\Factory\DriverFactory;
 use App\Tests\Factory\RouteFactory;
 use App\Tests\Factory\RouteStopFactory;
@@ -76,6 +77,90 @@ final class RouteStopControllerTest extends AbstractApiTestCase
 
         self::assertResponseStatusCodeSame(422);
         $this->assertArrayHasKey('violations', $data);
+    }
+
+    public function testCreateRouteStopSucceeds(): void
+    {
+        $client = $this->createApiClient();
+        $user = UserFactory::createOne();
+        $route = RouteFactory::createOne();
+        $student = StudentFactory::createOne();
+        $address = AddressFactory::createOne();
+        $this->loginUser($client, $user);
+
+        $data = $this->postJson($client, '/api/route-stops', [
+            'route' => '/api/routes/' . $route->getId(),
+            'student' => '/api/students/' . $student->getId(),
+            'address' => '/api/addresses/' . $address->getId(),
+            'stopOrder' => 0,
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+        $this->assertArrayHasKey('id', $data);
+    }
+
+    public function testCreateRouteStopDuplicateActiveReturns409(): void
+    {
+        $client = $this->createApiClient();
+        $user = UserFactory::createOne();
+        $route = RouteFactory::createOne();
+        $student = StudentFactory::createOne();
+        $address = AddressFactory::createOne();
+        RouteStopFactory::new()->withRoute($route)->withStudent($student)->create();
+        $this->loginUser($client, $user);
+
+        $this->postJson($client, '/api/route-stops', [
+            'route' => '/api/routes/' . $route->getId(),
+            'student' => '/api/students/' . $student->getId(),
+            'address' => '/api/addresses/' . $address->getId(),
+            'stopOrder' => 0,
+        ]);
+
+        self::assertResponseStatusCodeSame(409);
+    }
+
+    public function testCreateRouteStopAllowsDifferentStudentOnSameRoute(): void
+    {
+        $client = $this->createApiClient();
+        $user = UserFactory::createOne();
+        $route = RouteFactory::createOne();
+        $student1 = StudentFactory::createOne();
+        $student2 = StudentFactory::createOne();
+        $address = AddressFactory::createOne();
+        RouteStopFactory::new()->withRoute($route)->withStudent($student1)->create();
+        $this->loginUser($client, $user);
+
+        $data = $this->postJson($client, '/api/route-stops', [
+            'route' => '/api/routes/' . $route->getId(),
+            'student' => '/api/students/' . $student2->getId(),
+            'address' => '/api/addresses/' . $address->getId(),
+            'stopOrder' => 0,
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+        $this->assertArrayHasKey('id', $data);
+    }
+
+    public function testCreateRouteStopDuplicateConfirmedAlsoReturns409(): void
+    {
+        $client = $this->createApiClient();
+        $user = UserFactory::createOne();
+        $route = RouteFactory::createOne();
+        $student = StudentFactory::createOne();
+        $address = AddressFactory::createOne();
+        RouteStopFactory::new()->withRoute($route)->withStudent($student)->with([
+            'isConfirmed' => true,
+        ])->create();
+        $this->loginUser($client, $user);
+
+        $this->postJson($client, '/api/route-stops', [
+            'route' => '/api/routes/' . $route->getId(),
+            'student' => '/api/students/' . $student->getId(),
+            'address' => '/api/addresses/' . $address->getId(),
+            'stopOrder' => 0,
+        ]);
+
+        self::assertResponseStatusCodeSame(409);
     }
 
     // ── GET /api/route-stops/unconfirmed — authentication & authorisation ─────

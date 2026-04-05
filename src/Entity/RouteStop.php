@@ -17,6 +17,7 @@ use App\Dto\RouteStop\RouteStopActionOutput;
 use App\Repository\RouteStopRepository;
 use App\State\Route\RouteStopCollectionProvider;
 use App\State\RouteStop\RouteStopConfirmProcessor;
+use App\State\RouteStop\RouteStopCreateProcessor;
 use App\State\RouteStop\RouteStopRejectProcessor;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
@@ -33,7 +34,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         provider: RouteStopCollectionProvider::class,
     ),
     new Get(uriTemplate: '/route-stops/{id}'),
-    new Post(uriTemplate: '/route-stops'),
+    new Post(uriTemplate: '/route-stops', processor: RouteStopCreateProcessor::class),
     new Put(uriTemplate: '/route-stops/{id}', security: "is_granted('ROUTE_MANAGE')"),
     new Patch(uriTemplate: '/route-stops/{id}', security: "is_granted('ROUTE_MANAGE')"),
     new Delete(uriTemplate: '/route-stops/{id}', security: "is_granted('ROUTE_MANAGE')"),
