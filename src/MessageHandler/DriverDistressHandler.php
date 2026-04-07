@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\MessageHandler;
 
 use App\Message\DriverDistressMessage;
-use App\Repository\ActiveRouteRepository;
 use App\Repository\DriverAlertRepository;
-use App\Service\DriverLocationCacheService;
-use App\Service\GeoCalculatorService;
+use App\Repository\LocationUpdateRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -22,9 +20,7 @@ class DriverDistressHandler
 {
     public function __construct(
         private readonly DriverAlertRepository $driverAlertRepository,
-        private readonly ActiveRouteRepository $activeRouteRepository,
-        private readonly DriverLocationCacheService $locationCache,
-        private readonly GeoCalculatorService $geoCalculator,
+        private readonly LocationUpdateRepository $locationUpdateRepository,
         private readonly HubInterface $hub,
         private readonly EntityManagerInterface $entityManager,
         private readonly LoggerInterface $logger,
@@ -54,40 +50,13 @@ class DriverDistressHandler
 
         $distressLat = (float) $alert->getLocationLat();
         $distressLng = (float) $alert->getLocationLng();
-        $distressedDriverId = $alert->getDistressedDriver()?->getId();
+        $distressedDriverId = (int) $alert->getDistressedDriver()?->getId();
 
-        // Collect positions of all in-progress drivers
-        $inProgressRoutes = $this->activeRouteRepository->findInProgress();
-        $positions = [];
-
-        foreach ($inProgressRoutes as $route) {
-            $driverId = $route->getDriver()?->getId();
-            if ($driverId === null) {
-                continue;
-            }
-
-            if ($driverId === $distressedDriverId) {
-                continue;
-            }
-
-            $cached = $this->locationCache->getLocation($driverId);
-            if ($cached === null) {
-                continue;
-            }
-
-            $positions[] = [
-                'driverId' => $driverId,
-                'lat' => $cached['lat'],
-                'lng' => $cached['lng'],
-            ];
-        }
-
-        // Find nearby drivers
-        $nearby = $this->geoCalculator->getNearbyFromCachedPositions(
-            $positions,
-            $distressLat,
-            $distressLng,
-            $this->proximityRadiusKm,
+        $nearby = $this->locationUpdateRepository->findNearbyDriversInProgress(
+            lat: $distressLat,
+            lng: $distressLng,
+            radiusMeters: $this->proximityRadiusKm * 1000,
+            excludeDriverId: $distressedDriverId,
         );
 
         $notifiedDriverIds = [];

@@ -13,12 +13,10 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
 final class StudentFragmentControllerTest extends WebTestCase
 {
     use Factories;
-    use ResetDatabase;
 
     private KernelBrowser $client;
 

@@ -14,6 +14,8 @@ class DriverLocationCacheService
 
     private const int LAST_SEEN_TTL_SECONDS = 600; // 10 minutes
 
+    private const int ROUTE_LOCATION_TTL_SECONDS = 30;
+
     public function __construct(
         private readonly CacheInterface $cache,
     ) {
@@ -73,6 +75,48 @@ class DriverLocationCacheService
         return $data;
     }
 
+    public function cacheRouteLocation(
+        int $routeId,
+        float $lat,
+        float $lng,
+        float|null $speed,
+        float|null $heading,
+        int $driverId,
+    ): void {
+        $key = $this->routeLocationKey($routeId);
+        $this->cache->delete($key);
+
+        $this->cache->get($key, static function (ItemInterface $item) use ($lat, $lng, $speed, $heading, $driverId): string {
+            $item->expiresAfter(self::ROUTE_LOCATION_TTL_SECONDS);
+
+            return json_encode([
+                'lat' => $lat,
+                'lng' => $lng,
+                'speed' => $speed,
+                'heading' => $heading,
+                'driverId' => $driverId,
+                'cachedAt' => new DateTimeImmutable()->format('c'),
+            ], JSON_THROW_ON_ERROR);
+        });
+    }
+
+    /**
+     * @return array{lat: float, lng: float, speed: float|null, heading: float|null, driverId: int, cachedAt: string}|null
+     */
+    public function getRouteLocation(int $routeId): array|null
+    {
+        $raw = $this->cache->get($this->routeLocationKey($routeId), static fn (): string => '');
+
+        if ($raw === '') {
+            return null;
+        }
+
+        /** @var array{lat: float, lng: float, speed: float|null, heading: float|null, driverId: int, cachedAt: string} $data */
+        $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+
+        return $data;
+    }
+
     public function getLastSeen(int $driverId): DateTimeImmutable|null
     {
         $raw = $this->cache->get($this->lastSeenKey($driverId), static fn (): string => '');
@@ -95,5 +139,10 @@ class DriverLocationCacheService
     private function lastSeenKey(int $driverId): string
     {
         return sprintf('driver.last_seen.%d', $driverId);
+    }
+
+    private function routeLocationKey(int $routeId): string
+    {
+        return sprintf('route.location.%d', $routeId);
     }
 }

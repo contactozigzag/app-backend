@@ -15,19 +15,22 @@ use App\Dto\Tracking\DriverLocationOutput;
 use App\Dto\Tracking\LocationHistoryOutput;
 use App\Dto\Tracking\LocationUpdateInput;
 use App\Dto\Tracking\LocationUpdateOutput;
+use App\Dto\Tracking\RouteLocationOutput;
 use App\State\Tracking\BatchLocationProcessor;
 use App\State\Tracking\DriverLocationProvider;
 use App\State\Tracking\LocationHistoryProvider;
 use App\State\Tracking\LocationUpdateProcessor;
+use App\State\Tracking\RouteLocationProvider;
 
 /**
  * Virtual resource for GPS location tracking operations.
  *
  * Four operations are exposed:
- *  - POST /tracking/location           — ingest a single GPS fix (ROLE_DRIVER)
- *  - POST /tracking/location/batch     — batch-ingest offline GPS points (ROLE_DRIVER)
- *  - GET  /tracking/location/driver/{driverId}         — latest location (ROLE_USER)
- *  - GET  /tracking/location/driver/{driverId}/history — location history (ROUTE_MANAGE)
+ *  - POST /tracking/location                             — ingest a single GPS fix (ROLE_DRIVER)
+ *  - POST /tracking/location/batch                       — batch-ingest offline GPS points (ROLE_DRIVER)
+ *  - GET  /tracking/location/driver/{driverId}           — latest location (ROLE_USER)
+ *  - GET  /tracking/location/driver/{driverId}/history   — location history (ROUTE_MANAGE)
+ *  - GET  /tracking/route/{routeId}/location/latest      — gap-fill snapshot for parents/drivers (ROLE_USER)
  */
 #[ApiResource(
     operations: [
@@ -98,6 +101,25 @@ use App\State\Tracking\LocationUpdateProcessor;
             security: "is_granted('ROLE_USER')",
             output: DriverLocationOutput::class,
             provider: DriverLocationProvider::class,
+        ),
+        new Get(
+            uriTemplate: '/tracking/route/{routeId}/location/latest',
+            openapi: new Operation(
+                responses: [
+                    '200' => new Response('Latest route location snapshot'),
+                    '401' => new Response('Unauthenticated'),
+                    '403' => new Response('No child on this route'),
+                    '404' => new Response('Route not found or no location data'),
+                ],
+                summary: 'Get latest route location (parent gap-fill)',
+                description: 'Returns the most recent GPS fix for a route with route status, next-stop distance, and Mercure topic details. Call once when opening the tracking screen; then subscribe to the returned Mercure topic for live updates.',
+            ),
+            normalizationContext: [
+                'groups' => ['tracking:route:read'],
+            ],
+            security: "is_granted('ROLE_USER')",
+            output: RouteLocationOutput::class,
+            provider: RouteLocationProvider::class,
         ),
         new Get(
             uriTemplate: '/tracking/location/driver/{driverId}/history',

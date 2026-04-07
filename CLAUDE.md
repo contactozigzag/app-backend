@@ -100,9 +100,13 @@ Entities use `#[ApiResource]` with attribute-based Doctrine mapping. Custom cont
 ### Real-Time
 Mercure hub (Caddy module) publishes live updates with 45s heartbeat (prevents Cloudflare's 100s idle timeout from dropping SSE connections). Vulcain is enabled for HTTP/2 resource preloading. `EventSubscriber` classes publish to topics; `MercureController` handles client subscriptions.
 
-**Trip event pipeline:** `GeofencingService` dispatches `StopApproachingEvent`/`StopArrivedEvent` → `GeofencingBridgeSubscriber` bridges to `BusArrivingEvent` → `TripMercureSubscriber` publishes to `/api/users/{parentId}/notifications` (private) and `/tracking/route/{id}` (public). `AttendanceController` dispatches `StudentPickedUpEvent`/`StudentDroppedOffEvent` after flush. `ActiveRouteStatusListener` (Doctrine postUpdate/postFlush) dispatches `RouteStartedEvent`/`RouteCompletedEvent`. All Mercure publishes are non-fatal (try/catch + log).
+**Trip event pipeline:** `GeofencingService` dispatches `StopApproachingEvent`/`StopArrivedEvent` → `GeofencingBridgeSubscriber` bridges to `BusArrivingEvent` → `TripMercureSubscriber` publishes to `/api/users/{parentId}/notifications` (private) and `/tracking/route/{id}` (public). `AttendanceController` dispatches `StudentPickedUpEvent`/`StudentDroppedOffEvent` after flush. `ActiveRouteStatusListener` (Doctrine postUpdate/postFlush) dispatches `RouteStartedEvent`/`RouteArrivingEvent`/`RouteCompletedEvent`. All Mercure publishes are non-fatal (try/catch + log).
 
-All six trip domain events carry the `HasEventId` trait — each generates a lazy UUIDv7 `eventId` that is embedded in both the Mercure SSE payload and the `SendPushNotification` message, allowing the mobile client to suppress duplicate in-app banners when a push for the same event already landed.
+All trip domain events carry the `HasEventId` trait — each generates a lazy UUIDv7 `eventId` that is embedded in both the Mercure SSE payload and the `SendPushNotification` message, allowing the mobile client to suppress duplicate in-app banners when a push for the same event already landed.
+
+**Route status machine:** `scheduled → in_progress → arriving → completed | cancelled`. The `arriving` transition is triggered by `ProximityEvaluationHandler` when the driver is within `ARRIVING_THRESHOLD_METERS` (default 500m) of the next pending stop. On transition: Mercure status update is published and an `arriving_soon` `SendPushNotification` is dispatched (deduped per stop per route via a Redis cache key with 10-min TTL).
+
+**GPS location stream topics:** `/tracking/driver/{id}` and `/tracking/route/{id}` are **private** Mercure topics. Clients obtain a subscriber JWT via `GET /api/mercure/token?route_id={id}` (available to parents with a child on the route, the assigned driver, or school admins). `GET /tracking/route/{routeId}/location/latest` provides a gap-fill snapshot (latest GPS + route status + next stop distance + Mercure hub info) for when the client opens or resumes the tracking screen.
 
 **Stop link request pipeline:** `RouteStopCreatedListener` (Doctrine postPersist/postFlush) detects new unconfirmed stops → `RouteStopNotificationPublisher.notifyDriverOfNewRequest()`. `RouteStopConfirmProcessor`/`RouteStopRejectProcessor` call `notifyParentsOfConfirmation()`/`notifyParentsOfRejection()` after flush. All publish to `/api/users/{id}/notifications` (private, non-fatal).
 
@@ -119,7 +123,7 @@ Push delivery uses the Expo Push API (`dru1x/expo-push`) via two async messages 
 
 **Android channels** — resolved automatically from `notificationType` prefix: `trips`, `payments`, `messages`, `reminders`.
 
-**Maintenance:** `php bin/console app:push:cleanup` deletes tickets older than 7 days and deactivates tokens unseen for 90 days.
+**Maintenance:** `php bin/console app:push:cleanup` deletes tickets older than 7 days and deactivates tokens unseen for 90 days. `php bin/console app:tracking:prune-history [--days=30] [--dry-run]` prunes `location_updates` rows older than N days.
 
 **Env var:** `EXPO_ACCESS_TOKEN=` (leave blank for unauthenticated Expo tier).
 
@@ -136,6 +140,9 @@ Always: `createApiClient()` → create Foundry factories → `loginUser()`. Crea
 - Collection state: `$this->afterInstantiate(fn($obj) => ...)`
 - Factories requiring services (e.g., `UserPasswordHasherInterface`) must be registered as DI services
 - `enable_auto_refresh_with_lazy_objects: true` is set in `zenstruck_foundry.yaml`
+
+### Database Isolation — dama/doctrine-test-bundle (NO ResetDatabase)
+`dama/doctrine-test-bundle` wraps every test in a transaction that is rolled back after the test completes. This provides full isolation without touching the schema. **Never add `use ResetDatabase;` to any test class** — it calls `doctrine:schema:drop` + `schema:create`, which bypasses migrations and destroys any database-level objects (PostGIS generated columns, custom indexes, etc.) that are not part of the Doctrine entity mapping. The test DB schema must be set up once via `doctrine:migrations:migrate` and then left alone.
 
 ### Rate Limiter in Tests
 `TraceableAdapter` wraps cache pools in debug mode and doesn't implement `StorageInterface`. The `config/packages/rate_limiter.yaml` `when@test` block defines `Symfony\Component\RateLimiter\Storage\InMemoryStorage` as the storage service — preserve this when modifying rate limiter config.

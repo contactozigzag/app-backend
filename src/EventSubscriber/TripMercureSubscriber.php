@@ -8,6 +8,7 @@ use App\Entity\ActiveRoute;
 use App\Entity\Student;
 use App\Entity\User;
 use App\Event\BusArrivingEvent;
+use App\Event\RouteArrivingEvent;
 use App\Event\RouteCompletedEvent;
 use App\Event\RouteStartedEvent;
 use App\Event\StopArrivedEvent;
@@ -46,6 +47,7 @@ readonly class TripMercureSubscriber implements EventSubscriberInterface
             StudentPickedUpEvent::NAME => 'onStudentPickedUp',
             StudentDroppedOffEvent::NAME => 'onStudentDroppedOff',
             RouteStartedEvent::NAME => 'onRouteStarted',
+            RouteArrivingEvent::NAME => 'onRouteArriving',
             RouteCompletedEvent::NAME => 'onRouteCompleted',
         ];
     }
@@ -172,6 +174,19 @@ readonly class TripMercureSubscriber implements EventSubscriberInterface
             'status' => 'dropped_off',
             'studentId' => $student->getId(),
             'timestamp' => $data['timestamp'],
+        ]);
+    }
+
+    public function onRouteArriving(RouteArrivingEvent $event): void
+    {
+        $route = $event->getRoute();
+        $now = new DateTimeImmutable()->format('c');
+
+        $this->publishToRoute((int) $route->getId(), [
+            'event' => 'route_arriving',
+            'eventId' => $event->getEventId(),
+            'routeId' => $route->getId(),
+            'timestamp' => $now,
         ]);
     }
 

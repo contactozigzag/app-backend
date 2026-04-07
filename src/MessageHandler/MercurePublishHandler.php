@@ -41,7 +41,9 @@ readonly class MercurePublishHandler
         }
 
         foreach ($topics as $topic) {
-            $update = new Update($topic, $payload, false);
+            // Private: true — clients must hold a Mercure subscriber JWT for this topic.
+            // Parents obtain one via GET /api/mercure/token?route_id={id}.
+            $update = new Update($topic, $payload, true);
 
             try {
                 $this->hub->publish($update);

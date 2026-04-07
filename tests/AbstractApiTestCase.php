@@ -9,7 +9,6 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
 /**
  * Base class for API functional tests.
@@ -26,7 +25,6 @@ use Zenstruck\Foundry\Test\ResetDatabase;
  */
 abstract class AbstractApiTestCase extends WebTestCase
 {
-    use ResetDatabase;
     use Factories;
 
     /**

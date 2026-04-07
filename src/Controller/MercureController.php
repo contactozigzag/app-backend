@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\ActiveRouteRepository;
 use App\Repository\PaymentRepository;
 use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -54,6 +55,7 @@ class MercureController extends AbstractController
     public function __construct(
         private readonly HubInterface $hub,
         private readonly PaymentRepository $paymentRepository,
+        private readonly ActiveRouteRepository $activeRouteRepository,
     ) {
     }
 
@@ -71,9 +73,13 @@ class MercureController extends AbstractController
             return $this->handlePaymentToken($request, $user);
         }
 
+        if ($request->query->has('route_id')) {
+            return $this->handleRouteTrackingToken($request, $user);
+        }
+
         return new JsonResponse(
             [
-                'error' => 'Missing query parameter. Provide either payment_id or user_id.',
+                'error' => 'Missing query parameter. Provide payment_id, user_id, or route_id.',
             ],
             Response::HTTP_BAD_REQUEST,
         );
@@ -144,6 +150,90 @@ class MercureController extends AbstractController
         $topic = '/payments/' . $payment->getId();
 
         return $this->createTokenResponse([$topic]);
+    }
+
+    /**
+     * Issues a subscriber JWT covering real-time GPS and status topics for a specific route.
+     *
+     * Access rules:
+     *  - ROLE_SCHOOL_ADMIN: always granted
+     *  - ROLE_DRIVER whose driver record is assigned to this route: granted
+     *  - ROLE_PARENT with at least one child enrolled on this route: granted
+     */
+    private function handleRouteTrackingToken(Request $request, User $user): JsonResponse
+    {
+        $routeId = $request->query->get('route_id');
+
+        if (! ctype_digit((string) $routeId)) {
+            return new JsonResponse(
+                [
+                    'error' => 'Invalid route_id query parameter.',
+                ],
+                Response::HTTP_BAD_REQUEST,
+            );
+        }
+
+        $activeRoute = $this->activeRouteRepository->find((int) $routeId);
+
+        if ($activeRoute === null) {
+            return new JsonResponse(
+                [
+                    'error' => 'Route not found.',
+                ],
+                Response::HTTP_NOT_FOUND,
+            );
+        }
+
+        // School admins have access to all routes
+        if ($this->isGranted('ROLE_SCHOOL_ADMIN')) {
+            return $this->createRouteTrackingTokenResponse((int) $routeId, $activeRoute->getDriver()?->getId());
+        }
+
+        // Driver of this route
+        $driver = $activeRoute->getDriver();
+        if ($this->isGranted('ROLE_DRIVER') && $driver?->getUser()?->getId() === $user->getId()) {
+            return $this->createRouteTrackingTokenResponse((int) $routeId, $driver?->getId() ?? null);
+        }
+
+        // Parent with a child on this route
+        $hasChild = false;
+        foreach ($activeRoute->getStops() as $stop) {
+            $student = $stop->getStudent();
+            if ($student === null) {
+                continue;
+            }
+
+            foreach ($student->getParents() as $parent) {
+                if ($parent->getId() === $user->getId()) {
+                    $hasChild = true;
+                    break 2;
+                }
+            }
+        }
+
+        if (! $hasChild) {
+            return new JsonResponse(
+                [
+                    'error' => 'Access denied.',
+                ],
+                Response::HTTP_FORBIDDEN,
+            );
+        }
+
+        return $this->createRouteTrackingTokenResponse((int) $routeId, $activeRoute->getDriver()?->getId());
+    }
+
+    private function createRouteTrackingTokenResponse(int $routeId, int|null $driverId): JsonResponse
+    {
+        $topics = [
+            sprintf('/tracking/route/%d', $routeId),
+        ];
+
+        if ($driverId !== null) {
+            $topics[] = sprintf('/tracking/driver/%d', $driverId);
+        }
+
+        return $this->createTokenResponse($topics);
     }
 
     /**

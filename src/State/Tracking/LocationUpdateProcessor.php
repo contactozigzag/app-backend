@@ -13,6 +13,7 @@ use App\Entity\LocationUpdate;
 use App\Message\DriverLocationUpdatedMessage;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\DriverRepository;
+use App\Repository\LocationUpdateRepository;
 use App\Service\DriverLocationCacheService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,6 +38,7 @@ final readonly class LocationUpdateProcessor implements ProcessorInterface
         private EntityManagerInterface $entityManager,
         private DriverRepository $driverRepository,
         private ActiveRouteRepository $activeRouteRepository,
+        private LocationUpdateRepository $locationUpdateRepository,
         private MessageBusInterface $bus,
         private DriverLocationCacheService $locationCache,
         #[Autowire(service: 'limiter.gps_ingestion')]
@@ -72,6 +74,17 @@ final readonly class LocationUpdateProcessor implements ProcessorInterface
         $lat = (float) $data->latitude;
         $lng = (float) $data->longitude;
 
+        // Idempotency: silently return existing result on duplicate (same driver+route+timestamp)
+        $existing = $this->locationUpdateRepository->findDuplicate($driver, $activeRoute, $recordedAt);
+
+        if ($existing instanceof LocationUpdate) {
+            return new LocationUpdateOutput(
+                success: true,
+                locationId: (int) $existing->getId(),
+                hasActiveRoute: $existing->getActiveRoute() instanceof ActiveRoute,
+            );
+        }
+
         // Persist LocationUpdate to DB (kept for history/audit)
         $location = new LocationUpdate();
         $location->setDriver($driver);
@@ -106,8 +119,13 @@ final readonly class LocationUpdateProcessor implements ProcessorInterface
         $heading = $data->heading;
         $activeRouteId = $activeRoute?->getId();
 
-        // Cache latest position in Redis (15s TTL)
+        // Cache latest position in Redis per driver (15s TTL)
         $this->locationCache->cacheLocation((int) $driver->getId(), $lat, $lng, $speed, $heading, $activeRouteId);
+
+        // Cache latest position per route (30s TTL) for the parent gap-fill endpoint
+        if ($activeRouteId !== null) {
+            $this->locationCache->cacheRouteLocation($activeRouteId, $lat, $lng, $speed, $heading, (int) $driver->getId());
+        }
 
         // Build correlation ID
         $correlationId = $activeRouteId !== null

@@ -3644,6 +3644,66 @@
                 ]
             }
         },
+        "/api/tracking/route/{routeId}/location/latest": {
+            "get": {
+                "operationId": "api_trackingroute_routeIdlocationlatest_get",
+                "tags": [
+                    "DriverLocation"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Latest route location snapshot",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverLocation.RouteLocationOutput.jsonld-tracking.route.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverLocation.RouteLocationOutput-tracking.route.read"
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverLocation.RouteLocationOutput.html-tracking.route.read"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriverLocation.RouteLocationOutput.csv-tracking.route.read"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "No child on this route"
+                    },
+                    "404": {
+                        "description": "Route not found or no location data"
+                    }
+                },
+                "summary": "Get latest route location (parent gap-fill)",
+                "description": "Returns the most recent GPS fix for a route with route status, next-stop distance, and Mercure topic details. Call once when opening the tracking screen; then subscribe to the returned Mercure topic for live updates.",
+                "parameters": [
+                    {
+                        "name": "routeId",
+                        "in": "path",
+                        "description": "DriverLocation identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
         "/api/driver-rates": {
             "get": {
                 "operationId": "api_driver-rates_get_collection",
@@ -12331,6 +12391,7 @@
                         "enum": [
                             "scheduled",
                             "in_progress",
+                            "arriving",
                             "completed",
                             "cancelled"
                         ],
@@ -12424,6 +12485,7 @@
                         "enum": [
                             "scheduled",
                             "in_progress",
+                            "arriving",
                             "completed",
                             "cancelled"
                         ],
@@ -12479,6 +12541,7 @@
                         "enum": [
                             "scheduled",
                             "in_progress",
+                            "arriving",
                             "completed",
                             "cancelled"
                         ],
@@ -12538,6 +12601,7 @@
                         "enum": [
                             "scheduled",
                             "in_progress",
+                            "arriving",
                             "completed",
                             "cancelled"
                         ],
@@ -12630,6 +12694,7 @@
                         "enum": [
                             "scheduled",
                             "in_progress",
+                            "arriving",
                             "completed",
                             "cancelled"
                         ],
@@ -12727,6 +12792,7 @@
                                 "enum": [
                                     "scheduled",
                                     "in_progress",
+                                    "arriving",
                                     "completed",
                                     "cancelled"
                                 ],
@@ -16661,7 +16727,7 @@
             },
             "DriverLocation.BatchLocationInput-tracking.batch.write": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "required": [
                     "driverId",
                     "locations"
@@ -16691,7 +16757,7 @@
             },
             "DriverLocation.BatchLocationOutput-tracking.batch.read": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "properties": {
                     "success": {
                         "type": "boolean"
@@ -16712,7 +16778,7 @@
             },
             "DriverLocation.BatchLocationOutput.csv-tracking.batch.read": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "properties": {
                     "success": {
                         "type": "boolean"
@@ -16733,7 +16799,7 @@
             },
             "DriverLocation.BatchLocationOutput.html-tracking.batch.read": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "properties": {
                     "success": {
                         "type": "boolean"
@@ -16778,11 +16844,11 @@
                         }
                     }
                 ],
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)"
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)"
             },
             "DriverLocation.DriverLocationOutput-tracking.driver.read": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "properties": {
                     "driverId": {
                         "type": "integer"
@@ -16835,7 +16901,7 @@
             },
             "DriverLocation.DriverLocationOutput.csv-tracking.driver.read": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "properties": {
                     "driverId": {
                         "type": "integer"
@@ -16888,7 +16954,7 @@
             },
             "DriverLocation.DriverLocationOutput.html-tracking.driver.read": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "properties": {
                     "driverId": {
                         "type": "integer"
@@ -16997,11 +17063,11 @@
                         }
                     }
                 ],
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)"
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)"
             },
             "DriverLocation.LocationHistoryOutput-tracking.history.read": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "properties": {
                     "driverId": {
                         "type": "integer"
@@ -17025,7 +17091,7 @@
             },
             "DriverLocation.LocationHistoryOutput.csv-tracking.history.read": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "properties": {
                     "driverId": {
                         "type": "integer"
@@ -17049,7 +17115,7 @@
             },
             "DriverLocation.LocationHistoryOutput.html-tracking.history.read": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "properties": {
                     "driverId": {
                         "type": "integer"
@@ -17100,11 +17166,11 @@
                         }
                     }
                 ],
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)"
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)"
             },
             "DriverLocation.LocationUpdateInput-tracking.location.write": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "required": [
                     "driverId",
                     "latitude",
@@ -17159,7 +17225,7 @@
             },
             "DriverLocation.LocationUpdateOutput-tracking.location.read": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "properties": {
                     "success": {
                         "type": "boolean"
@@ -17174,7 +17240,7 @@
             },
             "DriverLocation.LocationUpdateOutput.csv-tracking.location.read": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "properties": {
                     "success": {
                         "type": "boolean"
@@ -17189,7 +17255,7 @@
             },
             "DriverLocation.LocationUpdateOutput.html-tracking.location.read": {
                 "type": "object",
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
                 "properties": {
                     "success": {
                         "type": "boolean"
@@ -17222,7 +17288,258 @@
                         }
                     }
                 ],
-                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)"
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)"
+            },
+            "DriverLocation.RouteLocationOutput-tracking.route.read": {
+                "type": "object",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
+                "properties": {
+                    "latitude": {
+                        "type": "number"
+                    },
+                    "longitude": {
+                        "type": "number"
+                    },
+                    "heading": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "speed": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "recordedAt": {
+                        "type": "string"
+                    },
+                    "routeStatus": {
+                        "type": "string"
+                    },
+                    "nextStop": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {
+                            "anyOf": [
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    },
+                    "mercure": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                }
+            },
+            "DriverLocation.RouteLocationOutput.csv-tracking.route.read": {
+                "type": "object",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
+                "properties": {
+                    "latitude": {
+                        "type": "number"
+                    },
+                    "longitude": {
+                        "type": "number"
+                    },
+                    "heading": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "speed": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "recordedAt": {
+                        "type": "string"
+                    },
+                    "routeStatus": {
+                        "type": "string"
+                    },
+                    "nextStop": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {
+                            "anyOf": [
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    },
+                    "mercure": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                }
+            },
+            "DriverLocation.RouteLocationOutput.html-tracking.route.read": {
+                "type": "object",
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)",
+                "properties": {
+                    "latitude": {
+                        "type": "number"
+                    },
+                    "longitude": {
+                        "type": "number"
+                    },
+                    "heading": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "speed": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "recordedAt": {
+                        "type": "string"
+                    },
+                    "routeStatus": {
+                        "type": "string"
+                    },
+                    "nextStop": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {
+                            "anyOf": [
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    },
+                    "mercure": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                }
+            },
+            "DriverLocation.RouteLocationOutput.jsonld-tracking.route.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "latitude": {
+                                "type": "number"
+                            },
+                            "longitude": {
+                                "type": "number"
+                            },
+                            "heading": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "speed": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "recordedAt": {
+                                "type": "string"
+                            },
+                            "routeStatus": {
+                                "type": "string"
+                            },
+                            "nextStop": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": {
+                                    "anyOf": [
+                                        {
+                                            "type": "number"
+                                        },
+                                        {
+                                            "type": "integer"
+                                        },
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            },
+                            "mercure": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                ],
+                "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)"
             },
             "DriverRate": {
                 "type": "object",
@@ -26402,7 +26719,7 @@
         },
         {
             "name": "DriverLocation",
-            "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location           \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch     \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}         \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history \u2014 location history (ROUTE_MANAGE)"
+            "description": "Virtual resource for GPS location tracking operations.\n\nFour operations are exposed:\n - POST /tracking/location                             \u2014 ingest a single GPS fix (ROLE_DRIVER)\n - POST /tracking/location/batch                       \u2014 batch-ingest offline GPS points (ROLE_DRIVER)\n - GET  /tracking/location/driver/{driverId}           \u2014 latest location (ROLE_USER)\n - GET  /tracking/location/driver/{driverId}/history   \u2014 location history (ROUTE_MANAGE)\n - GET  /tracking/route/{routeId}/location/latest      \u2014 gap-fill snapshot for parents/drivers (ROLE_USER)"
         },
         {
             "name": "DriverSearch",

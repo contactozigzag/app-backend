@@ -140,15 +140,18 @@ final class TrackingControllerTest extends AbstractApiTestCase
                 [
                     'latitude' => -34.6037,
                     'longitude' => -58.3816,
+                    'timestamp' => '2024-01-15T10:00:00+00:00',
                 ],
                 [
                     'latitude' => -34.6040,
                     'longitude' => -58.3820,
+                    'timestamp' => '2024-01-15T10:00:01+00:00',
                 ],
                 [
                     'latitude' => -34.6045,
                     'longitude' => -58.3825,
                     'speed' => 30.5,
+                    'timestamp' => '2024-01-15T10:00:02+00:00',
                 ],
             ],
         ]);
