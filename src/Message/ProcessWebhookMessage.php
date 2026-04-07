@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Message;
 
+use Stringable;
+use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
+
 /**
  * Dispatched by WebhookController immediately after validating an MP webhook.
  * Carried over RabbitMQ so the HTTP response is returned in < 1 s regardless
@@ -11,7 +14,8 @@ namespace App\Message;
  *
  * All fields are primitive so the message serialises cleanly to JSON for AMQP.
  */
-final readonly class ProcessWebhookMessage
+#[TagStamp('payment')]
+final readonly class ProcessWebhookMessage implements Stringable
 {
     public function __construct(
         /**
@@ -36,5 +40,10 @@ final readonly class ProcessWebhookMessage
          */
         public string $requestId,
     ) {
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('MP Webhook → Payment #%d (%s)', $this->paymentId, $this->paymentProviderId);
     }
 }

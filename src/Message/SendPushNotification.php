@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Message;
 
-final readonly class SendPushNotification
+use Stringable;
+use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
+
+#[TagStamp('push')]
+final readonly class SendPushNotification implements Stringable
 {
     /**
      * @param list<int> $recipientUserIds
@@ -26,5 +30,14 @@ final readonly class SendPushNotification
         public ?string $channelId = null,
         public string $eventId = '',
     ) {
+    }
+
+    public function __toString(): string
+    {
+        return sprintf(
+            'Push → %d recipient(s) [%s]',
+            count($this->recipientUserIds),
+            $this->notificationType,
+        );
     }
 }

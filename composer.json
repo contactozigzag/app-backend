@@ -17,7 +17,9 @@
         "gesdinet/jwt-refresh-token-bundle": "^2.0@beta",
         "google/apiclient": "^2.19",
         "jwage/phpamqplib-messenger": "^0.10.0",
+        "knplabs/knp-time-bundle": "*",
         "lexik/jwt-authentication-bundle": "^3.2",
+        "lorisleiva/cron-translator": "*",
         "mercadopago/dx-php": "^3.8",
         "nelmio/cors-bundle": "^2.6.1",
         "open-telemetry/exporter-otlp": "*",
@@ -64,7 +66,8 @@
         "symfony/web-link": "8.0.*",
         "symfony/yaml": "8.0.*",
         "twig/extra-bundle": "^2.12|^3.23.0",
-        "twig/twig": "^2.12|^3.23.0"
+        "twig/twig": "^2.12|^3.23.0",
+        "zenstruck/messenger-monitor-bundle": "*"
     },
     "config": {
         "allow-plugins": {
