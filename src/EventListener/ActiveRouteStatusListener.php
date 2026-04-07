@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\EventListener;
 
 use App\Entity\ActiveRoute;
+use App\Event\RouteArrivingEvent;
 use App\Event\RouteCompletedEvent;
 use App\Event\RouteStartedEvent;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
@@ -86,6 +87,19 @@ class ActiveRouteStatusListener
             $this->eventDispatcher->dispatch(
                 new RouteStartedEvent($route),
                 RouteStartedEvent::NAME,
+            );
+
+            return;
+        }
+
+        if ($newStatus === 'arriving' && $oldStatus !== 'arriving') {
+            $this->logger->info('ActiveRouteStatusListener: route arriving', [
+                'route_id' => $route->getId(),
+            ]);
+
+            $this->eventDispatcher->dispatch(
+                new RouteArrivingEvent($route),
+                RouteArrivingEvent::NAME,
             );
 
             return;

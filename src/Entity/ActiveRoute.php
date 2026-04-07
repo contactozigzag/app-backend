@@ -68,7 +68,7 @@ class ActiveRoute implements Stringable
     private ?DateTimeImmutable $date = null;
 
     #[ORM\Column(length: 20)]
-    #[Assert\Choice(choices: ['scheduled', 'in_progress', 'completed', 'cancelled'])]
+    #[Assert\Choice(choices: ['scheduled', 'in_progress', 'arriving', 'completed', 'cancelled'])]
     #[Groups(['active_route:read', 'active_route:write'])]
     private string $status = 'scheduled';
 

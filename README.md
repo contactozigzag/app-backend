@@ -224,8 +224,8 @@ SpecialEventRoutes                               ← NEW
 
 | Topic | Privacy | Published by | Subscribers |
 |-------|---------|--------------|-------------|
-| `/tracking/driver/{driverId}` | public | `MercurePublishHandler` | parents, admins |
-| `/tracking/route/{routeId}` | public | `MercurePublishHandler`, `TripMercureSubscriber` | parents on that route |
+| `/tracking/driver/{driverId}` | private | `MercurePublishHandler` | parents, admins |
+| `/tracking/route/{routeId}` | private | `MercurePublishHandler`, `TripMercureSubscriber` | parents on that route, assigned driver, school admin |
 | `/alerts/driver/{driverId}` | public | `DriverDistressHandler`, `DriverAlertController` | affected drivers |
 | `/alerts/admin/{schoolId}` | public | `DriverDistressHandler` | school admins |
 | `/chat/alert/{alertId}` | private | `ChatMessagePublishHandler` | alert participants only |
@@ -348,9 +348,14 @@ The `RouteManagementVoter` (`src/Security/Voter/RouteManagementVoter.php`) imple
 - **Redis cache** — latest position stored with 15 s TTL; `GET /api/tracking/location/driver/{id}` reads Redis first, falls back to DB
 - **Three async handlers** on the `async_tracking` RabbitMQ transport:
   - `GeofenceEvaluationHandler` — triggers geofencing check for the active route
-  - `MercurePublishHandler` — publishes to `/tracking/driver/{id}` and `/tracking/route/{id}`
-  - `ProximityEvaluationHandler` — placeholder for proximity business logic
+  - `MercurePublishHandler` — publishes to `/tracking/driver/{id}` (private) and `/tracking/route/{id}` (private)
+  - `ProximityEvaluationHandler` — evaluates Haversine distance to the next pending stop; transitions route to `arriving` when within `ARRIVING_THRESHOLD_METERS` (default 500 m), dispatches `SendPushNotification` for `trip_arriving_soon` (deduped via Redis with 10-min TTL), and resets to `in_progress` if driver moves away
+- **Route-level Redis cache** — latest GPS stored per-route with 30s TTL via `DriverLocationCacheService::cacheRouteLocation()`; supplements existing per-driver (15s TTL) cache
+- **GPS idempotency** — `LocationUpdateProcessor` deduplicates by `(driver_id, active_route_id, timestamp)` before persisting
+- **Route status machine** — `scheduled → in_progress → arriving → completed | cancelled`; `arriving` status is set and cleared by `ProximityEvaluationHandler`
 - **GeoCalculatorService** — standalone Haversine service used by geofencing, distress proximity, and route optimization
+
+**Env var:** `ARRIVING_THRESHOLD_METERS=500` — distance in meters at which a route transitions to `arriving`
 
 **New Files:**
 - `src/Service/GeoCalculatorService.php`
@@ -359,6 +364,17 @@ The `RouteManagementVoter` (`src/Security/Voter/RouteManagementVoter.php`) imple
 - `src/MessageHandler/GeofenceEvaluationHandler.php`
 - `src/MessageHandler/MercurePublishHandler.php`
 - `src/MessageHandler/ProximityEvaluationHandler.php`
+- `src/Dto/Tracking/RouteLocationOutput.php`
+- `src/State/Tracking/RouteLocationProvider.php`
+
+**Gap-fill REST endpoint:** `GET /tracking/route/{routeId}/location/latest` — returns the latest GPS snapshot (route cache → driver cache → DB), current route status, distance to next stop, and Mercure hub details for the real-time stream. Access: school admin, the assigned driver, or any parent with a child on the route.
+
+**Mercure tracking subscription:** `GET /api/mercure/token?route_id={id}` — issues a private Mercure subscriber JWT for `/tracking/route/{id}` and `/tracking/driver/{driverId}`. Access rules mirror the REST endpoint above.
+
+**Maintenance CLI:**
+```bash
+php bin/console app:tracking:prune-history [--days=30] [--dry-run]
+```
 
 ### Phase 8: Driver Distress & Safety System ✅
 
@@ -493,34 +509,44 @@ Replaces 15-second polling on the parent tracking screen with Mercure Server-Sen
 - `route_started` — route has begun, all parents on route notified
 - `route_completed` — route finished
 
-**Events published to `/tracking/route/{activeRouteId}`** (public):
+**Events published to `/tracking/route/{activeRouteId}`** (private — requires subscriber JWT from `GET /api/mercure/token?route_id={id}`):
 - `stop_status_changed` — stop transitions (approaching, arrived, picked_up, dropped_off)
 - `route_started` / `route_completed` — route lifecycle
+- `route_arriving` — driver entered proximity threshold for the next stop (dispatched by `ProximityEvaluationHandler` and `TripMercureSubscriber`)
 
 **Event Pipeline:**
 ```
 GeofencingService → StopApproachingEvent/StopArrivedEvent
   └→ GeofencingBridgeSubscriber → BusArrivingEvent
-       └→ TripMercureSubscriber → Mercure /api/users/{id}/notifications + /tracking/route/{id}
-       └→ RouteNotificationSubscriber → email/SMS/push
+       └→ TripMercureSubscriber → Mercure /api/users/{id}/notifications + /tracking/route/{id} (private)
+       └→ RouteNotificationSubscriber → SendPushNotification (async) → Expo push
 
 AttendanceController → StudentPickedUpEvent/StudentDroppedOffEvent
-  └→ TripMercureSubscriber → Mercure
-  └→ RouteNotificationSubscriber → email/SMS/push
+  └→ TripMercureSubscriber → Mercure (private)
+  └→ RouteNotificationSubscriber → SendPushNotification (async) → Expo push
 
 ActiveRoute PATCH (Doctrine) → ActiveRouteStatusListener
   └→ RouteStartedEvent/RouteCompletedEvent
-       └→ TripMercureSubscriber → Mercure
-       └→ RouteNotificationSubscriber → email/SMS/push
+       └→ TripMercureSubscriber → Mercure (private)
+       └→ RouteNotificationSubscriber → SendPushNotification (async) → Expo push
+  └→ RouteArrivingEvent (on arriving transition)
+       └→ TripMercureSubscriber → Mercure /tracking/route/{id} (private), route_arriving event
+
+DriverLocationUpdatedMessage (async_tracking) → ProximityEvaluationHandler
+  └→ sets route status to arriving / in_progress
+  └→ SendPushNotification trip_arriving_soon (deduped per stop, 10-min TTL)
+  └→ Mercure /tracking/route/{id} route_arriving event
 ```
 
 **Resilience:** All Mercure publishes are wrapped in try/catch — failures are logged but never break the main request. Event dispatch in `AttendanceController` is also non-fatal.
 
 **Key Files:**
-- `src/EventSubscriber/TripMercureSubscriber.php` — Mercure publisher for all trip events
+- `src/EventSubscriber/TripMercureSubscriber.php` — Mercure publisher for all trip events (including `route_arriving`)
 - `src/EventSubscriber/GeofencingBridgeSubscriber.php` — bridges geofence → domain events
-- `src/EventListener/ActiveRouteStatusListener.php` — Doctrine listener for route start/complete
+- `src/EventSubscriber/RouteNotificationSubscriber.php` — dispatches `SendPushNotification` for all trip lifecycle events
+- `src/EventListener/ActiveRouteStatusListener.php` — Doctrine listener for route start/complete/arriving
 - `src/Event/StopApproachingEvent.php`, `src/Event/StopArrivedEvent.php` — extracted from GeofencingService
+- `src/Event/RouteArrivingEvent.php` — fired on `arriving` status transition
 
 ### Phase 12b: Stop Link Request Notifications (SSE) ✅
 
@@ -569,7 +595,7 @@ Mobile push notification delivery via the Expo Push API, with two-phase ticket/r
 4. `PushNotificationScheduleProvider` (`#[AsSchedule('push_notifications')]`) dispatches `CheckPushReceipts` every **15 minutes**
 5. `CheckPushReceiptsHandler` fetches receipts from Expo, marks tickets checked/error, and deactivates tokens on `DeviceNotRegistered`
 
-**Client-side deduplication:** Trip domain events (`BusArrivingEvent`, `StopArrivedEvent`, `StudentPickedUpEvent`, `StudentDroppedOffEvent`, `RouteStartedEvent`, `RouteCompletedEvent`) use the `HasEventId` trait. The same `eventId` (UUIDv7) is embedded in both the Mercure SSE payload and the push notification `data` object — the mobile client can suppress duplicate in-app banners by checking whether a push for that `eventId` already arrived.
+**Client-side deduplication:** Trip domain events (`BusArrivingEvent`, `StopArrivedEvent`, `StudentPickedUpEvent`, `StudentDroppedOffEvent`, `RouteStartedEvent`, `RouteCompletedEvent`, `RouteArrivingEvent`) use the `HasEventId` trait. The same `eventId` (UUIDv7) is embedded in both the Mercure SSE payload and the push notification `data` object — the mobile client can suppress duplicate in-app banners by checking whether a push for that `eventId` already arrived.
 
 **Android notification channels** (auto-selected by `notificationType` prefix):
 - `trips` — `trip_*` event types

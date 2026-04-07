@@ -13,12 +13,10 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
 final class UserCrudControllerTest extends WebTestCase
 {
     use Factories;
-    use ResetDatabase;
 
     private KernelBrowser $client;
 
