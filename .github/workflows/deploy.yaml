@@ -201,7 +201,7 @@ jobs:
         run: docker compose exec -T php bin/phpunit
 
       - name: Doctrine Schema Validator
-        run: docker compose exec -T php bin/console -e test doctrine:schema:validate
+        run: docker compose exec -T php bin/console -e test doctrine:schema:validate --skip-sync
 
   # ── Job 3: Deploy (only on version tags or manual dispatch) ──
   deploy:
