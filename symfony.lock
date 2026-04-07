@@ -109,6 +109,9 @@
     "jwage/phpamqplib-messenger": {
         "version": "0.10.0"
     },
+    "knplabs/knp-time-bundle": {
+        "version": "2.5.0"
+    },
     "lexik/jwt-authentication-bundle": {
         "version": "3.2",
         "recipe": {
@@ -504,6 +507,15 @@
             "config/packages/zenstruck_foundry.yaml",
             "src/Story/AppStory.php"
         ]
+    },
+    "zenstruck/messenger-monitor-bundle": {
+        "version": "0.6",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "0.5",
+            "ref": "e830a96e19aef36b23c63a4f8884fe51815f06d8"
+        }
     },
     "zenstruck/messenger-test": {
         "version": "1.14",

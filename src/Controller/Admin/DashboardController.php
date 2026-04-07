@@ -130,6 +130,9 @@ class DashboardController extends AbstractDashboardController
         ]);
         yield MenuItem::linkTo(LocationUpdateCrudController::class, 'Location Updates', 'fas fa-map-pin');
         yield MenuItem::linkTo(AuditLogCrudController::class, 'Audit Log', 'fas fa-shield-halved');
+        if ($this->isGranted('ROLE_SUPER_ADMIN')) {
+            yield MenuItem::linkToRoute('Messenger Monitor', 'fas fa-envelope-open-text', 'zenstruck_messenger_monitor_dashboard');
+        }
     }
 
     #[Override]
