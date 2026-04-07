@@ -77,7 +77,7 @@ class LocationUpdate
     #[Groups(['location:read', 'location:write'])]
     private ?DateTimeImmutable $timestamp = null;
 
-#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['location:read'])]
     private DateTimeImmutable $createdAt;
 
