@@ -66,7 +66,7 @@ The School Transportation Management System is designed to streamline and secure
 2.4 **Driver Route Stop Confirmation**
 - **User Story**: As a driver, I want to review and confirm route stops created by parents so that I can manage my route effectively.
 - **Acceptance Criteria**:
-    - WHEN a driver views unconfirmed stops THEN the system SHALL display all unconfirmed stops for routes assigned to that driver.
+    - WHEN a driver views unconfirmed stops THEN the system SHALL display all unconfirmed stops for routes assigned to that driver, including the student's full name and the parent's full name, resolved server-side in a single query (no extra client calls needed).
     - WHEN a driver confirms a route stop THEN the system SHALL set isConfirmed to true.
     - WHEN a driver rejects a route stop THEN the system SHALL set isActive to false and isConfirmed to false.
     - WHEN optimization is performed THEN the system SHALL only include stops with isActive=true AND isConfirmed=true.

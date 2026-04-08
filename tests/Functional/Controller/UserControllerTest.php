@@ -97,6 +97,49 @@ final class UserControllerTest extends AbstractApiTestCase
         $this->assertStringContainsString('alias', $nicknameViolation['message']);
     }
 
+    public function testRegisterUserWithoutPasswordReturns422(): void
+    {
+        $client = $this->createApiClient();
+        $school = SchoolFactory::createOne();
+
+        $data = $this->postJson($client, '/api/users', [
+            'email' => 'nopass@example.com',
+            'firstName' => 'No',
+            'lastName' => 'Pass',
+            'phoneNumber' => '1234567890',
+            'identificationNumber' => '11112222',
+            'roles' => ['ROLE_PARENT'],
+            'school' => '/api/schools/' . $school->getId(),
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        $this->assertArrayHasKey('violations', $data);
+        $violation = array_find($data['violations'], fn (array $v): bool => ($v['propertyPath'] ?? '') === 'plainPassword');
+        $this->assertNotNull($violation, 'Should have a violation on plainPassword');
+    }
+
+    public function testRegisterUserWithShortPasswordReturns422(): void
+    {
+        $client = $this->createApiClient();
+        $school = SchoolFactory::createOne();
+
+        $data = $this->postJson($client, '/api/users', [
+            'email' => 'shortpass@example.com',
+            'plainPassword' => 'abc',
+            'firstName' => 'Short',
+            'lastName' => 'Pass',
+            'phoneNumber' => '1234567890',
+            'identificationNumber' => '33334444',
+            'roles' => ['ROLE_PARENT'],
+            'school' => '/api/schools/' . $school->getId(),
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        $this->assertArrayHasKey('violations', $data);
+        $violation = array_find($data['violations'], fn (array $v): bool => ($v['propertyPath'] ?? '') === 'plainPassword');
+        $this->assertNotNull($violation, 'Should have a violation on plainPassword');
+    }
+
     // ── PATCH /api/users/{id} — add driver to existing user ─────────────────
 
     public function testPatchUserAddsNestedDriver(): void

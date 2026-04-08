@@ -89,6 +89,30 @@ class RouteStopRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    /**
+     * Returns all active, unconfirmed stops for all routes assigned to the given driver.
+     * Eager-loads route, student, address, and student.parents in a single query.
+     *
+     * @return RouteStop[]
+     */
+    public function findUnconfirmedByDriverWithDetails(Driver $driver): array
+    {
+        return $this->createQueryBuilder('rs')
+            ->addSelect('r', 's', 'a', 'p')
+            ->join('rs.route', 'r')
+            ->join('rs.student', 's')
+            ->join('rs.address', 'a')
+            ->leftJoin('s.parents', 'p')
+            ->andWhere('r.driver = :driver')
+            ->andWhere('rs.isConfirmed = :confirmed')
+            ->andWhere('rs.isActive = :active')
+            ->setParameter('driver', $driver)
+            ->setParameter('confirmed', false)
+            ->setParameter('active', true)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function existsForStudentAndDriver(Student $student, Driver $driver): bool
     {
         return (bool) $this->createQueryBuilder('rs')

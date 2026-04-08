@@ -6,10 +6,10 @@ namespace App\State\RouteStop;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\Dto\RouteStop\UnconfirmedStopItem;
 use App\Dto\RouteStop\UnconfirmedStopsOutput;
 use App\Entity\RouteStop;
 use App\Entity\User;
-use App\Repository\RouteRepository;
 use App\Repository\RouteStopRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -24,7 +24,6 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 final readonly class UnconfirmedRouteStopsProvider implements ProviderInterface
 {
     public function __construct(
-        private RouteRepository $routeRepository,
         private RouteStopRepository $routeStopRepository,
         private Security $security,
     ) {
@@ -44,42 +43,38 @@ final readonly class UnconfirmedRouteStopsProvider implements ProviderInterface
         $unconfirmedStops = [];
 
         if ($driver !== null) {
-            $driverRoutes = $this->routeRepository->findBy([
-                'driver' => $driver,
-            ]);
+            $stops = $this->routeStopRepository->findUnconfirmedByDriverWithDetails($driver);
 
-            foreach ($driverRoutes as $route) {
-                $stops = $this->routeStopRepository->createQueryBuilder('rs')
-                    ->andWhere('rs.route = :route')
-                    ->andWhere('rs.isConfirmed = :confirmed')
-                    ->andWhere('rs.isActive = :active')
-                    ->setParameter('route', $route)
-                    ->setParameter('confirmed', false)
-                    ->setParameter('active', true)
-                    ->getQuery()
-                    ->getResult();
+            foreach ($stops as $stop) {
+                /** @var RouteStop $stop */
+                $student = $stop->getStudent();
+                $route = $stop->getRoute();
+                $address = $stop->getAddress();
 
-                foreach ($stops as $stop) {
-                    /** @var RouteStop $stop */
-                    $student = $stop->getStudent();
-                    $address = $stop->getAddress();
-
-                    $unconfirmedStops[] = [
-                        'id' => $stop->getId(),
-                        'routeId' => $route->getId(),
-                        'routeName' => $route->getName(),
-                        'studentId' => $student?->getId(),
-                        'studentName' => ($student?->getFirstName() ?? '') . ' ' . ($student?->getLastName() ?? ''),
-                        'address' => $address !== null ? [
-                            'id' => $address->getId(),
-                            'street' => $address->getStreetAddress(),
-                            'latitude' => $address->getLatitude(),
-                            'longitude' => $address->getLongitude(),
-                        ] : null,
-                        'notes' => $stop->getNotes(),
-                        'createdAt' => $stop->getCreatedAt()->format('Y-m-d H:i:s'),
-                    ];
+                $parentNames = [];
+                if ($student !== null) {
+                    foreach ($student->getParents() as $parent) {
+                        $parentNames[] = trim(($parent->getFirstName() ?? '') . ' ' . ($parent->getLastName() ?? ''));
+                    }
                 }
+
+                $unconfirmedStops[] = new UnconfirmedStopItem(
+                    id: $stop->getId() ?? 0,
+                    routeId: $route?->getId(),
+                    routeName: $route?->getName(),
+                    studentId: $student?->getId(),
+                    studentName: trim(($student?->getFirstName() ?? '') . ' ' . ($student?->getLastName() ?? '')),
+                    parentName: $parentNames[0] ?? null,
+                    parentNames: $parentNames,
+                    address: $address !== null ? [
+                        'id' => $address->getId() ?? 0,
+                        'street' => $address->getStreetAddress(),
+                        'latitude' => $address->getLatitude(),
+                        'longitude' => $address->getLongitude(),
+                    ] : null,
+                    notes: $stop->getNotes(),
+                    createdAt: $stop->getCreatedAt()->format('Y-m-d H:i:s'),
+                );
             }
         }
 

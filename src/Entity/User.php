@@ -33,6 +33,9 @@ use Symfony\Component\Validator\Constraints as Assert;
                 'groups' => ['user:read', 'user:item:read'],
             ],
             security: 'is_granted("PUBLIC_ACCESS")',
+            validationContext: [
+                'groups' => ['Default', 'user:create'],
+            ],
         ),
         new Get(
             normalizationContext: [
@@ -85,6 +88,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
      * Plain password for input only (not persisted)
      */
     #[Groups(['user:write'])]
+    #[Assert\NotBlank(groups: ['user:create'])]
+    #[Assert\Length(min: 8)]
     private ?string $plainPassword = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
