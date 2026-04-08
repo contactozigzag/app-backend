@@ -10,7 +10,7 @@ final readonly class UnconfirmedStopsOutput
 {
     public function __construct(
         /**
-         * @var list<array<string, mixed>>
+         * @var list<UnconfirmedStopItem>
          */
         #[Groups(['route_stop:unconfirmed:read'])]
         public array $unconfirmedStops,

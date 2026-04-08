@@ -202,6 +202,11 @@ services:
     environment:
       <<: [*php-slot-env, *otel-env]
       OTEL_SERVICE_NAME: "zigzag-api"
+      # Include the internal container address so Caddy's site block matches
+      # publisher requests from within the container (Host: php-blue:80).
+      # Without this, SERVER_NAME=<domain> only creates a site for the public
+      # domain and Caddy returns an error for internal Mercure publish calls.
+      SERVER_NAME: "${PUBLIC_DOMAIN:-localhost}, http://php-blue:80"
       MERCURE_URL: http://php-blue:80/.well-known/mercure
     depends_on:
       database:
@@ -304,6 +309,11 @@ services:
     environment:
       <<: [*php-slot-env, *otel-env]
       OTEL_SERVICE_NAME: "zigzag-api"
+      # Include the internal container address so Caddy's site block matches
+      # publisher requests from within the container (Host: php-green:80).
+      # Without this, SERVER_NAME=<domain> only creates a site for the public
+      # domain and Caddy returns an error for internal Mercure publish calls.
+      SERVER_NAME: "${PUBLIC_DOMAIN:-localhost}, http://php-green:80"
       MERCURE_URL: http://php-green:80/.well-known/mercure
     depends_on:
       database:

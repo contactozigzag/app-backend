@@ -198,6 +198,76 @@ final class RouteStopControllerTest extends AbstractApiTestCase
         $this->assertSame(0, $data['total']);
     }
 
+    public function testListUnconfirmedIncludesStudentAndParentNames(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::createOne();
+        $parent = UserFactory::createOne();
+        $student = StudentFactory::new()->withParent($parent)->create();
+        $route = RouteFactory::new()->withDriver($driver)->create();
+        RouteStopFactory::new()->withRoute($route)->withStudent($student)->create();
+        $this->loginUser($client, $driver->getUser());
+
+        $data = $this->getJson($client, '/api/route-stops/unconfirmed');
+
+        self::assertResponseIsSuccessful();
+        $this->assertSame(1, $data['total']);
+        $stop = $data['unconfirmedStops'][0];
+        $this->assertSame($student->getFirstName() . ' ' . $student->getLastName(), $stop['studentName']);
+        $this->assertSame(trim(($parent->getFirstName() ?? '') . ' ' . ($parent->getLastName() ?? '')), $stop['parentName']);
+        $this->assertArrayHasKey('parentNames', $stop);
+        $this->assertCount(1, $stop['parentNames']);
+    }
+
+    public function testListUnconfirmedExcludesConfirmedStops(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::createOne();
+        $route = RouteFactory::new()->withDriver($driver)->create();
+        RouteStopFactory::new()->withRoute($route)->with([
+            'isConfirmed' => true,
+        ])->create();
+        $this->loginUser($client, $driver->getUser());
+
+        $data = $this->getJson($client, '/api/route-stops/unconfirmed');
+
+        self::assertResponseIsSuccessful();
+        $this->assertSame(0, $data['total']);
+    }
+
+    public function testListUnconfirmedExcludesInactiveStops(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::createOne();
+        $route = RouteFactory::new()->withDriver($driver)->create();
+        RouteStopFactory::new()->withRoute($route)->with([
+            'isActive' => false,
+        ])->create();
+        $this->loginUser($client, $driver->getUser());
+
+        $data = $this->getJson($client, '/api/route-stops/unconfirmed');
+
+        self::assertResponseIsSuccessful();
+        $this->assertSame(0, $data['total']);
+    }
+
+    public function testListUnconfirmedOnlyShowsOwnDriverStops(): void
+    {
+        $client = $this->createApiClient();
+        $driver = DriverFactory::createOne();
+        $otherDriver = DriverFactory::createOne();
+        $ownRoute = RouteFactory::new()->withDriver($driver)->create();
+        $otherRoute = RouteFactory::new()->withDriver($otherDriver)->create();
+        RouteStopFactory::new()->withRoute($ownRoute)->create();
+        RouteStopFactory::new()->withRoute($otherRoute)->create();
+        $this->loginUser($client, $driver->getUser());
+
+        $data = $this->getJson($client, '/api/route-stops/unconfirmed');
+
+        self::assertResponseIsSuccessful();
+        $this->assertSame(1, $data['total']);
+    }
+
     // ── PATCH /api/route-stops/{id}/confirm — authentication & validation ─────
 
     public function testConfirmRouteStopRequiresAuthentication(): void

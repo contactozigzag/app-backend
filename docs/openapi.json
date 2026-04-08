@@ -25589,13 +25589,7 @@
                     "unconfirmedStops": {
                         "type": "array",
                         "items": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                            "$ref": "#/components/schemas/UnconfirmedStopItem-route_stop.unconfirmed.read"
                         }
                     },
                     "total": {
@@ -25610,13 +25604,7 @@
                     "unconfirmedStops": {
                         "type": "array",
                         "items": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                            "$ref": "#/components/schemas/UnconfirmedStopItem.csv-route_stop.unconfirmed.read"
                         }
                     },
                     "total": {
@@ -25631,13 +25619,7 @@
                     "unconfirmedStops": {
                         "type": "array",
                         "items": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                            "$ref": "#/components/schemas/UnconfirmedStopItem.html-route_stop.unconfirmed.read"
                         }
                     },
                     "total": {
@@ -25656,13 +25638,7 @@
                             "unconfirmedStops": {
                                 "type": "array",
                                 "items": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": [
-                                            "string",
-                                            "null"
-                                        ]
-                                    }
+                                    "$ref": "#/components/schemas/UnconfirmedStopItem.jsonld-route_stop.unconfirmed.read"
                                 }
                             },
                             "total": {
@@ -25672,6 +25648,286 @@
                     }
                 ],
                 "description": "Virtual resource for listing unconfirmed route stops assigned to a driver.\n\nThe ROLE_DRIVER check is performed inside the provider (before any DB queries)\nbecause AP4 evaluates `security:` after the provider returns for GET operations."
+            },
+            "UnconfirmedStopItem-route_stop.unconfirmed.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "routeId": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "routeName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "studentId": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "studentName": {
+                        "type": "string"
+                    },
+                    "parentName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "parentNames": {
+                        "description": "Full names of all registered parents",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "address": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "UnconfirmedStopItem.csv-route_stop.unconfirmed.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "routeId": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "routeName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "studentId": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "studentName": {
+                        "type": "string"
+                    },
+                    "parentName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "parentNames": {
+                        "description": "Full names of all registered parents",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "address": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "UnconfirmedStopItem.html-route_stop.unconfirmed.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "routeId": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "routeName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "studentId": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "studentName": {
+                        "type": "string"
+                    },
+                    "parentName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "parentNames": {
+                        "description": "Full names of all registered parents",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "address": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "UnconfirmedStopItem.jsonld-route_stop.unconfirmed.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "routeId": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "routeName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "studentId": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "studentName": {
+                        "type": "string"
+                    },
+                    "parentName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "parentNames": {
+                        "description": "Full names of all registered parents",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "address": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    }
+                }
             },
             "User-driver.read_driver.item.read": {
                 "type": "object",

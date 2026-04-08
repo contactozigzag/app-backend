@@ -298,8 +298,8 @@ The `RouteManagementVoter` (`src/Security/Voter/RouteManagementVoter.php`) imple
 
 **Parent-Driver Route Stop Workflow:**
 1. Parents create stops via `POST /api/route-stops` (status: unconfirmed)
-2. Drivers review via `GET /api/route-stops/unconfirmed`
-3. Drivers confirm (`PATCH /api/route-stops/{id}/confirm`) or reject
+2. Drivers review via `GET /api/route-stops/unconfirmed` — returns `{ unconfirmedStops: UnconfirmedStopItem[], total: int }` where each item includes `id`, `routeId`, `routeName`, `studentId`, `studentName`, `parentName`, `parentNames`, `address`, `notes`, `createdAt`. All student and parent name data is resolved server-side in a single query; no extra client calls needed.
+3. Drivers confirm (`PATCH /api/route-stops/{id}/confirm`) or reject (`PATCH /api/route-stops/{id}/reject`)
 4. Only `isActive=true AND isConfirmed=true` stops enter route optimization
 
 ### Phase 3: Real-time Tracking & Operations ✅
