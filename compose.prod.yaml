@@ -202,11 +202,21 @@ services:
     environment:
       <<: [*php-slot-env, *otel-env]
       OTEL_SERVICE_NAME: "zigzag-api"
-      # Append internal container address so Caddy matches Mercure publish
-      # requests from within the container (Host: php-blue). No http:// prefix —
-      # port 80 implies HTTP, so Caddy won't apply TLS to this address.
-      SERVER_NAME: "${SERVER_NAME:-localhost}, php-blue:80"
       MERCURE_URL: http://php-blue:80/.well-known/mercure
+      # Separate plain-HTTP site block so Caddy matches internal Mercure publish
+      # requests (Host: php-blue). Cannot be in SERVER_NAME because explicit TLS
+      # cert paths create connection policies that Caddy applies to ALL addresses
+      # in the site block — including HTTP ones, which crashes Caddy.
+      CADDY_EXTRA_CONFIG: |
+        http://php-blue:80 {
+            mercure {
+                publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
+                subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
+                anonymous
+                subscriptions
+            }
+            respond "Not Found" 404
+        }
     depends_on:
       database:
         condition: service_healthy
@@ -308,8 +318,17 @@ services:
     environment:
       <<: [*php-slot-env, *otel-env]
       OTEL_SERVICE_NAME: "zigzag-api"
-      SERVER_NAME: "${SERVER_NAME:-localhost}, php-green:80"
       MERCURE_URL: http://php-green:80/.well-known/mercure
+      CADDY_EXTRA_CONFIG: |
+        http://php-green:80 {
+            mercure {
+                publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
+                subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
+                anonymous
+                subscriptions
+            }
+            respond "Not Found" 404
+        }
     depends_on:
       database:
         condition: service_healthy
