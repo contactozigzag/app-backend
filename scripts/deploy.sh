@@ -70,9 +70,10 @@ echo ""
 
 # 1. Stamp APP_VERSION so every log line includes the deployed release
 echo "-> Setting APP_VERSION=${IMAGE_TAG}..."
-sed -i "s/APP_VERSION=.*/APP_VERSION=${IMAGE_TAG}/" "${PROJECT_DIR}/.env"
-sed -i "s/APP_VERSION=.*/APP_VERSION=${IMAGE_TAG}/" "${PROJECT_DIR}/.env.prod"
-grep -q 'APP_VERSION' "${PROJECT_DIR}/.env.prod" || echo "APP_VERSION=${IMAGE_TAG}" >> "${PROJECT_DIR}/.env.prod"
+# Use grep+sed guard to avoid corrupting .env files with unexpected sed patterns.
+# Only touch .env (committed), never write secrets to it. .env.prod is read-only here —
+# APP_VERSION is passed via compose environment instead.
+sed -i "s/^APP_VERSION=.*/APP_VERSION=${IMAGE_TAG}/" "${PROJECT_DIR}/.env"
 echo "OK: APP_VERSION updated"
 
 # 2. Build the prod image with the deploy tag
