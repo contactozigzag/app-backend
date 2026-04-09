@@ -21,25 +21,30 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 ## 🏗️ Technology Stack
 
 ### Backend Framework
+
 - **PHP 8.5** — Modern PHP with strict types and performance improvements
 - **Symfony 8.0** — Enterprise-grade PHP framework
 - **API Platform 4.2** — REST API development framework
 - **Doctrine ORM** — Database abstraction and entity management
 
 ### Database & Caching
+
 - **PostgreSQL 18** — Primary relational database (geo-spatial via PostGIS, JSONB, advisory locks)
 - **Redis 8.4** — GPS location cache (15s TTL), rate limiter storage, OAuth idempotency keys, named cache pools (MP fees, routes, drivers, students, geo, config)
 
 ### Message Queue & Async
+
 - **RabbitMQ 4.2** — Three transports: `async` (general), `async_webhooks` (payment), `async_tracking` (GPS pipeline)
 - **Symfony Messenger 8.0** — Message bus with async handlers and retry logic
 - **Symfony Scheduler 8.0** — Recurring jobs (anomaly detection every 60 s, subscription billing every 5 min)
 - **Symfony Lock 8.0** — Distributed debounce lock for individual departure mode
 
 ### Real-time
+
 - **Symfony Mercure 0.7** — Server-Sent Events for GPS tracking, distress alerts, and chat
 
 ### External Services
+
 - **Google Maps APIs** — Places, Routes, Distance Matrix
 - **Expo Push Notifications** — Mobile push via `dru1x/expo-push`; two-phase send+receipt check with token-based client-side deduplication
 - **SMS Provider** — Configurable SMS channel
@@ -47,6 +52,7 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 - **Mercado Pago** — Payment processing (Marketplace + OAuth model)
 
 ### Authentication & Security
+
 - **JWT (LexikJWTAuthenticationBundle)** — Stateless API authentication; RSA-256, 2-hour TTL
 - **Refresh Tokens (GesdinetJWTRefreshTokenBundle)** — Single-use rotating refresh tokens; 30-day TTL, stored in PostgreSQL
 - **Custom Security Voter** — `RouteManagementVoter` for runtime driver privilege elevation
@@ -55,6 +61,7 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 - **libsodium secretbox** — Driver OAuth token encryption and chat message encryption
 
 ### Infrastructure
+
 - **Cloudflare** — Edge TLS termination, DDoS protection, CDN caching
 - **FrankenPHP/Caddy** — Serves directly behind Cloudflare (no reverse proxy), built-in Mercure SSE hub
 - **Vulcain** — HTTP/2 resource preloading
@@ -62,6 +69,7 @@ ZigZag provides schools, parents, and drivers with a complete solution for manag
 - **OpenSearch Dashboards** — OpenSearch management UI (dev only)
 
 ### Dev & Quality Tools
+
 - **Docker & Docker Compose** — Containerized development
 - **FrankenPHP** — High-performance PHP server (worker mode)
 - **Caddy** — Embedded in FrankenPHP for Mercure hub
@@ -222,15 +230,15 @@ SpecialEventRoutes                               ← NEW
 
 ### Mercure Topic Map
 
-| Topic | Privacy | Published by | Subscribers |
-|-------|---------|--------------|-------------|
-| `/tracking/driver/{driverId}` | private | `MercurePublishHandler` | parents, admins |
-| `/tracking/route/{routeId}` | private | `MercurePublishHandler`, `TripMercureSubscriber` | parents on that route, assigned driver, school admin |
-| `/alerts/driver/{driverId}` | public | `DriverDistressHandler`, `DriverAlertController` | affected drivers |
-| `/alerts/admin/{schoolId}` | public | `DriverDistressHandler` | school admins |
-| `/chat/alert/{alertId}` | private | `ChatMessagePublishHandler` | alert participants only |
-| `/payments/{paymentId}` | private | `PaymentEventSubscriber` | paying parent |
-| `/api/users/{userId}/notifications` | private | `TripMercureSubscriber`, `PaymentEventSubscriber`, `RouteStopNotificationPublisher` | authenticated user (own topic only) |
+| Topic                               | Privacy | Published by                                                                        | Subscribers                                          |
+| ----------------------------------- | ------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `/tracking/driver/{driverId}`       | private | `MercurePublishHandler`                                                             | parents, admins                                      |
+| `/tracking/route/{routeId}`         | private | `MercurePublishHandler`, `TripMercureSubscriber`                                    | parents on that route, assigned driver, school admin |
+| `/alerts/driver/{driverId}`         | public  | `DriverDistressHandler`, `DriverAlertController`                                    | affected drivers                                     |
+| `/alerts/admin/{schoolId}`          | public  | `DriverDistressHandler`                                                             | school admins                                        |
+| `/chat/alert/{alertId}`             | private | `ChatMessagePublishHandler`                                                         | alert participants only                              |
+| `/payments/{paymentId}`             | private | `PaymentEventSubscriber`                                                            | paying parent                                        |
+| `/api/users/{userId}/notifications` | private | `TripMercureSubscriber`, `PaymentEventSubscriber`, `RouteStopNotificationPublisher` | authenticated user (own topic only)                  |
 
 ### Multi-tenant Data Isolation
 
@@ -246,23 +254,23 @@ grants drivers the same route management capabilities without any code changes.
 
 ### Covered Actions
 
-| Endpoint / Entity | Default Guard | With Flag |
-|---|---|---|
-| `POST /api/active_routes` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `DELETE /api/active_routes/{id}` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `GET /api/absences/date/{date}` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `POST /api/absences/recalculate-pending` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `POST /api/geofencing/check-all` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `GET /api/tracking/location/driver/{id}/history` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `GET/POST /api/special-event-routes` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `GET/PATCH/DELETE /api/special-event-routes/{id}` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `POST /api/special-event-routes/{id}/publish` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `POST /api/special-event-routes/{id}/start-outbound` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| Endpoint / Entity                                     | Default Guard       | With Flag       |
+| ----------------------------------------------------- | ------------------- | --------------- |
+| `POST /api/active_routes`                             | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `DELETE /api/active_routes/{id}`                      | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `GET /api/absences/date/{date}`                       | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `POST /api/absences/recalculate-pending`              | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `POST /api/geofencing/check-all`                      | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `GET /api/tracking/location/driver/{id}/history`      | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `GET/POST /api/special-event-routes`                  | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `GET/PATCH/DELETE /api/special-event-routes/{id}`     | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `POST /api/special-event-routes/{id}/publish`         | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `POST /api/special-event-routes/{id}/start-outbound`  | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
 | `POST /api/special-event-routes/{id}/arrive-at-event` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `POST /api/special-event-routes/{id}/start-return` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `POST /api/special-event-routes/{id}/complete` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `PATCH /api/route-stops/{id}` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
-| `DELETE /api/route-stops/{id}` | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `POST /api/special-event-routes/{id}/start-return`    | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `POST /api/special-event-routes/{id}/complete`        | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `PATCH /api/route-stops/{id}`                         | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
+| `DELETE /api/route-stops/{id}`                        | `ROLE_SCHOOL_ADMIN` | + `ROLE_DRIVER` |
 
 School CRUD, billing, audit, and dashboard endpoints remain admin-only regardless of the flag.
 
@@ -278,6 +286,7 @@ The `RouteManagementVoter` (`src/Security/Voter/RouteManagementVoter.php`) imple
 ### Phase 1: Identity & Access Management ✅
 
 **Multi-tenant User Management**
+
 - Role-based access control (RBAC) with hierarchical roles
 - JWT-based authentication
 - Automatic school context filtering
@@ -288,6 +297,7 @@ The `RouteManagementVoter` (`src/Security/Voter/RouteManagementVoter.php`) imple
 ### Phase 2: Route Planning & Optimization ✅
 
 **Route Management**
+
 - Morning and afternoon route templates
 - Route optimization with stop sequencing
 - Google Maps integration for routing
@@ -297,6 +307,7 @@ The `RouteManagementVoter` (`src/Security/Voter/RouteManagementVoter.php`) imple
 **Entities:** Route, RouteStop
 
 **Parent-Driver Route Stop Workflow:**
+
 1. Parents create stops via `POST /api/route-stops` (status: unconfirmed)
 2. Drivers review via `GET /api/route-stops/unconfirmed` — returns `{ unconfirmedStops: UnconfirmedStopItem[], total: int }` where each item includes `id`, `routeId`, `routeName`, `studentId`, `studentName`, `parentName`, `parentNames`, `address`, `notes`, `createdAt`. All student and parent name data is resolved server-side in a single query; no extra client calls needed.
 3. Drivers confirm (`PATCH /api/route-stops/{id}/confirm`) or reject (`PATCH /api/route-stops/{id}/reject`)
@@ -305,12 +316,14 @@ The `RouteManagementVoter` (`src/Security/Voter/RouteManagementVoter.php`) imple
 ### Phase 3: Real-time Tracking & Operations ✅
 
 **Live GPS Tracking (now async — see Phase 7)**
+
 - Async GPS ingestion via `/api/tracking/location` (rate-limited at 1 req / 3 s per driver)
 - Real-time bus position via Mercure SSE
 - Geofencing for automatic arrival detection (triggered per-update)
 - Location history storage
 
 **Attendance & Manifest**
+
 - Student check-in/check-out workflow
 - Timestamped records with GPS coordinates
 - Absence reporting and automatic route recalculation
@@ -343,6 +356,7 @@ The `RouteManagementVoter` (`src/Security/Voter/RouteManagementVoter.php`) imple
 ### Phase 7: Async GPS Tracking Pipeline ✅
 
 **What changed from Phase 3:**
+
 - GPS ingestion is now fully decoupled — the HTTP response returns immediately after persisting and caching; all side-effects are async
 - **Rate limiter** — 1 request per 3 seconds per driver (keyed by driver ID, not IP)
 - **Redis cache** — latest position stored with 15 s TTL; `GET /api/tracking/location/driver/{id}` reads Redis first, falls back to DB
@@ -358,6 +372,7 @@ The `RouteManagementVoter` (`src/Security/Voter/RouteManagementVoter.php`) imple
 **Env var:** `ARRIVING_THRESHOLD_METERS=500` — distance in meters at which a route transitions to `arriving`
 
 **New Files:**
+
 - `src/Service/GeoCalculatorService.php`
 - `src/Service/DriverLocationCacheService.php`
 - `src/Message/DriverLocationUpdatedMessage.php`
@@ -372,6 +387,7 @@ The `RouteManagementVoter` (`src/Security/Voter/RouteManagementVoter.php`) imple
 **Mercure tracking subscription:** `GET /api/mercure/token?route_id={id}` — issues a private Mercure subscriber JWT for `/tracking/route/{id}` and `/tracking/driver/{driverId}`. Access rules mirror the REST endpoint above.
 
 **Maintenance CLI:**
+
 ```bash
 php bin/console app:tracking:prune-history [--days=30] [--dry-run]
 ```
@@ -385,6 +401,7 @@ php bin/console app:tracking:prune-history [--days=30] [--dry-run]
 **Proximity Alerts:** `DriverDistressHandler` reads all active drivers' Redis positions, runs Haversine filtering within `DISTRESS_PROXIMITY_KM` (default 5 km), and pushes Mercure alerts to each nearby driver and to the school admin topic.
 
 **Alert Lifecycle:**
+
 ```
 PENDING → (nearby driver responds) → RESPONDED → (anyone resolves) → RESOLVED
 ```
@@ -394,6 +411,7 @@ PENDING → (nearby driver responds) → RESPONDED → (anyone resolves) → RES
 **Enums:** `AlertStatus` (PENDING, RESPONDED, RESOLVED)
 
 **New Files:**
+
 - `src/Entity/DriverAlert.php`
 - `src/Repository/DriverAlertRepository.php`
 - `src/Message/DriverDistressMessage.php`
@@ -416,6 +434,7 @@ Each `DriverAlert` has an attached chat thread that is live while the alert is P
 **Entities:** ChatMessage (`src/Entity/ChatMessage.php`)
 
 **New Files:**
+
 - `src/Entity/ChatMessage.php`
 - `src/Repository/ChatMessageRepository.php`
 - `src/Message/ChatMessageCreatedMessage.php`
@@ -427,11 +446,13 @@ Each `DriverAlert` has an attached chat thread that is live while the alert is P
 Manage field trips, sports events, and other out-of-school-day transport.
 
 **Three Route Modes (`RouteMode`):**
+
 - `FULL_DAY_TRIP` — outbound to event + return to home addresses
 - `RETURN_TO_SCHOOL` — return from event to school only
 - `ONE_WAY` — outbound only; auto-completes on arrival
 
 **Two Departure Modes (`DepartureMode`, only for `FULL_DAY_TRIP`):**
+
 - `GROUPED` — all students depart together on the return trip
 - `INDIVIDUAL` — students are marked ready one by one; the route is re-sequenced dynamically
 
@@ -446,6 +467,7 @@ Manage field trips, sports events, and other out-of-school-day transport.
 **Enums:** `EventType`, `RouteMode`, `DepartureMode`, `SpecialEventRouteStatus`
 
 **Key Files:**
+
 - `src/Entity/SpecialEventRoute.php` — `#[ApiResource]` with `ROUTE_MANAGE` security
 - `src/Entity/SpecialEventRouteStop.php`
 - `src/Repository/SpecialEventRouteRepository.php`
@@ -468,6 +490,7 @@ Manage field trips, sports events, and other out-of-school-day transport.
 **Use case:** Parents search for drivers by name, nickname, or identification number to attach their children to a driver's route. Results are scoped to the parent's school (multi-tenancy enforced at both OpenSearch and Doctrine layers).
 
 **Architecture:**
+
 - **OpenSearch index** (`{prefix}drivers`) with `edge_ngram` autocomplete analyzer and `asciifolding` for accent-insensitive search (García → garcia, Pérez → perez)
 - **Async indexing pipeline:** Doctrine event listener (`DriverIndexListener`) dispatches `IndexDriverMessage` / `RemoveDriverFromIndexMessage` via Symfony Messenger → async handlers update OpenSearch. Listens to both `Driver` and `User` entity changes (firstName/lastName live on User)
 - **Graceful fallback:** If OpenSearch is unavailable, the API falls back to a Doctrine `LIKE` query with prefix indexes for B-tree utilization
@@ -477,16 +500,19 @@ Manage field trips, sports events, and other out-of-school-day transport.
 **Searchable fields:** `nickname`, `firstName`, `lastName`, `identificationNumber` (prefix match via `keyword` type)
 
 **API endpoint:** `GET /api/drivers/search?q=query&page=1&itemsPerPage=10`
+
 - Security: `ROLE_PARENT` or `ROLE_SCHOOL_ADMIN`
 - Returns: `{ results: [...], total, page, itemsPerPage }`
 - `Cache-Control: private, max-age=5` for autocomplete caching
 
 **Console command:**
+
 ```bash
 php bin/console app:opensearch:index-drivers [--force] [--batch-size=100] [--school=ID]
 ```
 
 **Key Files:**
+
 - `src/Service/OpenSearch/DriverSearchService.php` — search, index, delete, createIndex
 - `src/Service/OpenSearch/DriverSearchHit.php` — immutable search result DTO
 - `src/Service/OpenSearch/DriverSearchResult.php` — immutable result collection DTO
@@ -502,6 +528,7 @@ php bin/console app:opensearch:index-drivers [--force] [--batch-size=100] [--sch
 Replaces 15-second polling on the parent tracking screen with Mercure Server-Sent Events for all active trip lifecycle events.
 
 **Events published to `/api/users/{parentId}/notifications`** (private):
+
 - `bus_arriving` — bus approaching child's stop (estimated minutes)
 - `bus_arrived` — bus arrived at child's stop
 - `student_picked_up` — child picked up by driver
@@ -510,11 +537,13 @@ Replaces 15-second polling on the parent tracking screen with Mercure Server-Sen
 - `route_completed` — route finished
 
 **Events published to `/tracking/route/{activeRouteId}`** (private — requires subscriber JWT from `GET /api/mercure/token?route_id={id}`):
+
 - `stop_status_changed` — stop transitions (approaching, arrived, picked_up, dropped_off)
 - `route_started` / `route_completed` — route lifecycle
 - `route_arriving` — driver entered proximity threshold for the next stop (dispatched by `ProximityEvaluationHandler` and `TripMercureSubscriber`)
 
 **Event Pipeline:**
+
 ```
 GeofencingService → StopApproachingEvent/StopArrivedEvent
   └→ GeofencingBridgeSubscriber → BusArrivingEvent
@@ -541,6 +570,7 @@ DriverLocationUpdatedMessage (async_tracking) → ProximityEvaluationHandler
 **Resilience:** All Mercure publishes are wrapped in try/catch — failures are logged but never break the main request. Event dispatch in `AttendanceController` is also non-fatal.
 
 **Key Files:**
+
 - `src/EventSubscriber/TripMercureSubscriber.php` — Mercure publisher for all trip events (including `route_arriving`)
 - `src/EventSubscriber/GeofencingBridgeSubscriber.php` — bridges geofence → domain events
 - `src/EventSubscriber/RouteNotificationSubscriber.php` — dispatches `SendPushNotification` for all trip lifecycle events
@@ -553,11 +583,13 @@ DriverLocationUpdatedMessage (async_tracking) → ProximityEvaluationHandler
 Real-time Mercure notifications for the route-stop link request lifecycle — when a parent requests to add their child to a driver's route, and the driver confirms or rejects.
 
 **Events published to `/api/users/{userId}/notifications`** (private):
+
 - `route_stop_requested` → driver notified when parent creates an unconfirmed stop
 - `route_stop_confirmed` → parent(s) notified when driver confirms the stop
 - `route_stop_rejected` → parent(s) notified when driver rejects the stop
 
 **Notification Pipeline:**
+
 ```
 Parent creates RouteStop (unconfirmed) → Doctrine postPersist/postFlush
   └→ RouteStopCreatedListener → RouteStopNotificationPublisher.notifyDriverOfNewRequest()
@@ -575,6 +607,7 @@ Driver PATCH /api/route-stops/{id}/reject → RouteStopRejectProcessor
 **Resilience:** All Mercure publishes are wrapped in try/catch — failures are logged but never break the main request.
 
 **Key Files:**
+
 - `src/Service/RouteStopNotificationPublisher.php` — Mercure publisher for all stop link events
 - `src/EventListener/RouteStopCreatedListener.php` — Doctrine listener for new unconfirmed stops
 - `src/State/RouteStop/RouteStopConfirmProcessor.php` — confirm endpoint with notification
@@ -585,10 +618,12 @@ Driver PATCH /api/route-stops/{id}/reject → RouteStopRejectProcessor
 Mobile push notification delivery via the Expo Push API, with two-phase ticket/receipt checking and client-side deduplication against Mercure SSE.
 
 **Device registration:**
+
 - `POST /api/push-devices` — register an Expo token for the authenticated user (creates or reactivates; updates `lastSeenAt` if token already exists)
 - `DELETE /api/push-devices/{id}` — deactivate a device (graceful logout / unsubscribe)
 
 **Delivery pipeline:**
+
 1. Caller dispatches `SendPushNotification` → `async` RabbitMQ transport
 2. `SendPushNotificationHandler` fetches active `PushDevice` rows for recipient user IDs, batches `PushMessage` objects, calls `ExpoPushService::send()`, saves returned ticket IDs to `PushTicket`
 3. Tickets with `DeviceNotRegistered` error immediately deactivate the device
@@ -598,12 +633,14 @@ Mobile push notification delivery via the Expo Push API, with two-phase ticket/r
 **Client-side deduplication:** Trip domain events (`BusArrivingEvent`, `StopArrivedEvent`, `StudentPickedUpEvent`, `StudentDroppedOffEvent`, `RouteStartedEvent`, `RouteCompletedEvent`, `RouteArrivingEvent`) use the `HasEventId` trait. The same `eventId` (UUIDv7) is embedded in both the Mercure SSE payload and the push notification `data` object — the mobile client can suppress duplicate in-app banners by checking whether a push for that `eventId` already arrived.
 
 **Android notification channels** (auto-selected by `notificationType` prefix):
+
 - `trips` — `trip_*` event types
 - `payments` — `payment_*` event types
 - `messages` — `message_*` event types
 - `reminders` — everything else
 
 **Maintenance CLI:**
+
 ```bash
 php bin/console app:push:check-receipts   # manual receipt check (>15 min old)
 php bin/console app:push:cleanup          # delete tickets >7 days old, deactivate tokens >90 days inactive
@@ -612,6 +649,7 @@ php bin/console app:push:cleanup          # delete tickets >7 days old, deactiva
 **Env var:** `EXPO_ACCESS_TOKEN=` (leave blank to use the unauthenticated Expo tier)
 
 **Key files:**
+
 - `src/Entity/PushDevice.php` — device token entity + AP4 resource
 - `src/Entity/PushTicket.php` — delivery receipt tracking
 - `src/Message/SendPushNotification.php` — message DTO (includes `eventId` for dedup)
@@ -626,6 +664,7 @@ php bin/console app:push:cleanup          # delete tickets >7 days old, deactiva
 ### Authentication
 
 #### User Registration (Public)
+
 ```http
 POST /api/users
 Content-Type: application/json
@@ -641,6 +680,7 @@ Content-Type: application/json
 ```
 
 #### Login
+
 ```http
 POST /api/login
 Content-Type: application/json
@@ -679,9 +719,9 @@ Content-Type: application/json
 }
 ```
 
-| Code | Meaning |
-|------|---------|
-| `200` | New JWT + refresh token returned |
+| Code  | Meaning                                         |
+| ----- | ----------------------------------------------- |
+| `200` | New JWT + refresh token returned                |
 | `401` | Refresh token missing, expired, or already used |
 
 #### Logout
@@ -691,12 +731,14 @@ Refresh tokens are automatically invalidated on logout for the `api_token_refres
 ### API Resources (RESTful)
 
 #### Users
+
 - `GET /api/users` — List users
 - `POST /api/users` — Register (public)
 - `PATCH /api/users/{id}` — Update
 - `DELETE /api/users/{id}` — Delete
 
 #### Students
+
 - `GET /api/students` — List; scoped by role: school admin sees all, parent sees own children, driver sees students on their assigned routes
 - `GET /api/students/{id}` — Accessible to: parents of the student, school admins, or drivers whose routes include a stop for that student
 - `POST /api/students` — Create (parent)
@@ -704,12 +746,14 @@ Refresh tokens are automatically invalidated on logout for the `api_token_refres
 - `DELETE /api/students/{id}` — Delete (parent of student or school admin)
 
 #### Routes
+
 - `GET /api/routes` — List; scoped by role and school. Supports `?driver={id}` to list a driver's routes. School admin sees all (filterable by driver), driver sees own, parent sees students' stop routes or a specific driver's routes via `?driver=`
 - `POST /api/routes` — Create (admin only)
 - `PATCH /api/routes/{id}` — Update
 - `DELETE /api/routes/{id}` — Delete (admin only)
 
 #### Route Stops
+
 - `GET /api/route-stops` — List; scoped by role: school admin sees all, driver sees stops on own routes, parent sees stops for own students
 - `GET /api/route-stops/{id}` — Get
 - `POST /api/route-stops` — Create (parent)
@@ -718,16 +762,19 @@ Refresh tokens are automatically invalidated on logout for the `api_token_refres
 - `PATCH /api/route-stops/{id}/reject` — Reject (driver)
 
 #### Active Routes
+
 - `GET /api/active_routes` — List; scoped by role: school admin sees all, driver sees own active routes, parent sees active routes with their students
 - `POST /api/active_routes` — Create (`ROUTE_MANAGE` — admin, or driver if flag enabled)
 - `PATCH /api/active_routes/{id}` — Update status (driver/admin)
 - `DELETE /api/active_routes/{id}` — Cancel (`ROUTE_MANAGE`)
 
 #### Attendance
+
 - `POST /api/attendances` — Record check-in/check-out (driver/admin)
 - `GET /api/attendances` — Get records
 
 #### Notification Preferences
+
 - `GET /api/notification_preferences/{id}` — Get
 - `POST /api/notification_preferences` — Create
 - `PATCH /api/notification_preferences/{id}` — Update
@@ -735,6 +782,7 @@ Refresh tokens are automatically invalidated on logout for the `api_token_refres
 ### GPS Tracking
 
 #### Update Driver Location
+
 ```http
 POST /api/tracking/location
 Authorization: Bearer {driver-jwt}
@@ -751,6 +799,7 @@ Content-Type: application/json
 ```
 
 **Response `201`:**
+
 ```json
 {
   "success": true,
@@ -762,6 +811,7 @@ Content-Type: application/json
 **Rate limit:** 1 request per 3 seconds per driver. Excess returns `429 Too Many Requests`.
 
 #### Batch Update
+
 ```http
 POST /api/tracking/location/batch
 Authorization: Bearer {driver-jwt}
@@ -776,6 +826,7 @@ Content-Type: application/json
 ```
 
 #### Get Latest Driver Position
+
 ```http
 GET /api/tracking/location/driver/{driverId}
 Authorization: Bearer {jwt}
@@ -796,6 +847,7 @@ Returns the Redis-cached position (< 15 s old) if available, otherwise the lates
 ```
 
 #### Driver Location History
+
 ```http
 GET /api/tracking/location/driver/{driverId}/history?date=2026-02-23&limit=100
 Authorization: Bearer {admin-jwt}   (ROLE_SCHOOL_ADMIN or ROLE_DRIVER if flag enabled)
@@ -804,6 +856,7 @@ Authorization: Bearer {admin-jwt}   (ROLE_SCHOOL_ADMIN or ROLE_DRIVER if flag en
 ### Distress Signal
 
 #### Trigger Manual Distress
+
 ```http
 POST /api/routes/sessions/{id}/distress
 Authorization: Bearer {driver-jwt}
@@ -812,11 +865,13 @@ Authorization: Bearer {driver-jwt}
 The authenticated driver must own the in-progress route session.
 
 **Response `202 Accepted`:**
+
 ```json
 { "alertId": "550e8400-e29b-41d4-a716-446655440000" }
 ```
 
 **Error `409 Conflict`** if an active alert already exists for this driver:
+
 ```json
 {
   "error": "An active distress alert already exists",
@@ -827,6 +882,7 @@ The authenticated driver must own the in-progress route session.
 ### Driver Alerts
 
 #### Respond to an Alert (nearby driver)
+
 ```http
 POST /api/driver-alerts/{alertId}/respond
 Authorization: Bearer {driver-jwt}
@@ -835,6 +891,7 @@ Authorization: Bearer {driver-jwt}
 Caller's driver ID must appear in the alert's `nearbyDriverIds` list (populated by `DriverDistressHandler`).
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -844,6 +901,7 @@ Caller's driver ID must appear in the alert's `nearbyDriverIds` list (populated 
 ```
 
 #### Resolve an Alert
+
 ```http
 POST /api/driver-alerts/{alertId}/resolve
 Authorization: Bearer {driver-jwt}
@@ -852,6 +910,7 @@ Authorization: Bearer {driver-jwt}
 Caller must be the distressed driver, the responding driver, or a school admin.
 
 **Response `200`:**
+
 ```json
 {
   "success": true,
@@ -863,6 +922,7 @@ Caller must be the distressed driver, the responding driver, or a school admin.
 ### Emergency Chat
 
 #### Post a Message
+
 ```http
 POST /api/driver-alerts/{alertId}/messages
 Authorization: Bearer {jwt}
@@ -878,12 +938,14 @@ Content-Type: application/json
 **Access:** Distressed driver's user, responding driver's user, or school admin.
 
 #### Get Messages (paginated)
+
 ```http
 GET /api/driver-alerts/{alertId}/messages?page=1&limit=20
 Authorization: Bearer {jwt}
 ```
 
 **Response `200`:**
+
 ```json
 {
   "alertId": "550e8400-e29b-41d4-a716-446655440000",
@@ -909,6 +971,7 @@ Content is decrypted server-side before being returned.
 All endpoints require `ROLE_SCHOOL_ADMIN` unless noted.
 
 #### Create
+
 ```http
 POST /api/special-event-routes
 Authorization: Bearer {admin-jwt}
@@ -931,12 +994,14 @@ Content-Type: application/json
 **`departure_mode` is only valid when `route_mode` is `FULL_DAY_TRIP`.**
 
 #### List (with filters)
+
 ```http
 GET /api/special-event-routes?school_id=1&date=2026-03-15&status=PUBLISHED&route_mode=FULL_DAY_TRIP
 Authorization: Bearer {admin-jwt}
 ```
 
 #### Get / Update / Delete
+
 ```http
 GET    /api/special-event-routes/{id}
 PATCH  /api/special-event-routes/{id}    # only while status = DRAFT
@@ -945,15 +1010,16 @@ DELETE /api/special-event-routes/{id}    # only while DRAFT or CANCELLED
 
 #### Lifecycle Transitions
 
-| Endpoint | From | To | Notes |
-|---|---|---|---|
-| `POST /api/special-event-routes/{id}/publish` | DRAFT | PUBLISHED | Validates constraints; auto-generates stops |
-| `POST /api/special-event-routes/{id}/start-outbound` | PUBLISHED | IN_PROGRESS | |
-| `POST /api/special-event-routes/{id}/arrive-at-event` | IN_PROGRESS | IN_PROGRESS | ONE_WAY → COMPLETED automatically |
-| `POST /api/special-event-routes/{id}/start-return` | IN_PROGRESS | IN_PROGRESS | ONE_WAY returns 422; RETURN_TO_SCHOOL notifies parents |
-| `POST /api/special-event-routes/{id}/complete` | IN_PROGRESS | COMPLETED | |
+| Endpoint                                              | From        | To          | Notes                                                  |
+| ----------------------------------------------------- | ----------- | ----------- | ------------------------------------------------------ |
+| `POST /api/special-event-routes/{id}/publish`         | DRAFT       | PUBLISHED   | Validates constraints; auto-generates stops            |
+| `POST /api/special-event-routes/{id}/start-outbound`  | PUBLISHED   | IN_PROGRESS |                                                        |
+| `POST /api/special-event-routes/{id}/arrive-at-event` | IN_PROGRESS | IN_PROGRESS | ONE_WAY → COMPLETED automatically                      |
+| `POST /api/special-event-routes/{id}/start-return`    | IN_PROGRESS | IN_PROGRESS | ONE_WAY returns 422; RETURN_TO_SCHOOL notifies parents |
+| `POST /api/special-event-routes/{id}/complete`        | IN_PROGRESS | COMPLETED   |                                                        |
 
 #### Mark Student as Ready (Individual Departure Mode)
+
 ```http
 POST /api/special-event-routes/{id}/students/{studentId}/ready
 Authorization: Bearer {driver-jwt}
@@ -968,6 +1034,7 @@ The handler fires 30 seconds later (via `DelayStamp`), acquires a distributed lo
 ### Custom Dashboard Endpoints
 
 #### Parent Dashboard
+
 ```http
 GET /api/parent/dashboard
 Authorization: Bearer {parent-jwt}
@@ -993,6 +1060,7 @@ Authorization: Bearer {parent-jwt}
 ```
 
 #### School Admin Dashboard
+
 ```http
 GET /api/school-admin/dashboard
 Authorization: Bearer {admin-jwt}
@@ -1001,8 +1069,11 @@ Authorization: Bearer {admin-jwt}
 ```json
 {
   "statistics": {
-    "totalStudents": 150, "totalDrivers": 8,
-    "activeDrivers": 5, "activeRoutes": 5, "completedRoutes": 7
+    "totalStudents": 150,
+    "totalDrivers": 8,
+    "activeDrivers": 5,
+    "activeRoutes": 5,
+    "completedRoutes": 7
   },
   "activeRoutes": [],
   "driverStatuses": [],
@@ -1037,6 +1108,7 @@ Authorization: Bearer {parent-or-admin-jwt}
 ```
 
 **Response `200`:**
+
 ```json
 {
   "results": [
@@ -1055,11 +1127,11 @@ Authorization: Bearer {parent-or-admin-jwt}
 }
 ```
 
-| Parameter | Default | Max | Notes |
-|-----------|---------|-----|-------|
-| `q` | — | 100 chars | Min 2 chars; shorter returns empty results |
-| `page` | 1 | — | |
-| `itemsPerPage` | 10 | 20 | |
+| Parameter      | Default | Max       | Notes                                      |
+| -------------- | ------- | --------- | ------------------------------------------ |
+| `q`            | —       | 100 chars | Min 2 chars; shorter returns empty results |
+| `page`         | 1       | —         |                                            |
+| `itemsPerPage` | 10      | 20        |                                            |
 
 Rate limited: 30 req / 10 sec per user. Excess returns `429 Too Many Requests`.
 
@@ -1122,6 +1194,7 @@ Parent app
 ### API Endpoints
 
 #### Driver Rate Management
+
 ```http
 GET    /api/driver-rates?driver={id}       # List driver's rates
 POST   /api/driver-rates                   # Create a single rate (ROLE_DRIVER)
@@ -1131,15 +1204,19 @@ POST   /api/drivers/{id}/rates             # Bulk set all rates (atomically repl
 ```
 
 Pricing models: `flat`, `per_route`, `per_student`, `per_route_student`.
+
 - **flat** / **per_route**: requires `amount`; `perStudentAmount` must be null
 - **per_student** / **per_route_student**: requires `perStudentAmount`; `amount` must be null
 - **per_route** / **per_route_student**: requires `route`; other models must have `route` null
 
 #### List Driver's Routes (for payment)
+
 When a parent needs to select a route for per-route pricing, fetch the driver's routes:
+
 ```http
 GET /api/routes?driver=42
 ```
+
 Returns all routes assigned to the driver, scoped by the parent's school. The driver detail (`GET /api/drivers/{id}`) also includes route IRIs in the response.
 
 #### Create Payment Preference
@@ -1161,6 +1238,7 @@ Content-Type: application/json
 ```
 
 **Response `201`:**
+
 ```json
 {
   "paymentId": 123,
@@ -1173,6 +1251,7 @@ Content-Type: application/json
 ```
 
 The `amount` is calculated as:
+
 - **flat**: `rate.amount`
 - **per_route**: `rate(route).amount`
 - **per_student**: `rate.perStudentAmount × studentCount`
@@ -1181,12 +1260,14 @@ The `amount` is calculated as:
 Payment detail includes a `rateSnapshot` JSON object recording the pricing model, amounts, route, and student count used at payment time.
 
 #### Check Payment Status
+
 ```http
 GET /api/payments/{id}/status
 Authorization: Bearer {api-jwt}
 ```
 
 #### Mercure Subscriber Token (exchange API JWT → Mercure JWT)
+
 ```http
 # Subscribe to payment status updates
 GET /api/mercure/token?payment_id={id}
@@ -1200,18 +1281,21 @@ Authorization: Bearer {api-jwt}
 Exactly one of `payment_id` or `user_id` must be provided. Users can only request tokens for their own resources (own payments, own user ID). Returns `{ token, hub_url, topics }`. Use `token` only with the Mercure hub, never for API calls.
 
 #### Driver: Connect Mercado Pago
+
 ```http
 GET /oauth/mercadopago/connect     → { redirect_url }
 GET /oauth/mercadopago/status      → { connected, mp_account_id, expires_at }
 ```
 
 #### Subscriptions
+
 ```http
 POST  /api/subscriptions
 PATCH /api/subscriptions/{id}/cancel
 ```
 
 #### Admin
+
 ```http
 POST /api/admin/payments/{id}/refund
 GET  /api/admin/payments/reconciliation?from=2026-03-01&to=2026-03-31
@@ -1268,6 +1352,7 @@ cp .env .env.local
 ```
 
 Edit `.env.local`:
+
 ```bash
 # Database (PostgreSQL 18)
 DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app?serverVersion=18&charset=utf8"
@@ -1354,6 +1439,7 @@ docker compose exec php php bin/console messenger:consume scheduler_default --ti
 ```
 
 **Supervisord (production):**
+
 ```ini
 [program:messenger_async]
 command=php bin/console messenger:consume async --time-limit=3600
@@ -1428,7 +1514,9 @@ let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => (error ? prom.reject(error) : prom.resolve(token)));
+  failedQueue.forEach((prom) =>
+    error ? prom.reject(error) : prom.resolve(token),
+  );
   failedQueue = [];
 };
 
@@ -1459,9 +1547,12 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        const { data } = await axios.post('https://your-api.com/api/token/refresh', {
-          refresh_token: refreshToken,
-        });
+        const { data } = await axios.post(
+          'https://your-api.com/api/token/refresh',
+          {
+            refresh_token: refreshToken,
+          },
+        );
         await AsyncStorage.multiSet([
           ['jwt_token', data.token],
           ['refresh_token', data.refresh_token],
@@ -1479,7 +1570,7 @@ apiClient.interceptors.response.use(
       }
     }
     return Promise.reject(err);
-  }
+  },
 );
 
 export default apiClient;
@@ -1520,7 +1611,8 @@ export const useLocationTracking = () => {
   const sendLocation = async ({ latitude, longitude, speed, heading }) => {
     try {
       await apiClient.post('/tracking/location', {
-        latitude, longitude,
+        latitude,
+        longitude,
         speed: speed ?? null,
         heading: heading ?? null,
         recorded_at: new Date().toISOString(),
@@ -1535,7 +1627,7 @@ export const useLocationTracking = () => {
     watchId.current = Geolocation.watchPosition(
       (pos) => sendLocation(pos.coords),
       console.error,
-      { enableHighAccuracy: true, distanceFilter: 10, interval: 4000 }
+      { enableHighAccuracy: true, distanceFilter: 10, interval: 4000 },
     );
     setTracking(true);
   };
@@ -1638,7 +1730,9 @@ export const sendMessage = (alertId, content) =>
   apiClient.post(`/driver-alerts/${alertId}/messages`, { content });
 
 export const getMessages = (alertId, page = 1, limit = 20) =>
-  apiClient.get(`/driver-alerts/${alertId}/messages`, { params: { page, limit } });
+  apiClient.get(`/driver-alerts/${alertId}/messages`, {
+    params: { page, limit },
+  });
 ```
 
 ### Subscribe to Emergency Chat (Driver/Admin App)
@@ -1658,7 +1752,8 @@ export const useChatUpdates = (alertId) => {
     if (!alertId) return;
 
     // Exchange API JWT for a Mercure subscriber JWT that has /chat/alert/{id} scope
-    apiClient.get(`/mercure/token`, { params: { alert_id: alertId } })
+    apiClient
+      .get(`/mercure/token`, { params: { alert_id: alertId } })
       .then(({ data }) => {
         const url = new URL(HUB_URL);
         url.searchParams.append('topic', `/chat/alert/${alertId}`);
@@ -1667,7 +1762,7 @@ export const useChatUpdates = (alertId) => {
           headers: { Authorization: `Bearer ${data.token}` },
         });
         es.addEventListener('message', (e) =>
-          setMessages((prev) => [...prev, JSON.parse(e.data)])
+          setMessages((prev) => [...prev, JSON.parse(e.data)]),
         );
         return () => es.close();
       });
@@ -1687,10 +1782,16 @@ import { Linking } from 'react-native';
 
 // Fetch the driver's routes (needed for per-route pricing to select routeId)
 export const getDriverRoutes = (driverId) =>
-  apiClient.get('/routes', { params: { driver: driverId } })
+  apiClient
+    .get('/routes', { params: { driver: driverId } })
     .then((r) => r.data);
 
-export const initiatePayment = async (driverId, studentIds, description, routeId = null) => {
+export const initiatePayment = async (
+  driverId,
+  studentIds,
+  description,
+  routeId = null,
+) => {
   const { data } = await apiClient.post('/payments/create-preference', {
     driverId,
     studentIds,
@@ -1704,12 +1805,14 @@ export const initiatePayment = async (driverId, studentIds, description, routeId
 
 // Exchange API JWT → short-lived Mercure JWT for a single payment topic
 export const getMercurePaymentToken = (paymentId) =>
-  apiClient.get('/mercure/token', { params: { payment_id: paymentId } })
+  apiClient
+    .get('/mercure/token', { params: { payment_id: paymentId } })
     .then((r) => r.data);
 
 // Exchange API JWT → short-lived Mercure JWT for user notifications
 export const getMercureUserToken = (userId) =>
-  apiClient.get('/mercure/token', { params: { user_id: userId } })
+  apiClient
+    .get('/mercure/token', { params: { user_id: userId } })
     .then((r) => r.data);
 ```
 
@@ -1793,20 +1896,27 @@ import { useUserNotifications } from '../hooks/useUserNotifications';
 const ParentDashboard = ({ user }) => {
   useUserNotifications(user.id, {
     // Trip events (active route)
-    bus_arriving:       (d) => showAlert(`Bus arriving in ${d.estimatedMinutes} min for ${d.studentName}`),
-    bus_arrived:        (d) => showAlert(`Bus arrived for ${d.studentName}`),
-    student_picked_up:  (d) => updateStatus(d.studentId, 'picked_up'),
-    student_dropped_off:(d) => updateStatus(d.studentId, 'dropped_off'),
-    route_started:      (d) => showAlert(`Route started — driver: ${d.driverName}`),
-    route_completed:    (d) => showAlert('Route completed'),
+    bus_arriving: (d) =>
+      showAlert(
+        `Bus arriving in ${d.estimatedMinutes} min for ${d.studentName}`,
+      ),
+    bus_arrived: (d) => showAlert(`Bus arrived for ${d.studentName}`),
+    student_picked_up: (d) => updateStatus(d.studentId, 'picked_up'),
+    student_dropped_off: (d) => updateStatus(d.studentId, 'dropped_off'),
+    route_started: (d) => showAlert(`Route started — driver: ${d.driverName}`),
+    route_completed: (d) => showAlert('Route completed'),
 
     // Stop link requests
-    route_stop_confirmed: (d) => showAlert(`${d.studentName} confirmed on ${d.routeName} by ${d.driverName}`),
-    route_stop_rejected:  (d) => showAlert(`${d.studentName} rejected from ${d.routeName}`),
+    route_stop_confirmed: (d) =>
+      showAlert(
+        `${d.studentName} confirmed on ${d.routeName} by ${d.driverName}`,
+      ),
+    route_stop_rejected: (d) =>
+      showAlert(`${d.studentName} rejected from ${d.routeName}`),
 
     // Payments
-    payment_approved:   (d) => showPaymentStatus(d, 'approved'),
-    payment_rejected:   (d) => showPaymentStatus(d, 'rejected'),
+    payment_approved: (d) => showPaymentStatus(d, 'approved'),
+    payment_rejected: (d) => showPaymentStatus(d, 'rejected'),
   });
 };
 ```
@@ -1818,7 +1928,8 @@ import { useUserNotifications } from '../hooks/useUserNotifications';
 const DriverDashboard = ({ user }) => {
   useUserNotifications(user.id, {
     // Stop link requests from parents
-    route_stop_requested: (d) => showNewRequest(`${d.studentName} wants to join ${d.routeName}`),
+    route_stop_requested: (d) =>
+      showNewRequest(`${d.studentName} wants to join ${d.routeName}`),
   });
 };
 ```
@@ -1954,14 +2065,14 @@ All events are JSON objects with an `event` field for routing. Timestamps are IS
 
 The following polling endpoints can now be replaced with the SSE connection above:
 
-| Old Polling Pattern | Replacement SSE Event | Notes |
-|---|---|---|
-| Poll `GET /api/active-route-stops` for stop status changes | `stop_status_changed` on `/tracking/route/{id}` | Public topic, no JWT needed |
-| Poll `GET /api/route-stops?isConfirmed=false` for pending requests (driver) | `route_stop_requested` on `/api/users/{driverId}/notifications` | Private topic |
-| Poll for stop confirmation status (parent) | `route_stop_confirmed` / `route_stop_rejected` on `/api/users/{parentId}/notifications` | Private topic |
-| Poll `GET /api/payments/{id}/status` for payment result | `payment_approved` / `payment_rejected` on `/api/users/{userId}/notifications` | Private topic |
+| Old Polling Pattern                                                         | Replacement SSE Event                                                                   | Notes                                                                               |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Poll `GET /api/active-route-stops` for stop status changes                  | `stop_status_changed` on `/tracking/route/{id}`                                         | Private topic — requires subscriber JWT from `GET /api/mercure/token?route_id={id}` |
+| Poll `GET /api/route-stops?isConfirmed=false` for pending requests (driver) | `route_stop_requested` on `/api/users/{driverId}/notifications`                         | Private topic                                                                       |
+| Poll for stop confirmation status (parent)                                  | `route_stop_confirmed` / `route_stop_rejected` on `/api/users/{parentId}/notifications` | Private topic                                                                       |
+| Poll `GET /api/payments/{id}/status` for payment result                     | `payment_approved` / `payment_rejected` on `/api/users/{userId}/notifications`          | Private topic                                                                       |
 
-**Connection strategy:** Open one `EventSource` per authenticated user at app startup (via `useUserNotifications`). For public route tracking, open a second connection to `/tracking/route/{id}` only while viewing the live map (no JWT needed). Close both on logout.
+**Connection strategy:** Open one `EventSource` per authenticated user at app startup (via `useUserNotifications`). For route tracking, open a second connection to `/tracking/route/{id}` only while viewing the live map (private topic — requires a scoped Mercure subscriber JWT). Close both on logout.
 
 ## 🔒 Security Features
 
@@ -2000,20 +2111,21 @@ The following polling endpoints can now be replaced with the SSE connection abov
 
 ### Redis Cache Pools
 
-| Pool | Purpose | TTL | Tags |
-|---|---|---|---|
-| `cache.app` | Default app cache (sessions, MP payment status) | 1 hour | No |
-| `cache.mp_fees` | Mercado Pago fee rates & commission calculations | 6 hours | No |
-| `cache.routes` | Route definitions, stops, student assignments | 5 min | Yes |
-| `cache.drivers` | Driver profiles, vehicle info, ratings | 10 min | Yes |
-| `cache.students` | Student profiles, parent associations, school info | 10 min | Yes |
-| `cache.geo` | Geocoded addresses (365 days), distance calculations (1 hour) | 1 hour | No |
-| `cache.config` | App configuration, feature flags, pricing tiers | 30 min | No |
-| `cache.system` | Symfony framework metadata (APCu in prod) | Process lifetime | No |
+| Pool             | Purpose                                                       | TTL              | Tags |
+| ---------------- | ------------------------------------------------------------- | ---------------- | ---- |
+| `cache.app`      | Default app cache (sessions, MP payment status)               | 1 hour           | No   |
+| `cache.mp_fees`  | Mercado Pago fee rates & commission calculations              | 6 hours          | No   |
+| `cache.routes`   | Route definitions, stops, student assignments                 | 5 min            | Yes  |
+| `cache.drivers`  | Driver profiles, vehicle info, ratings                        | 10 min           | Yes  |
+| `cache.students` | Student profiles, parent associations, school info            | 10 min           | Yes  |
+| `cache.geo`      | Geocoded addresses (365 days), distance calculations (1 hour) | 1 hour           | No   |
+| `cache.config`   | App configuration, feature flags, pricing tiers               | 30 min           | No   |
+| `cache.system`   | Symfony framework metadata (APCu in prod)                     | Process lifetime | No   |
 
 Tag-based invalidation (`route_{id}`, `driver_{id}`, `student_{id}`) is handled by `EntityCacheListener` (Doctrine `postUpdate`/`postRemove`). Cache entries for a route flush atomically when its entity changes — no stale manifests.
 
 To manually invalidate a specific pool:
+
 ```bash
 php bin/console cache:pool:clear cache.mp_fees    # after MP changes fee rates
 php bin/console cache:pool:clear cache.routes     # after bulk route import
@@ -2083,6 +2195,7 @@ Use [semver](https://semver.org/) tags: `v1.0.0`, `v1.0.1`, `v1.1.0`, `v2.0.0`.
 ### Initial Setup
 
 See the implementation guide in `BLUE_GREEN_DEPLOY_PROMPT.md` (Steps 1-8) for:
+
 - Droplet preparation (deploy user, directories, Docker)
 - SSH key generation for GitHub Actions
 - GitHub Secrets configuration (`SSH_PRIVATE_KEY`, `DROPLET_IP`, `SERVER_NAME`)
@@ -2096,13 +2209,13 @@ All production secrets live in `.env.prod` **on the droplet only** — never in 
 
 ### Key Files
 
-| File | Purpose |
-|---|---|
-| `compose.prod.yaml` | Production + blue/green compose overlay (profiles: infra, blue, green) |
-| `scripts/deploy.sh` | Deployment script (runs on droplet, uses Caddy admin API) |
-| `.github/workflows/deploy.yaml` | GitHub Actions deploy workflow |
-| `env.prod.template` | Production env template (committed, no secrets) |
-| `.active-slot` | Tracks which slot is live (on droplet) |
+| File                            | Purpose                                                                |
+| ------------------------------- | ---------------------------------------------------------------------- |
+| `compose.prod.yaml`             | Production + blue/green compose overlay (profiles: infra, blue, green) |
+| `scripts/deploy.sh`             | Deployment script (runs on droplet, uses Caddy admin API)              |
+| `.github/workflows/deploy.yaml` | GitHub Actions deploy workflow                                         |
+| `env.prod.template`             | Production env template (committed, no secrets)                        |
+| `.active-slot`                  | Tracks which slot is live (on droplet)                                 |
 
 ## 🤝 Contributing
 
