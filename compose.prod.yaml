@@ -209,13 +209,15 @@ services:
       # in the site block — including HTTP ones, which crashes Caddy.
       CADDY_EXTRA_CONFIG: |
         http://php-blue:80 {
-            mercure {
-                publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
-                subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
-                anonymous
-                subscriptions
+            route {
+                mercure {
+                    publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
+                    subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
+                    anonymous
+                    subscriptions
+                }
+                respond "Not Found" 404
             }
-            respond "Not Found" 404
         }
     depends_on:
       database:
@@ -321,13 +323,15 @@ services:
       MERCURE_URL: http://php-green:80/.well-known/mercure
       CADDY_EXTRA_CONFIG: |
         http://php-green:80 {
-            mercure {
-                publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
-                subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
-                anonymous
-                subscriptions
+            route {
+                mercure {
+                    publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
+                    subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
+                    anonymous
+                    subscriptions
+                }
+                respond "Not Found" 404
             }
-            respond "Not Found" 404
         }
     depends_on:
       database:
