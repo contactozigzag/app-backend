@@ -59,15 +59,12 @@ slot_containers() {
 
 cd "$PROJECT_DIR"
 
-# Read PUBLIC_DOMAIN from .env.prod
-PUBLIC_DOMAIN=$(grep -E '^PUBLIC_DOMAIN=' .env.prod | cut -d= -f2- || echo "localhost")
-if [ -z "$PUBLIC_DOMAIN" ] || [ "$PUBLIC_DOMAIN" = "localhost" ]; then
-  PUBLIC_DOMAIN=$(grep -E '^SERVER_NAME=' .env.prod | cut -d= -f2- || echo "localhost")
-fi
+# Read SERVER_NAME from .env.prod
+DOMAIN=$(grep -E '^SERVER_NAME=' .env.prod | cut -d= -f2- || echo "localhost")
 
 echo "=== Blue/Green Deploy ==="
 echo "New slot: $NEW_SLOT | Old slot: $OLD_SLOT | Image: $IMAGE_TAG"
-echo "Domain:  $PUBLIC_DOMAIN"
+echo "Domain:  $DOMAIN"
 echo "Time: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo ""
 
