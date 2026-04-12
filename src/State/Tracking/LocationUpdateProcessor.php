@@ -17,9 +17,9 @@ use App\Repository\LocationUpdateRepository;
 use App\Service\DriverLocationCacheService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 
@@ -43,6 +43,7 @@ final readonly class LocationUpdateProcessor implements ProcessorInterface
         private DriverLocationCacheService $locationCache,
         #[Autowire(service: 'limiter.gps_ingestion')]
         private RateLimiterFactoryInterface $gpsIngestionLimiter,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -57,10 +58,26 @@ final readonly class LocationUpdateProcessor implements ProcessorInterface
             throw new NotFoundHttpException('Driver not found.');
         }
 
-        // Rate-limit per driver (1 update per 3 seconds)
-        $limiter = $this->gpsIngestionLimiter->create(sprintf('driver_%d', $driver->getId()));
-        if (! $limiter->consume(1)->isAccepted()) {
-            throw new TooManyRequestsHttpException(message: 'Too many GPS updates. Please wait before sending another.');
+        // Rate-limit per driver (1 update per 3 seconds).
+        // On rejection we fail soft: return success=false + rateLimited=true so the
+        // mobile client can back off without surfacing a 429 error to the user.
+        $limit = $this->gpsIngestionLimiter->create(sprintf('driver_%d', $driver->getId()))->consume(1);
+        if (! $limit->isAccepted()) {
+            $retryAfterSeconds = max(0, $limit->getRetryAfter()->getTimestamp() - time());
+
+            $this->logger->info('GPS update rate-limited', [
+                'driverId' => $driver->getId(),
+                'retryAfterSeconds' => $retryAfterSeconds,
+            ]);
+
+            return new LocationUpdateOutput(
+                success: false,
+                locationId: 0,
+                hasActiveRoute: false,
+                rateLimited: true,
+                retryAfterSeconds: $retryAfterSeconds,
+                message: 'Too many GPS updates. Please wait before sending another.',
+            );
         }
 
         // Check if driver has an active route today

@@ -3273,7 +3273,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "Location recorded",
+                        "description": "Location recorded (or rate-limited soft-failure: success=false, rateLimited=true)",
                         "content": {
                             "application/ld+json": {
                                 "schema": {
@@ -3328,9 +3328,6 @@
                         },
                         "links": {}
                     },
-                    "429": {
-                        "description": "GPS rate limit exceeded"
-                    },
                     "400": {
                         "description": "Invalid input",
                         "content": {
@@ -3354,7 +3351,7 @@
                     }
                 },
                 "summary": "Post a GPS location update",
-                "description": "Ingests a GPS fix for a driver. Rate-limited to 1 update per 3 seconds per driver. Dispatches DriverLocationUpdatedMessage for async processing.",
+                "description": "Ingests a GPS fix for a driver. Rate-limited to 1 update per 3 seconds per driver \u2014 when exceeded, the response carries `success=false`, `rateLimited=true`, and a `retryAfterSeconds` hint instead of a 429 error. Dispatches DriverLocationUpdatedMessage for async processing.",
                 "parameters": [],
                 "requestBody": {
                     "description": "The new DriverLocation resource",
@@ -17235,6 +17232,21 @@
                     },
                     "hasActiveRoute": {
                         "type": "boolean"
+                    },
+                    "rateLimited": {
+                        "type": "boolean"
+                    },
+                    "retryAfterSeconds": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "message": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 }
             },
@@ -17250,6 +17262,21 @@
                     },
                     "hasActiveRoute": {
                         "type": "boolean"
+                    },
+                    "rateLimited": {
+                        "type": "boolean"
+                    },
+                    "retryAfterSeconds": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "message": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 }
             },
@@ -17265,6 +17292,21 @@
                     },
                     "hasActiveRoute": {
                         "type": "boolean"
+                    },
+                    "rateLimited": {
+                        "type": "boolean"
+                    },
+                    "retryAfterSeconds": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "message": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 }
             },
@@ -17284,6 +17326,21 @@
                             },
                             "hasActiveRoute": {
                                 "type": "boolean"
+                            },
+                            "rateLimited": {
+                                "type": "boolean"
+                            },
+                            "retryAfterSeconds": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "message": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
                             }
                         }
                     }
@@ -26089,6 +26146,7 @@
                         }
                     },
                     "plainPassword": {
+                        "minLength": 8,
                         "description": "Plain password for input only (not persisted)",
                         "type": [
                             "string",
@@ -26138,6 +26196,7 @@
                     }
                 },
                 "required": [
+                    "plainPassword",
                     "identificationNumber"
                 ]
             },
@@ -26155,6 +26214,7 @@
                         }
                     },
                     "plainPassword": {
+                        "minLength": 8,
                         "description": "Plain password for input only (not persisted)",
                         "type": [
                             "string",

@@ -54,11 +54,13 @@ final readonly class ActiveRouteCollectionProvider implements ProviderInterface
         }
 
         if ($this->security->isGranted('ROLE_PARENT')) {
+            // Walk the materialized ActiveRouteStop snapshot — same source of
+            // truth as MercureController.handleRouteTrackingToken so a parent
+            // who can list a route can also subscribe to its tracking topic.
             return $this->entityManager->createQuery(
                 'SELECT DISTINCT ar FROM App\Entity\ActiveRoute ar
-                 JOIN ar.routeTemplate r
-                 JOIN App\Entity\RouteStop rs WITH rs.route = r
-                 JOIN rs.student s
+                 JOIN ar.stops ars
+                 JOIN ars.student s
                  JOIN s.parents p
                  WHERE p = :user'
             )

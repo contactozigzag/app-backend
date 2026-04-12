@@ -763,10 +763,14 @@ Refresh tokens are automatically invalidated on logout for the `api_token_refres
 
 #### Active Routes
 
-- `GET /api/active_routes` — List; scoped by role: school admin sees all, driver sees own active routes, parent sees active routes with their students
-- `POST /api/active_routes` — Create (`ROUTE_MANAGE` — admin, or driver if flag enabled)
+- `GET /api/active_routes` — List; scoped by role: school admin sees all, driver sees own active routes, parent sees active routes that have at least one materialized stop for one of their students
+- `POST /api/active_routes` — Create (`ROUTE_MANAGE` — admin, or driver if flag enabled). The processor (`ActiveRouteCreateProcessor`) automatically materializes one `ActiveRouteStop` per active `RouteStop` on the referenced template — this is what makes the trip trackable for parents and what feeds the proximity / push pipeline. If the caller already attached stops in the request, materialization is skipped (idempotent).
 - `PATCH /api/active_routes/{id}` — Update status (driver/admin)
 - `DELETE /api/active_routes/{id}` — Cancel (`ROUTE_MANAGE`)
+
+> **Why stops are materialized at POST time:** the parent Mercure subscriber endpoint, `MercureController::handleRouteTrackingToken`, the proximity evaluation handler, the geofencing service and the attendance flow all read `ActiveRouteStop` rows — never the route template — to decide who can subscribe and when transitions fire. An `ActiveRoute` without materialized stops will produce a parent 403 on `/api/mercure/token`, an empty parent tracking screen, and no `arriving_soon` push.
+>
+> The parent collection query (`ActiveRouteCollectionProvider`) walks the same materialized snapshot, so a parent who can list a route is guaranteed to be able to subscribe to its tracking topic.
 
 #### Attendance
 
@@ -804,11 +808,14 @@ Content-Type: application/json
 {
   "success": true,
   "location_id": 1042,
-  "has_active_route": true
+  "has_active_route": true,
+  "rate_limited": false,
+  "retry_after_seconds": null,
+  "message": null
 }
 ```
 
-**Rate limit:** 1 request per 3 seconds per driver. Excess returns `429 Too Many Requests`.
+**Rate limit (soft failure):** sliding window of **5 requests per 10 seconds per driver** (matches the mobile app's foreground/background emit cadence). When the limit is hit the API still returns **`201`** with `rate_limited: true`, `retry_after_seconds: <int>`, a human message, and `success: false`. The client must back off for `retry_after_seconds` and **must not** retry immediately. No `429` is ever returned for this endpoint — the previous behavior caused the request handler to short-circuit and break downstream Mercure publishes for parents on the route.
 
 #### Batch Update
 
@@ -1334,6 +1341,14 @@ php bin/console app:payment:sync <payment-id> --dry-run
 # Expire stale pending payments (also runs automatically every hour via Scheduler)
 php bin/console app:payment:expire-stale
 php bin/console app:payment:expire-stale --batch-size=200
+
+# Backfill ActiveRouteStop rows for legacy ActiveRoutes that were created before
+# ActiveRouteCreateProcessor materialized stops on POST. Without this, parents
+# get a 403 on /api/mercure/token and the parent tracking screen shows
+# "no children to deliver".
+php bin/console app:active-route:backfill-stops              # backfill every empty route
+php bin/console app:active-route:backfill-stops --id=42      # backfill a single route
+php bin/console app:active-route:backfill-stops --dry-run    # preview only, no writes
 ```
 
 ## 🔧 Installation & Setup
@@ -1608,18 +1623,27 @@ export const useLocationTracking = () => {
   const [tracking, setTracking] = useState(false);
   const watchId = useRef(null);
 
+  const backoffUntil = useRef(0);
+
   const sendLocation = async ({ latitude, longitude, speed, heading }) => {
+    if (Date.now() < backoffUntil.current) return; // honor server-side throttle
+
     try {
-      await apiClient.post('/tracking/location', {
+      const { data } = await apiClient.post('/tracking/location', {
         latitude,
         longitude,
         speed: speed ?? null,
         heading: heading ?? null,
         recorded_at: new Date().toISOString(),
       });
+
+      // Soft-failure rate limit: response is still 201 but rate_limited=true.
+      // Back off for retry_after_seconds before emitting again.
+      if (data?.rate_limited) {
+        backoffUntil.current = Date.now() + (data.retry_after_seconds ?? 1) * 1000;
+      }
     } catch (err) {
-      // 429 = rate limited (1 req / 3 s); ignore silently or queue locally
-      if (err.response?.status !== 429) console.error(err);
+      console.error(err);
     }
   };
 

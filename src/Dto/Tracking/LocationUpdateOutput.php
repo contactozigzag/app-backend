@@ -15,6 +15,12 @@ final readonly class LocationUpdateOutput
         public int $locationId,
         #[Groups(['tracking:location:read'])]
         public bool $hasActiveRoute,
+        #[Groups(['tracking:location:read'])]
+        public bool $rateLimited = false,
+        #[Groups(['tracking:location:read'])]
+        public ?int $retryAfterSeconds = null,
+        #[Groups(['tracking:location:read'])]
+        public ?string $message = null,
     ) {
     }
 }

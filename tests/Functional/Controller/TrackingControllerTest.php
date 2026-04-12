@@ -89,6 +89,44 @@ final class TrackingControllerTest extends AbstractApiTestCase
         $this->assertFalse($data['hasActiveRoute']);
     }
 
+    public function testUpdateLocationRateLimitedReturnsSoftFailure(): void
+    {
+        $client = $this->createApiClient();
+        // Keep the same kernel between requests so the InMemoryStorage
+        // backing the gps_ingestion limiter survives the rate-limit window.
+        $client->disableReboot();
+
+        $driver = DriverFactory::createOne();
+        $this->loginUser($client, $driver->getUser());
+
+        // Vary the timestamp so the idempotency dedup doesn't kick in.
+        $makePayload = static fn (int $i): array => [
+            'driverId' => $driver->getId(),
+            'latitude' => -34.6037,
+            'longitude' => -58.3816,
+            'timestamp' => sprintf('2026-04-12T10:00:%02d+00:00', $i),
+        ];
+
+        // gps_ingestion: 5 per 10s sliding window.
+        // First five calls consume the bucket.
+        for ($i = 0; $i < 5; $i++) {
+            $ok = $this->postJson($client, '/api/tracking/location', $makePayload($i));
+            self::assertResponseStatusCodeSame(201);
+            $this->assertTrue($ok['success'], sprintf('call #%d should succeed', $i));
+        }
+
+        // Sixth call inside the same window must NOT throw 429 — it should fail soft.
+        $rateLimited = $this->postJson($client, '/api/tracking/location', $makePayload(5));
+        self::assertResponseStatusCodeSame(201);
+        $this->assertFalse($rateLimited['success']);
+        $this->assertTrue($rateLimited['rateLimited']);
+        $this->assertSame(0, $rateLimited['locationId']);
+        $this->assertFalse($rateLimited['hasActiveRoute']);
+        $this->assertArrayHasKey('retryAfterSeconds', $rateLimited);
+        $this->assertArrayHasKey('message', $rateLimited);
+        $this->assertNotNull($rateLimited['message']);
+    }
+
     // ── POST /api/tracking/location/batch — authentication & validation ───────
 
     public function testBatchUpdateLocationRequiresAuthentication(): void

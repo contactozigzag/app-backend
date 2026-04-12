@@ -39,15 +39,14 @@ use App\State\Tracking\RouteLocationProvider;
             status: 201,
             openapi: new Operation(
                 responses: [
-                    '201' => new Response('Location recorded'),
+                    '201' => new Response('Location recorded (or rate-limited soft-failure: success=false, rateLimited=true)'),
                     '401' => new Response('Unauthenticated'),
                     '403' => new Response('Requires ROLE_DRIVER'),
                     '404' => new Response('Driver not found'),
                     '422' => new Response('Validation error'),
-                    '429' => new Response('GPS rate limit exceeded'),
                 ],
                 summary: 'Post a GPS location update',
-                description: 'Ingests a GPS fix for a driver. Rate-limited to 1 update per 3 seconds per driver. Dispatches DriverLocationUpdatedMessage for async processing.',
+                description: 'Ingests a GPS fix for a driver. Rate-limited to 1 update per 3 seconds per driver — when exceeded, the response carries `success=false`, `rateLimited=true`, and a `retryAfterSeconds` hint instead of a 429 error. Dispatches DriverLocationUpdatedMessage for async processing.',
             ),
             normalizationContext: [
                 'groups' => ['tracking:location:read'],
