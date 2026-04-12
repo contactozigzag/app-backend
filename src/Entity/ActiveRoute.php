@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Repository\ActiveRouteRepository;
 use App\State\Route\ActiveRouteCollectionProvider;
+use App\State\Route\ActiveRouteCreateProcessor;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -31,7 +32,10 @@ use Symfony\Component\Validator\Constraints as Assert;
             security: "is_granted('ROLE_USER')",
             provider: ActiveRouteCollectionProvider::class,
         ),
-        new Post(security: "is_granted('ROUTE_MANAGE')"),
+        new Post(
+            security: "is_granted('ROUTE_MANAGE')",
+            processor: ActiveRouteCreateProcessor::class,
+        ),
         new Patch(security: "is_granted('ROLE_DRIVER') or is_granted('ROLE_SCHOOL_ADMIN')"),
         new Delete(security: "is_granted('ROUTE_MANAGE')"),
     ],

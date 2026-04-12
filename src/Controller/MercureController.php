@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\ActiveRouteRepository;
 use App\Repository\PaymentRepository;
 use DateTimeImmutable;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -56,6 +57,7 @@ class MercureController extends AbstractController
         private readonly HubInterface $hub,
         private readonly PaymentRepository $paymentRepository,
         private readonly ActiveRouteRepository $activeRouteRepository,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -176,6 +178,11 @@ class MercureController extends AbstractController
         $activeRoute = $this->activeRouteRepository->find((int) $routeId);
 
         if ($activeRoute === null) {
+            $this->logger->info('Mercure token denied: active route not found', [
+                'routeId' => (int) $routeId,
+                'userId' => $user->getId(),
+            ]);
+
             return new JsonResponse(
                 [
                     'error' => 'Route not found.',
@@ -196,12 +203,18 @@ class MercureController extends AbstractController
         }
 
         // Parent with a child on this route
+        $stopCount = 0;
+        $stopsWithStudent = 0;
         $hasChild = false;
+
         foreach ($activeRoute->getStops() as $stop) {
+            ++$stopCount;
             $student = $stop->getStudent();
             if ($student === null) {
                 continue;
             }
+
+            ++$stopsWithStudent;
 
             foreach ($student->getParents() as $parent) {
                 if ($parent->getId() === $user->getId()) {
@@ -212,6 +225,17 @@ class MercureController extends AbstractController
         }
 
         if (! $hasChild) {
+            // Structured diagnostics so a 403 in production tells us *why*:
+            //  - stopCount=0 → ActiveRoute has no rows in active_route_stops yet
+            //  - stopCount>0, stopsWithStudent=0 → stops exist but none reference a student
+            //  - stopCount>0, stopsWithStudent>0 → parent is not linked to any of those students
+            $this->logger->info('Mercure token denied: parent not on route', [
+                'routeId' => (int) $routeId,
+                'userId' => $user->getId(),
+                'stopCount' => $stopCount,
+                'stopsWithStudent' => $stopsWithStudent,
+            ]);
+
             return new JsonResponse(
                 [
                     'error' => 'Access denied.',

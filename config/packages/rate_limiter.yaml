@@ -7,9 +7,13 @@ framework:
             cache_pool: 'cache.app'
 
         gps_ingestion:
-            policy: 'fixed_window'
-            limit: 1
-            interval: '3 seconds'
+            # Sliding window matches the mobile app's emit cadence:
+            # foreground watch ~3s + 10m filter, background ~5s.
+            # 5/10s gives ~1.5x headroom for GPS jitter bursts without
+            # tripping the soft rate-limit path on every other update.
+            policy: 'sliding_window'
+            limit: 5
+            interval: '10 seconds'
             cache_pool: 'cache.app'
 
         driver_search:
