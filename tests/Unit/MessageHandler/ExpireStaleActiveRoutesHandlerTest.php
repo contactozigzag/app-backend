@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\MessageHandler;
 
-use DateTimeImmutable;
 use App\Entity\ActiveRoute;
 use App\Message\ExpireStaleActiveRoutesMessage;
 use App\MessageHandler\ExpireStaleActiveRoutesHandler;
 use App\Repository\ActiveRouteRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Api;
 
-use Symfony\Component\HttpFoundation\Request;
 use App\Tests\AbstractApiTestCase;
 use App\Tests\Factory\StudentFactory;
 use App\Tests\Factory\UserFactory;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Verifies GET /api/students/{id} returns a properly formatted JSON error
