@@ -25,7 +25,7 @@ when@test:
                 type: fingers_crossed
                 action_level: error
                 handler: nested
-                excluded_http_codes: [404, 405]
+                excluded_http_codes: [401, 403, 404, 405]
                 channels: ["!event"]
             nested:
                 type: stream
@@ -39,7 +39,14 @@ when@prod:
                 type: fingers_crossed
                 action_level: error
                 handler: stderr_json
-                excluded_http_codes: [404, 405]
+                # 401/403 are expected client errors. The mobile client already
+                # gets a proper JSON body back via API Platform's error provider
+                # (status/title/detail). Excluding them here stops fingers_crossed
+                # from flushing the whole buffer to stderr as ERROR and logging
+                # "Uncaught PHP Exception AccessDeniedHttpException" on every
+                # unauthorized request — which is not an uncaught error, the
+                # framework handled it and returned 403 to the client.
+                excluded_http_codes: [401, 403, 404, 405]
                 channels: ["!deprecation", "!security_audit"]
                 buffer_size: 50 # How many messages should be saved? Prevent memory leaks
             stderr_json:

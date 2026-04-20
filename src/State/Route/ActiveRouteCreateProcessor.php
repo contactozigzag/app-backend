@@ -49,6 +49,14 @@ final readonly class ActiveRouteCreateProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): ActiveRoute
     {
+        // A newly scheduled trip has no live driver position yet. Null these out
+        // before persist so clients that echo back a payload from a previous trip
+        // cannot seed the new row with a stale GPS point — the parent tracking
+        // screen falls back to these fields when no live SSE update is flowing
+        // and would otherwise render a week-old marker as if it were current.
+        $data->setCurrentLatitude(null);
+        $data->setCurrentLongitude(null);
+
         /** @var ActiveRoute $activeRoute */
         $activeRoute = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
 

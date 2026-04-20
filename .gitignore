@@ -38,3 +38,5 @@ phpstan.neon
 /frankenphp/certs/*.key
 !/frankenphp/certs/.gitkeep
 ###< deployment ###
+# Added by code-review-graph
+.code-review-graph/

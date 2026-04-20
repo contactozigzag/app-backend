@@ -88,6 +88,9 @@ framework:
             # Payment maintenance (expire stale pending payments)
             App\Message\ExpireStalePaymentsMessage: async
 
+            # Active route maintenance (cancel zombies a driver never completed)
+            App\Message\ExpireStaleActiveRoutesMessage: async
+
             # Payment webhooks — isolated RabbitMQ queue via phpamqplib
             App\Message\ProcessWebhookMessage: async_webhooks
 
