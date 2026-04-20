@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\EventListener;
 
 use App\Entity\ActiveRoute;
+use App\Event\RouteCancelledEvent;
 use App\Event\RouteCompletedEvent;
 use App\Event\RouteStartedEvent;
 use App\EventListener\ActiveRouteStatusListener;
@@ -55,6 +56,50 @@ final class ActiveRouteStatusListenerTest extends TestCase
         $route = new ActiveRoute();
         $postUpdateArgs = $this->createPostUpdateArgs($route, [
             'status' => ['in_progress', 'completed'],
+        ]);
+
+        $listener->postUpdate($postUpdateArgs);
+        $listener->postFlush($this->createPostFlushArgs());
+    }
+
+    public function testDispatchesRouteCancelledOnStatusChangeToCancelled(): void
+    {
+        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $dispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with(
+                self::isInstanceOf(RouteCancelledEvent::class),
+                RouteCancelledEvent::NAME,
+            );
+
+        $listener = new ActiveRouteStatusListener($dispatcher, new NullLogger());
+
+        $route = new ActiveRoute();
+        $postUpdateArgs = $this->createPostUpdateArgs($route, [
+            'status' => ['in_progress', 'cancelled'],
+        ]);
+
+        $listener->postUpdate($postUpdateArgs);
+        $listener->postFlush($this->createPostFlushArgs());
+    }
+
+    public function testDispatchesRouteCancelledFromScheduled(): void
+    {
+        // The zombie scheduler cancels past-dated scheduled rows too, not
+        // just in_progress ones — guard that transition explicitly.
+        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $dispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with(
+                self::isInstanceOf(RouteCancelledEvent::class),
+                RouteCancelledEvent::NAME,
+            );
+
+        $listener = new ActiveRouteStatusListener($dispatcher, new NullLogger());
+
+        $route = new ActiveRoute();
+        $postUpdateArgs = $this->createPostUpdateArgs($route, [
+            'status' => ['scheduled', 'cancelled'],
         ]);
 
         $listener->postUpdate($postUpdateArgs);

@@ -11,6 +11,7 @@ use App\Entity\Driver;
 use App\Entity\Student;
 use App\Entity\User;
 use App\Event\BusArrivingEvent;
+use App\Event\RouteCancelledEvent;
 use App\Event\RouteCompletedEvent;
 use App\Event\RouteStartedEvent;
 use App\Event\StopArrivedEvent;
@@ -37,6 +38,7 @@ final class TripMercureSubscriberTest extends TestCase
         $this->assertArrayHasKey(StudentDroppedOffEvent::NAME, $events);
         $this->assertArrayHasKey(RouteStartedEvent::NAME, $events);
         $this->assertArrayHasKey(RouteCompletedEvent::NAME, $events);
+        $this->assertArrayHasKey(RouteCancelledEvent::NAME, $events);
     }
 
     public function testOnBusArrivingPublishesToParentAndRoute(): void
@@ -123,6 +125,35 @@ final class TripMercureSubscriberTest extends TestCase
 
         $subscriber = new TripMercureSubscriber($hub, new NullLogger());
         $subscriber->onRouteCompleted(new RouteCompletedEvent($route));
+    }
+
+    public function testOnRouteCancelledPublishesToAllParentsAndRoute(): void
+    {
+        $hub = $this->createMock(HubInterface::class);
+
+        $publishedTopics = [];
+        $publishedPayloads = [];
+        $hub->expects($this->exactly(3))->method('publish')
+            ->willReturnCallback(function (Update $update) use (&$publishedTopics, &$publishedPayloads): string {
+                $publishedTopics[] = $update->getTopics()[0];
+                $publishedPayloads[] = json_decode($update->getData(), true, 512, JSON_THROW_ON_ERROR);
+
+                return 'id';
+            });
+
+        $route = $this->createRouteWithTwoStops();
+
+        $subscriber = new TripMercureSubscriber($hub, new NullLogger());
+        $subscriber->onRouteCancelled(new RouteCancelledEvent($route));
+
+        $this->assertContains('/api/users/100/notifications', $publishedTopics);
+        $this->assertContains('/api/users/200/notifications', $publishedTopics);
+        $this->assertContains('/tracking/route/42', $publishedTopics);
+
+        foreach ($publishedPayloads as $payload) {
+            $this->assertSame('route_cancelled', $payload['event']);
+            $this->assertSame(42, $payload['routeId']);
+        }
     }
 
     public function testMercurePublishFailureIsLoggedNotThrown(): void

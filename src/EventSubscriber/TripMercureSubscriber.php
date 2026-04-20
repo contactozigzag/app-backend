@@ -9,6 +9,7 @@ use App\Entity\Student;
 use App\Entity\User;
 use App\Event\BusArrivingEvent;
 use App\Event\RouteArrivingEvent;
+use App\Event\RouteCancelledEvent;
 use App\Event\RouteCompletedEvent;
 use App\Event\RouteStartedEvent;
 use App\Event\StopArrivedEvent;
@@ -49,6 +50,7 @@ readonly class TripMercureSubscriber implements EventSubscriberInterface
             RouteStartedEvent::NAME => 'onRouteStarted',
             RouteArrivingEvent::NAME => 'onRouteArriving',
             RouteCompletedEvent::NAME => 'onRouteCompleted',
+            RouteCancelledEvent::NAME => 'onRouteCancelled',
         ];
     }
 
@@ -230,6 +232,27 @@ readonly class TripMercureSubscriber implements EventSubscriberInterface
         $this->publishToParents($this->collectParentsFromRoute($route), $parentData);
         $this->publishToRoute((int) $route->getId(), [
             'event' => 'route_completed',
+            'routeId' => $route->getId(),
+            'timestamp' => $now,
+        ]);
+    }
+
+    public function onRouteCancelled(RouteCancelledEvent $event): void
+    {
+        $route = $event->getRoute();
+        $now = new DateTimeImmutable()->format('c');
+
+        $parentData = [
+            'event' => 'route_cancelled',
+            'eventId' => $event->getEventId(),
+            'routeId' => $route->getId(),
+            'cancelledAt' => $route->getCompletedAt()?->format('c') ?? $now,
+            'timestamp' => $now,
+        ];
+
+        $this->publishToParents($this->collectParentsFromRoute($route), $parentData);
+        $this->publishToRoute((int) $route->getId(), [
+            'event' => 'route_cancelled',
             'routeId' => $route->getId(),
             'timestamp' => $now,
         ]);
