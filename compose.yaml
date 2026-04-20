@@ -102,9 +102,15 @@ services:
   # See: https://github.com/jwage/phpamqplib-messenger
 
   messenger_worker:
-    # Consumes: async (emails, SMS, chat, billing, anomalies) + scheduler_default.
+    # Consumes: async (emails, SMS, chat, anomalies, push dispatch) and
+    # scheduler_default (every recurring job registered in
+    # src/Scheduler/AppScheduleProvider). We keep a single aggregated
+    # #[AsSchedule('default')] provider precisely so this command never needs
+    # to grow when a new recurring job is added — see AppScheduleProvider
+    # for the rationale.
     # WARNING: keep this service at exactly 1 replica. Running multiple instances
-    # will cause the Symfony Scheduler to dispatch duplicate subscription billing jobs.
+    # will cause the Symfony Scheduler to dispatch duplicate billing / expiration
+    # jobs.
     profiles: [workers]
     image: ${IMAGES_PREFIX:-}app-php
     command: ["php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv"]

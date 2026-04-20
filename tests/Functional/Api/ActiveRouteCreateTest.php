@@ -97,4 +97,36 @@ final class ActiveRouteCreateTest extends AbstractApiTestCase
         $this->assertContains($studentA->getId(), $studentIds);
         $this->assertContains($studentB->getId(), $studentIds);
     }
+
+    public function testPostActiveRouteDiscardsClientProvidedCurrentPosition(): void
+    {
+        $client = $this->createApiClient();
+
+        $admin = UserFactory::new()->with([
+            'roles' => ['ROLE_SCHOOL_ADMIN'],
+        ])->create();
+
+        $route = RouteFactory::createOne();
+        $driver = DriverFactory::createOne();
+
+        $this->loginUser($client, $admin);
+
+        $data = $this->postJson($client, '/api/active_routes', [
+            'routeTemplate' => '/api/routes/' . $route->getId(),
+            'driver' => '/api/drivers/' . $driver->getId(),
+            'date' => '2026-04-12',
+            'status' => 'scheduled',
+            'currentLatitude' => '-34.603722',
+            'currentLongitude' => '-58.381592',
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+
+        $em = self::getContainer()->get(EntityManagerInterface::class);
+        $activeRoute = $em->getRepository(ActiveRoute::class)->find($data['id']);
+
+        $this->assertNotNull($activeRoute);
+        $this->assertNull($activeRoute->getCurrentLatitude());
+        $this->assertNull($activeRoute->getCurrentLongitude());
+    }
 }

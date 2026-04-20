@@ -231,6 +231,8 @@ services:
     image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
     container_name: zigzag_messenger_worker_blue
     restart: unless-stopped
+    # Consumes async + scheduler_default. See compose.yaml and
+    # AppScheduleProvider for why we use a single aggregated scheduler.
     command: ["php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv"]
     healthcheck:
       disable: true
@@ -345,6 +347,8 @@ services:
     image: ${IMAGES_PREFIX:-}app-php:${DEPLOY_TAG:-latest}
     container_name: zigzag_messenger_worker_green
     restart: unless-stopped
+    # Consumes async + scheduler_default. See compose.yaml and
+    # AppScheduleProvider for why we use a single aggregated scheduler.
     command: ["php", "bin/console", "messenger:consume", "async", "scheduler_default", "--time-limit=3600", "--memory-limit=128M", "-vv"]
     healthcheck:
       disable: true

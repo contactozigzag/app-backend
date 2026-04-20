@@ -40,15 +40,25 @@ class ActiveRouteRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all in-progress routes
+     * Find all in-progress routes for today.
+     *
+     * Scoped to today so stale zombie rows (a trip that was never completed
+     * days ago) do not pollute live dashboards, anomaly detection, or
+     * geofencing iteration. The nightly stale-route expiration scheduler
+     * cancels old non-terminal rows; this filter guards the read side in
+     * case the scheduler has not run yet.
      *
      * @return ActiveRoute[]
      */
     public function findInProgress(): array
     {
+        $today = new DateTimeImmutable('today');
+
         return $this->createQueryBuilder('ar')
             ->andWhere('ar.status = :status')
+            ->andWhere('ar.date = :today')
             ->setParameter('status', 'in_progress')
+            ->setParameter('today', $today)
             ->getQuery()
             ->getResult();
     }
@@ -96,6 +106,29 @@ class ActiveRouteRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Find non-terminal routes whose trip date is older than today — these
+     * are zombies a driver never completed, so they pollute dashboards and
+     * the parent tracking screen (stale lat/lng). The expire scheduler
+     * cancels these nightly.
+     *
+     * @return ActiveRoute[]
+     */
+    public function findStaleNonTerminal(int $limit = 500): array
+    {
+        $today = new DateTimeImmutable('today');
+
+        return $this->createQueryBuilder('ar')
+            ->andWhere('ar.status IN (:statuses)')
+            ->andWhere('ar.date < :today')
+            ->setParameter('statuses', ['scheduled', 'in_progress', 'arriving'])
+            ->setParameter('today', $today)
+            ->orderBy('ar.date', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countInProgressToday(): int
     {
         $today = new DateTimeImmutable('today');
@@ -135,12 +168,16 @@ class ActiveRouteRepository extends ServiceEntityRepository
      */
     public function findInProgressBySchool(School $school): array
     {
+        $today = new DateTimeImmutable('today');
+
         return $this->createQueryBuilder('ar')
             ->join('ar.routeTemplate', 'rt')
             ->where('rt.school = :school')
             ->andWhere('ar.status = :status')
+            ->andWhere('ar.date = :today')
             ->setParameter('school', $school)
             ->setParameter('status', 'in_progress')
+            ->setParameter('today', $today)
             ->getQuery()
             ->getResult();
     }
