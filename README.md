@@ -535,11 +535,12 @@ Replaces 15-second polling on the parent tracking screen with Mercure Server-Sen
 - `student_dropped_off` — child safely dropped off
 - `route_started` — route has begun, all parents on route notified
 - `route_completed` — route finished
+- `route_cancelled` — route ended without completion (admin cancel, stale-route scheduler at 03:15 UTC, or payment-preference supersede); payload includes `cancelledAt` so the mobile client can land on a terminal summary without waiting for a refresh
 
 **Events published to `/tracking/route/{activeRouteId}`** (private — requires subscriber JWT from `GET /api/mercure/token?route_id={id}`):
 
 - `stop_status_changed` — stop transitions (approaching, arrived, picked_up, dropped_off)
-- `route_started` / `route_completed` — route lifecycle
+- `route_started` / `route_completed` / `route_cancelled` — route lifecycle
 - `route_arriving` — driver entered proximity threshold for the next stop (dispatched by `ProximityEvaluationHandler` and `TripMercureSubscriber`)
 
 **Event Pipeline:**
@@ -555,11 +556,15 @@ AttendanceController → StudentPickedUpEvent/StudentDroppedOffEvent
   └→ RouteNotificationSubscriber → SendPushNotification (async) → Expo push
 
 ActiveRoute PATCH (Doctrine) → ActiveRouteStatusListener
-  └→ RouteStartedEvent/RouteCompletedEvent
+  └→ RouteStartedEvent/RouteCompletedEvent/RouteCancelledEvent
        └→ TripMercureSubscriber → Mercure (private)
        └→ RouteNotificationSubscriber → SendPushNotification (async) → Expo push
   └→ RouteArrivingEvent (on arriving transition)
        └→ TripMercureSubscriber → Mercure /tracking/route/{id} (private), route_arriving event
+
+  RouteCancelledEvent fires on any non-terminal → cancelled transition:
+    admin cancel, payment-preference supersede, or the stale-route
+    scheduler at 03:15 UTC (scheduled/in_progress rows past their date).
 
 DriverLocationUpdatedMessage (async_tracking) → ProximityEvaluationHandler
   └→ sets route status to arriving / in_progress
@@ -574,9 +579,10 @@ DriverLocationUpdatedMessage (async_tracking) → ProximityEvaluationHandler
 - `src/EventSubscriber/TripMercureSubscriber.php` — Mercure publisher for all trip events (including `route_arriving`)
 - `src/EventSubscriber/GeofencingBridgeSubscriber.php` — bridges geofence → domain events
 - `src/EventSubscriber/RouteNotificationSubscriber.php` — dispatches `SendPushNotification` for all trip lifecycle events
-- `src/EventListener/ActiveRouteStatusListener.php` — Doctrine listener for route start/complete/arriving
+- `src/EventListener/ActiveRouteStatusListener.php` — Doctrine listener for route start/complete/arriving/cancel
 - `src/Event/StopApproachingEvent.php`, `src/Event/StopArrivedEvent.php` — extracted from GeofencingService
 - `src/Event/RouteArrivingEvent.php` — fired on `arriving` status transition
+- `src/Event/RouteCancelledEvent.php` — fired on cancellation transition from any non-terminal state
 
 ### Phase 12b: Stop Link Request Notifications (SSE) ✅
 
@@ -630,7 +636,7 @@ Mobile push notification delivery via the Expo Push API, with two-phase ticket/r
 4. `PushNotificationScheduleProvider` (`#[AsSchedule('push_notifications')]`) dispatches `CheckPushReceipts` every **15 minutes**
 5. `CheckPushReceiptsHandler` fetches receipts from Expo, marks tickets checked/error, and deactivates tokens on `DeviceNotRegistered`
 
-**Client-side deduplication:** Trip domain events (`BusArrivingEvent`, `StopArrivedEvent`, `StudentPickedUpEvent`, `StudentDroppedOffEvent`, `RouteStartedEvent`, `RouteCompletedEvent`, `RouteArrivingEvent`) use the `HasEventId` trait. The same `eventId` (UUIDv7) is embedded in both the Mercure SSE payload and the push notification `data` object — the mobile client can suppress duplicate in-app banners by checking whether a push for that `eventId` already arrived.
+**Client-side deduplication:** Trip domain events (`BusArrivingEvent`, `StopArrivedEvent`, `StudentPickedUpEvent`, `StudentDroppedOffEvent`, `RouteStartedEvent`, `RouteCompletedEvent`, `RouteCancelledEvent`, `RouteArrivingEvent`) use the `HasEventId` trait. The same `eventId` (UUIDv7) is embedded in both the Mercure SSE payload and the push notification `data` object — the mobile client can suppress duplicate in-app banners by checking whether a push for that `eventId` already arrived.
 
 **Android notification channels** (auto-selected by `notificationType` prefix):
 

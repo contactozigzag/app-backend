@@ -6,6 +6,7 @@ namespace App\EventListener;
 
 use App\Entity\ActiveRoute;
 use App\Event\RouteArrivingEvent;
+use App\Event\RouteCancelledEvent;
 use App\Event\RouteCompletedEvent;
 use App\Event\RouteStartedEvent;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
@@ -113,6 +114,20 @@ class ActiveRouteStatusListener
             $this->eventDispatcher->dispatch(
                 new RouteCompletedEvent($route),
                 RouteCompletedEvent::NAME,
+            );
+
+            return;
+        }
+
+        if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
+            $this->logger->info('ActiveRouteStatusListener: route cancelled', [
+                'route_id' => $route->getId(),
+                'previous_status' => $oldStatus,
+            ]);
+
+            $this->eventDispatcher->dispatch(
+                new RouteCancelledEvent($route),
+                RouteCancelledEvent::NAME,
             );
         }
     }
