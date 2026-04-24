@@ -8,7 +8,10 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\ActiveRoute;
 use App\Entity\ActiveRouteStop;
+use App\Entity\Driver;
 use App\Entity\Route;
+use App\Repository\ActiveRouteRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -43,6 +46,7 @@ final readonly class ActiveRouteCreateProcessor implements ProcessorInterface
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
         private ProcessorInterface $persistProcessor,
         private EntityManagerInterface $entityManager,
+        private ActiveRouteRepository $activeRouteRepository,
         private LoggerInterface $logger,
     ) {
     }
@@ -56,6 +60,17 @@ final readonly class ActiveRouteCreateProcessor implements ProcessorInterface
         // and would otherwise render a week-old marker as if it were current.
         $data->setCurrentLatitude(null);
         $data->setCurrentLongitude(null);
+
+        // Auto-cancel any prior non-terminal trip for the same
+        // (routeTemplate, driver, date) — these are zombies from a failed
+        // earlier scheduling attempt that the parent collection query would
+        // otherwise re-latch onto alongside the fresh row. Scoped by template
+        // because Route.type is morning|afternoon and a driver may run both
+        // on the same day. Mutating status here causes the unit-of-work to
+        // flush the cancellation in the same transaction as the new row's
+        // persist, so RouteCancelledEvent fires (Mercure route_cancelled)
+        // and clients drop the stale subscription.
+        $this->cancelDuplicates($data);
 
         /** @var ActiveRoute $activeRoute */
         $activeRoute = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
@@ -114,5 +129,39 @@ final readonly class ActiveRouteCreateProcessor implements ProcessorInterface
         ]);
 
         return $activeRoute;
+    }
+
+    private function cancelDuplicates(ActiveRoute $incoming): void
+    {
+        $template = $incoming->getRouteTemplate();
+        $driver = $incoming->getDriver();
+        $date = $incoming->getDate();
+
+        if (! $template instanceof Route || ! $driver instanceof Driver || ! $date instanceof DateTimeImmutable) {
+            return;
+        }
+
+        $duplicates = $this->activeRouteRepository->findNonTerminalForTemplate($template, $driver, $date);
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        $now = new DateTimeImmutable();
+
+        foreach ($duplicates as $duplicate) {
+            $duplicate->setStatus('cancelled');
+
+            if ($duplicate->getCompletedAt() === null) {
+                $duplicate->setCompletedAt($now);
+            }
+
+            $this->logger->info('ActiveRouteCreateProcessor: cancelled duplicate prior trip', [
+                'cancelledActiveRouteId' => $duplicate->getId(),
+                'routeTemplateId' => $template->getId(),
+                'driverId' => $driver->getId(),
+                'date' => $date->format('Y-m-d'),
+            ]);
+        }
     }
 }
