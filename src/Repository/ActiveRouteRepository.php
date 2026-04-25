@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\ActiveRoute;
 use App\Entity\Driver;
+use App\Entity\Route;
 use App\Entity\School;
 use App\Entity\User;
 use DateTimeImmutable;
@@ -125,6 +126,30 @@ class ActiveRouteRepository extends ServiceEntityRepository
             ->setParameter('today', $today)
             ->orderBy('ar.date', 'ASC')
             ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Find non-terminal ActiveRoutes for the same (routeTemplate, driver, date)
+     * triple — the duplicates that ActiveRouteCreateProcessor auto-cancels
+     * before persisting a fresh trip. Scoped by template so a morning trip is
+     * not cancelled when the afternoon route is scheduled (Route.type is
+     * either 'morning' or 'afternoon', and the driver may run both).
+     *
+     * @return ActiveRoute[]
+     */
+    public function findNonTerminalForTemplate(Route $template, Driver $driver, DateTimeImmutable $date): array
+    {
+        return $this->createQueryBuilder('ar')
+            ->andWhere('ar.routeTemplate = :template')
+            ->andWhere('ar.driver = :driver')
+            ->andWhere('ar.date = :date')
+            ->andWhere('ar.status IN (:statuses)')
+            ->setParameter('template', $template)
+            ->setParameter('driver', $driver)
+            ->setParameter('date', $date)
+            ->setParameter('statuses', ['scheduled', 'in_progress', 'arriving'])
             ->getQuery()
             ->getResult();
     }
